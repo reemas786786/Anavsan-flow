@@ -10,7 +10,7 @@ import {
     spendTrendsData,
 } from '../data/dummyData';
 import { Account, User, BigScreenWidget, Page, Recommendation } from '../types';
-import { IconDotsVertical, IconChevronDown, IconAdd, IconList, IconInfo, IconSearch } from '../constants';
+import { IconDotsVertical, IconChevronDown, IconAdd, IconList, IconInfo, IconSearch, IconCheck } from '../constants';
 import InfoTooltip from '../components/InfoTooltip';
 
 interface OverviewProps {
@@ -264,15 +264,33 @@ const CreditsTrendWidget: React.FC = () => {
 };
 
 const WavyGridBackground = () => (
-    <div className="absolute bottom-0 left-0 right-0 h-[400px] pointer-events-none opacity-20 z-0 overflow-hidden">
-        <svg width="100%" height="100%" viewBox="0 0 1440 400" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 200C240 100 480 300 720 200C960 100 1200 300 1440 200V400H0V200Z" fill="none" stroke="url(#gridGradient)" strokeWidth="0.5" />
-            <defs>
-                <linearGradient id="gridGradient" x1="720" y1="0" x2="720" y2="400" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#6932D5" stopOpacity={0.5} />
-                    <stop offset="1" stopColor="#6932D5" stopOpacity={0} />
-                </linearGradient>
-            </defs>
+    <div className="absolute bottom-0 left-0 right-0 h-[600px] pointer-events-none opacity-40 z-0 overflow-hidden">
+        <svg width="100%" height="100%" viewBox="0 0 1440 600" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 450 Q 360 250 720 450 T 1440 450" stroke="#6932D5" strokeWidth="0.5" strokeDasharray="5 5" opacity="0.3" />
+            <path d="M0 480 Q 360 280 720 480 T 1440 480" stroke="#6932D5" strokeWidth="0.5" strokeDasharray="5 5" opacity="0.3" />
+            <path d="M0 510 Q 360 310 720 510 T 1440 510" stroke="#6932D5" strokeWidth="0.5" strokeDasharray="5 5" opacity="0.3" />
+            <path d="M0 540 Q 360 340 720 540 T 1440 540" stroke="#6932D5" strokeWidth="0.5" strokeDasharray="5 5" opacity="0.3" />
+            <path d="M0 570 Q 360 370 720 570 T 1440 570" stroke="#6932D5" strokeWidth="0.5" strokeDasharray="5 5" opacity="0.3" />
+             <path d="M0 600 Q 360 400 720 600 T 1440 600" stroke="#6932D5" strokeWidth="0.5" strokeDasharray="5 5" opacity="0.3" />
+            {/* Grid lines vertical */}
+            {Array.from({ length: 40 }).map((_, i) => (
+                <line key={i} x1={i * 40} y1="0" x2={i * 40} y2="100%" stroke="#6932D5" strokeWidth="0.2" opacity="0.1" />
+            ))}
+        </svg>
+    </div>
+);
+
+const WelcomeIllustration = () => (
+    <div className="absolute top-10 right-10 w-[300px] h-[180px] pointer-events-none select-none animate-in fade-in zoom-in duration-1000">
+        <svg viewBox="0 0 300 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Cloud 1 */}
+            <path d="M220 100c0-15 12-28 27-28 3 0 5 0 8 1 5-10 16-17 28-17 19 0 35 16 35 35 0 2-1 4-1 6 12 5 20 17 20 31 0 19-15 34-34 34H238c-10 0-18-8-18-18s8-18 18-18" fill="#E0E7FF" opacity="0.6"/>
+            {/* Progress Circles */}
+            <circle cx="210" cy="70" r="30" stroke="#3B82F6" strokeWidth="6" strokeDasharray="140 50" opacity="0.8"/>
+            <circle cx="245" cy="45" r="25" stroke="#6366F1" strokeWidth="5" strokeDasharray="100 60" opacity="0.6"/>
+            <circle cx="270" cy="85" r="20" stroke="#A78BFA" strokeWidth="4" strokeDasharray="80 40" opacity="0.4"/>
+            {/* Cloud 2 */}
+            <path d="M160 140c0-10 8-18 18-18 2 0 4 0 6 1 3-7 11-12 19-12 13 0 23 10 23 23 0 1-1 3-1 4 8 3 14 11 14 20 0 13-10 23-23 23H173c-7 0-13-6-13-13z" fill="#DBEAFE" opacity="0.8"/>
         </svg>
     </div>
 );
@@ -301,6 +319,18 @@ const CustomYAxisTick = (props: any) => {
     );
 };
 
+const ScopeItem: React.FC<{ title: string; desc: string }> = ({ title, desc }) => (
+    <div className="flex gap-4 items-start">
+        <div className="w-6 h-6 rounded-full bg-[#EEF4FF] flex items-center justify-center flex-shrink-0 mt-0.5 border border-[#6366F1]/10">
+            <IconCheck className="w-4 h-4 text-[#6366F1]" />
+        </div>
+        <div className="space-y-1">
+            <h4 className="text-sm font-bold text-text-strong">{title}</h4>
+            <p className="text-xs text-text-secondary leading-relaxed font-medium">{desc}</p>
+        </div>
+    </div>
+);
+
 const Overview: React.FC<OverviewProps> = ({ accounts, onSelectAccount, onSelectUser, onAddAccountClick, onNavigate }) => {
     const topAccountsData = useMemo(() => connectionsData.map(acc => {
         const total = acc.tokens / 1000;
@@ -314,27 +344,58 @@ const Overview: React.FC<OverviewProps> = ({ accounts, onSelectAccount, onSelect
 
     if (accounts.length === 0) {
         return (
-            <div className="relative h-full w-full bg-white overflow-hidden flex flex-col">
+            <div className="relative h-full w-full bg-white overflow-hidden flex flex-col p-10 md:p-16">
                 <WavyGridBackground />
-                <div className="relative z-10 p-4 max-w-6xl w-full">
-                    <div className="space-y-4">
-                        <h1 className="text-[40px] font-bold text-text-strong tracking-tight">Welcome to Anavsan</h1>
-                        <p className="text-xl text-text-secondary font-medium">Your smart advisor for Snowflake cost optimization.</p>
+                <WelcomeIllustration />
+                
+                <div className="relative z-10 max-w-7xl w-full">
+                    <div className="space-y-2 mb-20">
+                        <h1 className="text-[48px] font-normal text-[#161616] tracking-tight">Welcome to <strong className="font-black text-primary">Anavsan</strong></h1>
+                        <p className="text-xl text-[#5A5A72] font-medium">Your smart advisor for Snowflake cost optimization.</p>
                     </div>
-                    <div className="mt-16 max-w-2xl">
-                        <div className="bg-white border border-border-light rounded-[32px] p-10 shadow-xl shadow-primary/5">
-                            <h2 className="text-2xl font-black text-text-strong">Get started with Snowflake</h2>
-                            <p className="text-base text-text-secondary mt-4 leading-relaxed">
-                                Anavsan helps you optimize Snowflake. Connect your account to see detailed analysis of your query spend, warehouse usage, and performance.
-                            </p>
-                            <div className="mt-10 flex justify-end">
-                                <button 
-                                    onClick={onAddAccountClick}
-                                    className="bg-primary hover:bg-primary-hover text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-primary/20 flex items-center gap-3 transition-all active:scale-95"
-                                >
-                                    <span className="text-lg">Connect account</span>
-                                    <IconAdd className="w-6 h-6" />
-                                </button>
+
+                    <div className="max-w-5xl animate-in slide-in-from-bottom-8 fade-in duration-700">
+                        <div className="bg-white border border-[#E2DDEB] rounded-[32px] overflow-hidden shadow-2xl shadow-[#6932D5]/5 flex flex-col md:flex-row">
+                            {/* Left Side: Get Started */}
+                            <div className="p-12 flex-1 space-y-8 flex flex-col">
+                                <div>
+                                    <h2 className="text-[28px] font-black text-[#161616] tracking-tight">Get started with Snowflake</h2>
+                                    <p className="text-[15px] text-[#5A5A72] mt-4 leading-relaxed font-medium">
+                                        Anavsan helps you optimize Snowflake. Connect your account to see detailed analysis of your query spend, warehouse usage, and performance.
+                                    </p>
+                                </div>
+                                <div className="mt-auto pt-10">
+                                    <button 
+                                        onClick={onAddAccountClick}
+                                        className="bg-primary hover:bg-primary-hover text-white font-black py-4 px-10 rounded-full shadow-xl shadow-primary/20 flex items-center gap-3 transition-all active:scale-[0.98] group"
+                                    >
+                                        <span className="text-sm uppercase tracking-widest">Connect account</span>
+                                        <IconAdd className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Right Side: Optimization Scope */}
+                            <div className="bg-[#F8F9FA] p-12 w-full md:w-[420px] flex flex-col border-l border-border-light">
+                                <h3 className="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mb-8">Optimization Scope</h3>
+                                <div className="space-y-8 flex-grow">
+                                    <ScopeItem 
+                                        title="Metadata only" 
+                                        desc="Analyzes account and organization usage" 
+                                    />
+                                    <ScopeItem 
+                                        title="Zero data access" 
+                                        desc="Raw table data is never read or stored" 
+                                    />
+                                    <ScopeItem 
+                                        title="Non-Intrusive" 
+                                        desc="No production query execution" 
+                                    />
+                                    <ScopeItem 
+                                        title="Resource efficient" 
+                                        desc="Runs on an X-SMALL warehouse" 
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -429,7 +490,7 @@ const Overview: React.FC<OverviewProps> = ({ accounts, onSelectAccount, onSelect
                 >
                     <div className="h-[350px] flex flex-col">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart layout="vertical" data={topAccountsData} margin={{ left: 50, right: 30, top: 10, bottom: 20 }}>
+                            <BarChart chartValue="totalCredits" layout="vertical" data={topAccountsData} margin={{ left: 50, right: 30, top: 10, bottom: 20 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2DDEB" opacity={0.5} />
                                 <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#9A9AB2' }} />
                                 <YAxis 
