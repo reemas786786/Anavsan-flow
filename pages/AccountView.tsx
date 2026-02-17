@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters, BreadcrumbItem, Warehouse, AssignedQuery, CortexModel, AssignmentStatus } from '../types';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
@@ -424,7 +425,6 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                 sourcePage={activePage}
                 assignment={assignment}
                 currentUser={currentUser}
-                /* Fix: Change handleUpdateAssignmentStatus to onUpdateAssignmentStatus to correctly use the prop */
                 onUpdateAssignmentStatus={onUpdateAssignmentStatus}
                 onAssignToEngineer={onAssignToEngineer}
                 onResolveAssignment={onResolveAssignment}
@@ -462,15 +462,6 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onSimulateQuery={(q) => onSimulateQuery(q, 'Queries')} 
                     filters={allQueriesFilters} 
                     setFilters={setAllQueriesFilters} 
-                />;
-            case 'Slow queries':
-                return <SlowQueriesView 
-                    onAnalyzeQuery={(q) => onAnalyzeQuery(q, 'Slow queries')} 
-                    onOptimizeQuery={(q) => onOptimizeQuery(q, 'Slow queries')} 
-                    onSimulateQuery={(q) => onSimulateQuery(q, 'Slow queries')} 
-                    onPreviewQuery={onPreviewQuery} 
-                    filters={slowQueriesFilters} 
-                    setFilters={setAllQueriesFilters as any} 
                 />;
             case 'Query analyzer':
                 return <QueryAnalyzerView 
@@ -542,7 +533,6 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                         </div>
                     </div>
                     
-                    {/* Explicitly hide horizontal scroll to meet the user's request */}
                     <div className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar ${isDeepDrillDown || activePage === 'Storage' ? '' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
                         <div className="lg:hidden p-4 pb-0">
                              <MobileNav activePage={activePage} onPageChange={handleSidebarPageChange} accountNavItems={accountNavItems} />
