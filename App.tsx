@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -66,7 +65,7 @@ const SplashScreen: React.FC = () => (
         <div className="loader">
             <div className="logo-container">
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="52" viewBox="0 0 48 52" fill="none">
-                    <path d="M26.0245 1.10411C26.5035 0.944589 27.0263 0.947640 27.4289 1.26015C27.8353 1.57579 27.9607 2.08272 27.9091 2.58175C27.8545 3.11164 27.7675 3.64069 27.4289 1.26015C26.0245 1.10411ZM23.0063 10.1675C18.5457 17.0145 14.8187 24.1166 11.563 31.4691C13.3624 30.4149 15.3197 29.6376 17.3675 29.1699L18.3344 28.9598C20.4134 28.5266 22.5251 28.2002 24.6202 27.8323C23.4817 22.1099 22.7559 16.2408 23.0063 10.1675Z" fill="url(#paint0_linear_splash)" stroke="url(#paint1_linear_splash)" strokeWidth="0.75"/>
+                    <path d="M26.0245 1.10411C26.5035 0.944589 27.0263 0.947640 27.4289 1.26015C27.8353 1.57579 27.8353 1.57579 27.4289 1.26015C26.0245 1.10411ZM23.0063 10.1675C18.5457 17.0145 14.8187 24.1166 11.563 31.4691C13.3624 30.4149 15.3197 29.6376 17.3675 29.1699L18.3344 28.9598C20.4134 28.5266 22.5251 28.2002 24.6202 27.8323C23.4817 22.1099 22.7559 16.2408 23.0063 10.1675Z" fill="url(#paint0_linear_splash)" stroke="url(#paint1_linear_splash)" strokeWidth="0.75"/>
                     <defs>
                         <linearGradient id="paint0_linear_splash" x1="23.9999" y1="1.54252" x2="23.9999" y2="50.4578" gradientUnits="userSpaceOnUse">
                             <stop stop-color="#6932D5"/>
@@ -130,6 +129,7 @@ const App: React.FC = () => {
   const [analyzingQuery, setAnalyzingQuery] = useState<QueryListItem | null>(null);
   const [navigationSource, setNavigationSource] = useState<string | null>(null);
   const [backNavigationPage, setBackNavigationPage] = useState<Page>('Accounts');
+  const [returnContext, setReturnContext] = useState<{ account: Account; page: string; warehouse?: Warehouse | null } | null>(null);
   
   const [selectedPullRequest, setSelectedPullRequest] = useState<PullRequest | null>(null);
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
@@ -144,6 +144,18 @@ const App: React.FC = () => {
   const [accountViewPage, setAccountViewPage] = useState('Account overview');
   
   const handleSetActivePage = (page: Page, subPage?: string, additionalState?: any) => {
+    // Save context if we are moving from an account detail view to recommendations
+    if (selectedAccount && page === 'Recommendations') {
+        setReturnContext({ 
+            account: selectedAccount, 
+            page: accountViewPage,
+            warehouse: selectedWarehouse 
+        });
+    } else if (page !== 'Recommendations') {
+        // Clear return context if navigating elsewhere (except between subpages of recommendations if needed)
+        setReturnContext(null);
+    }
+
     setActivePage(page);
     setActiveSubPage(subPage);
     setSelectedAccount(null);
@@ -167,6 +179,18 @@ const App: React.FC = () => {
         setRecommendationFilters(additionalState?.filters || null);
     } else {
         setRecommendationFilters(null);
+    }
+  };
+
+  const handleBackToSource = () => {
+    if (returnContext) {
+        setSelectedAccount(returnContext.account);
+        setAccountViewPage(returnContext.page);
+        setSelectedWarehouse(returnContext.warehouse || null);
+        setActivePage('Accounts');
+        setReturnContext(null);
+    } else {
+        handleSetActivePage('AI data cloud overview');
     }
   };
 
@@ -536,7 +560,7 @@ const App: React.FC = () => {
         case 'Resource summary': return <ResourceSummary initialTab={resourceSummaryTab} onSelectAccount={handleSelectAccount} onSelectApplication={handleSelectApplication} onNavigateToRecommendations={(filters) => handleSetActivePage('Recommendations', undefined, { filters })} />;
         case 'Accounts': return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setSidePanel({ type: 'addAccount' })} onDeleteAccount={(id) => setAccounts(a => a.filter(x => x.id !== id))} />;
         case 'AI agent': return <AIAgent />;
-        case 'Recommendations': return <Recommendations accounts={accounts} currentUser={currentUser} initialFilters={recommendationFilters} onNavigateToQuery={(q) => {setSelectedAccount(accounts[0]); setSelectedQuery(q as QueryListItem);}} onNavigateToWarehouse={(wh) => {setSelectedAccount(accounts[0]); setSelectedWarehouse(wh as Warehouse);}} onAssignTask={handleAssignQueryTask} onOptimizeRecommendation={handleOptimizeRecommendation} selectedRecommendation={selectedRecommendation} onSelectRecommendation={setSelectedRecommendation} />;
+        case 'Recommendations': return <Recommendations accounts={accounts} currentUser={currentUser} initialFilters={recommendationFilters} onNavigateToQuery={(q) => {setSelectedAccount(accounts[0]); setSelectedQuery(q as QueryListItem);}} onNavigateToWarehouse={(wh) => {setSelectedAccount(accounts[0]); setSelectedWarehouse(wh as Warehouse);}} onAssignTask={handleAssignQueryTask} onOptimizeRecommendation={handleOptimizeRecommendation} selectedRecommendation={selectedRecommendation} onSelectRecommendation={setSelectedRecommendation} onBackToSource={handleBackToSource} returnContext={returnContext} />;
         case 'Reports': return <Reports />;
         case 'Workspace':
             if (activeSubPage === 'Assigned tasks') {

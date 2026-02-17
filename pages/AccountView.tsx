@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters, BreadcrumbItem, Warehouse, AssignedQuery, CortexModel, AssignmentStatus } from '../types';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
@@ -285,11 +284,7 @@ const StorageTabbedView: React.FC<{
                     <p className="text-sm text-text-secondary font-medium mt-1 mb-2">Explore and manage storage costs, table health, and database efficiency.</p>
                 </div>
                 
-                <div className="flex flex-wrap items-center gap-3 overflow-x-auto no-scrollbar pb-1">
-                    <KPILabel label="Storage credits" value={`${storageSummaryData.totalCredits.toLocaleString()} cr`} />
-                    <KPILabel label="Total size" value={`${(storageSummaryData.totalStorageGB / 1000).toFixed(1)} TB`} />
-                    <KPILabel label="Est. monthly cost" value={`$${storageSummaryData.totalSpend.toLocaleString()}`} />
-                </div>
+                {/* KPI Labels removed as per user request */}
 
                 <div className="flex gap-8">
                     {(['Storage overview', 'Databases'] as const).map(tab => (

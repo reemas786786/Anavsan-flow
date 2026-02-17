@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Recommendation, ResourceType, SeverityImpact, Account, RecommendationStatus, QueryListItem, Warehouse, User } from '../types';
 import { recommendationsData as initialData, connectionsData } from '../data/dummyData';
@@ -243,7 +242,9 @@ const Recommendations: React.FC<{
     onOptimizeRecommendation?: (recommendation: Recommendation) => void;
     selectedRecommendation: Recommendation | null;
     onSelectRecommendation: (rec: Recommendation | null) => void;
-}> = ({ accounts, currentUser, initialFilters, onNavigateToQuery, onNavigateToWarehouse, onAssignTask, onOptimizeRecommendation, selectedRecommendation, onSelectRecommendation }) => {
+    onBackToSource?: () => void;
+    returnContext?: { account: Account; page: string; warehouse?: Warehouse | null } | null;
+}> = ({ accounts, currentUser, initialFilters, onNavigateToQuery, onNavigateToWarehouse, onAssignTask, onOptimizeRecommendation, selectedRecommendation, onSelectRecommendation, onBackToSource, returnContext }) => {
     const [data, setData] = useState<Recommendation[]>(initialData);
     const [search, setSearch] = useState('');
     const [isContextual, setIsContextual] = useState(false);
@@ -361,7 +362,18 @@ const Recommendations: React.FC<{
         <div className="flex flex-col h-full bg-background gap-4 p-4 pb-12">
             <div className="flex justify-between items-end mb-4">
                 <div>
-                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Recommendations</h1>
+                    <div className="flex items-center gap-4">
+                         <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Recommendations</h1>
+                         {returnContext && onBackToSource && (
+                            <button 
+                                onClick={onBackToSource}
+                                className="flex items-center gap-1.5 px-3 py-1 bg-white border border-border-light rounded-lg text-xs font-bold text-primary hover:bg-surface-hover transition-all shadow-sm"
+                            >
+                                <IconChevronLeft className="w-3.5 h-3.5" />
+                                Back to {returnContext.warehouse?.name || returnContext.page}
+                            </button>
+                         )}
+                    </div>
                     <p className="text-sm text-text-secondary font-medium mt-1">
                         Optimize your Snowflake environment with AI-powered insights tailored for performance, cost-efficiency, and operational excellence.
                     </p>
@@ -412,7 +424,7 @@ const Recommendations: React.FC<{
                             options={['New', 'Read', 'In Progress', 'Resolved', 'Archived']} 
                             selectedOptions={statusFilter} 
                             onChange={setStatusFilter} 
-                            selectionMode="single"
+                            selectionMode="single" 
                             layout="inline"
                         />
                     </div>

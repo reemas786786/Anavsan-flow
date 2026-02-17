@@ -1,7 +1,6 @@
-
 import React, { useState, useMemo } from 'react';
-import { Warehouse } from '../types';
-import { IconChevronLeft, IconLightbulb, IconSearch, IconChevronDown } from '../constants';
+import { Warehouse, WarehouseHealth } from '../types';
+import { IconChevronLeft, IconLightbulb, IconSearch, IconChevronDown, IconSparkles, IconChevronRight, IconInfo, IconClose } from '../constants';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 import { queryListData } from '../data/dummyData';
 import Pagination from '../components/Pagination';
@@ -23,6 +22,19 @@ const DetailItem: React.FC<{ label: string; value: React.ReactNode; }> = ({ labe
         <div className="text-sm font-black text-text-primary mt-1">{value}</div>
     </div>
 );
+
+const HealthBadge: React.FC<{ health: WarehouseHealth }> = ({ health }) => {
+    const styles = {
+        'Optimized': 'bg-emerald-50 text-emerald-800 border-emerald-200',
+        'Under-utilized': 'bg-amber-50 text-amber-900 border-amber-200',
+        'Over-provisioned': 'bg-red-50 text-red-900 border-red-200',
+    };
+    return (
+        <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-black uppercase rounded border ${styles[health]}`}>
+            {health.replace('-', ' ')}
+        </span>
+    );
+};
 
 const StatusBadge: React.FC<{ status: Warehouse['status'] }> = ({ status }) => {
     const colorClasses: Record<Warehouse['status'], string> = {
@@ -152,11 +164,11 @@ const QueryHistoryTable: React.FC<{ warehouseName: string }> = ({ warehouseName 
                     <tbody className="divide-y divide-border-light bg-white">
                         {paginatedQueries.map(q => (
                             <tr key={q.id} className="hover:bg-surface-nested group transition-colors">
-                                <td className="px-6 py-4 font-mono text-xs text-link font-bold truncate max-w-[160px]">{q.id.substring(7, 13).toUpperCase()}</td>
-                                <td className="px-6 py-4 font-bold text-text-primary">{q.user}</td>
-                                <td className="px-6 py-4 text-text-secondary font-medium">{q.duration}</td>
-                                <td className="px-6 py-4 font-black text-text-strong">{q.costTokens.toFixed(3)}</td>
-                                <td className="px-6 py-4 text-right text-text-muted font-bold whitespace-nowrap">{new Date(q.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                                <td className="px-6 py-5 font-mono text-xs text-link font-bold truncate max-w-[160px]">{q.id.substring(7, 13).toUpperCase()}</td>
+                                <td className="px-6 py-5 font-bold text-text-primary">{q.user}</td>
+                                <td className="px-6 py-5 text-text-secondary font-medium">{q.duration}</td>
+                                <td className="px-6 py-5 font-black text-text-strong">{q.costTokens.toFixed(3)}</td>
+                                <td className="px-6 py-5 text-right text-text-muted font-bold whitespace-nowrap">{new Date(q.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -182,6 +194,7 @@ const QueryHistoryTable: React.FC<{ warehouseName: string }> = ({ warehouseName 
 // --- MAIN COMPONENT ---
 const WarehouseDetailView: React.FC<WarehouseDetailViewProps> = ({ warehouse, onBack, onNavigateToRecommendations }) => {
     const [activeTab, setActiveTab] = useState<'Details' | 'Query History'>('Details');
+    const [isNotificationVisible, setIsNotificationVisible] = useState(true);
 
     const insightCount = useMemo(() => warehouse.health === 'Optimized' ? 0 : Math.floor(Math.random() * 3) + 1, [warehouse]);
 
@@ -204,6 +217,7 @@ const WarehouseDetailView: React.FC<WarehouseDetailViewProps> = ({ warehouse, on
                                 <div className="flex items-center gap-3">
                                     <h1 className="text-[28px] font-bold text-text-strong tracking-tight">{warehouse.name}</h1>
                                     <div className="flex items-center gap-2">
+                                        <HealthBadge health={warehouse.health} />
                                         <StatusBadge status={warehouse.status} />
                                         <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{warehouse.size}</span>
                                     </div>
@@ -212,24 +226,41 @@ const WarehouseDetailView: React.FC<WarehouseDetailViewProps> = ({ warehouse, on
                             </div>
                         </div>
 
-                        {/* AI Quick Insight Banner - Redesigned to match the reference image exactly */}
-                        <div className="hidden lg:flex items-center gap-6 bg-[#0B051A] text-white px-10 py-5 rounded-[48px] shadow-2xl border border-white/5 animate-in fade-in slide-in-from-right-2 duration-700">
-                             <div className="flex flex-col text-left">
-                                <span className="text-[10px] font-black text-primary uppercase tracking-[0.25em]">Platform AI</span>
-                                <span className="text-[15px] font-bold text-white mt-1">
-                                    {insightCount > 0 ? `Detected ${insightCount} optimizations for this cluster.` : 'Operational health is optimized.'}
-                                </span>
-                             </div>
-                             {insightCount > 0 && (
-                                <button 
-                                    onClick={() => onNavigateToRecommendations?.({ search: warehouse.name })}
-                                    className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/10 group"
-                                    title="View insights"
-                                >
-                                    <IconLightbulb className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
-                                </button>
-                             )}
-                        </div>
+                        {/* Carbon System Notification Component */}
+                        {isNotificationVisible && (
+                            <div className="hidden lg:flex items-center justify-between bg-[#edf5ff] border border-[#d0e2ff] border-l-[4px] border-l-[#0f62fe] px-4 py-3 min-w-[520px] shadow-sm animate-in fade-in slide-in-from-right-2 duration-500">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex-shrink-0 text-[#0f62fe]">
+                                        <IconInfo className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex gap-2 text-sm leading-tight">
+                                        <span className="font-bold text-[#161616]">Platform AI</span>
+                                        <span className="text-[#161616]">
+                                            {insightCount > 0 
+                                                ? `Detected ${insightCount} optimizations for this cluster.` 
+                                                : 'This warehouse is currently running at peak operational health.'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4 ml-6">
+                                    {insightCount > 0 && (
+                                        <button 
+                                            onClick={() => onNavigateToRecommendations?.({ search: warehouse.name })}
+                                            className="text-sm font-semibold text-[#0f62fe] hover:underline whitespace-nowrap"
+                                        >
+                                            View optimizations
+                                        </button>
+                                    )}
+                                    <button 
+                                        onClick={() => setIsNotificationVisible(false)}
+                                        className="p-1 text-[#161616] hover:bg-black/5 rounded transition-colors"
+                                        aria-label="Close notification"
+                                    >
+                                        <IconClose className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Horizontal Tab Navigation */}

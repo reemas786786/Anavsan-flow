@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Warehouse, WarehouseHealth } from '../types';
 import { IconArrowUp, IconArrowDown, IconSearch, IconSparkles, IconInfo, IconChevronRight } from '../constants';
@@ -14,27 +13,6 @@ const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) 
         <span className="text-[13px] font-black text-text-strong whitespace-nowrap">{value}</span>
     </div>
 );
-
-const StatusBadge: React.FC<{ status: Warehouse['status'] }> = ({ status }) => {
-    const colorClasses: Record<Warehouse['status'], string> = {
-        Running: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-        Active: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-        Suspended: 'bg-slate-100 text-slate-700 border-slate-200',
-        Idle: 'bg-blue-50 text-blue-800 border-blue-200',
-    };
-    const dotClasses: Record<Warehouse['status'], string> = {
-        Running: 'bg-emerald-600 animate-pulse',
-        Active: 'bg-emerald-600',
-        Suspended: 'bg-slate-400',
-        Idle: 'bg-blue-600',
-    };
-    return (
-        <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full border ${colorClasses[status]}`}>
-            <span className={`w-1.5 h-1.5 mr-2 rounded-full ${dotClasses[status]}`}></span>
-            {status}
-        </span>
-    );
-};
 
 const HealthBadge: React.FC<{ health: WarehouseHealth }> = ({ health }) => {
     const styles = {
@@ -152,7 +130,7 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
 
             {/* Main Inventory Table */}
             <div className="bg-white rounded-2xl flex flex-col shadow-sm border border-border-light overflow-hidden flex-shrink-0">
-                <div className="p-4 flex flex-wrap items-center gap-6 border-b border-border-light bg-white rounded-t-[12px] relative z-20">
+                <div className="p-4 flex flex-wrap items-center gap-6 border-b border-border-light bg-white rounded-t-[12px] relative z-20 overflow-visible flex-shrink-0">
                     <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
                     <div className="w-px h-4 bg-border-color hidden sm:block"></div>
                     <MultiSelectDropdown label="Size" options={warehouseSizes} selectedOptions={sizeFilter} onChange={setSizeFilter} selectionMode="single" />
@@ -163,7 +141,6 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
                         <input
                             type="search"
                             value={search}
-                            /* Fix: change 'setSearchTerm' to 'setSearch' to match the defined state setter on line 90 */
                             onChange={e => setSearch(e.target.value)}
                             placeholder="Search warehouses..."
                             className="w-full pl-9 pr-4 py-1.5 bg-background border-transparent rounded-full text-[11px] font-medium focus:ring-1 focus:ring-primary"
@@ -178,7 +155,6 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
                                 <th scope="col" className="px-6 py-4 text-left border-b border-border-color"><button onClick={() => requestSort('name')} className="group flex items-center">Warehouse <SortIcon columnKey="name" /></button></th>
                                 <th scope="col" className="px-6 py-4 text-left border-b border-border-color"><button onClick={() => requestSort('health')} className="group flex items-center">Health <SortIcon columnKey="health" /></button></th>
                                 <th scope="col" className="px-6 py-4 text-left border-b border-border-color"><button onClick={() => requestSort('size')} className="group flex items-center">Size <SortIcon columnKey="size" /></button></th>
-                                <th scope="col" className="px-6 py-4 text-left border-b border-border-color"><button onClick={() => requestSort('status')} className="group flex items-center">Status <SortIcon columnKey="status" /></button></th>
                                 <th scope="col" className="px-6 py-4 text-left border-b border-border-color"><button onClick={() => requestSort('credits')} className="group flex items-center">Compute credits <SortIcon columnKey="credits" /></button></th>
                                 <th scope="col" className="px-6 py-4 text-right border-b border-border-color">Insights</th>
                             </tr>
@@ -195,7 +171,6 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
                                         <HealthBadge health={wh.health} />
                                     </td>
                                     <td className="px-6 py-5 font-medium text-text-primary">{wh.size}</td>
-                                    <td className="px-6 py-5"><StatusBadge status={wh.status} /></td>
                                     <td className="px-6 py-5 font-black text-text-strong">{wh.credits.toLocaleString()} cr</td>
                                     <td className="px-6 py-5 text-right">
                                         <div className="flex items-center justify-end">
@@ -247,7 +222,6 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
                                 <XAxis dataKey="date" fontSize={10} axisLine={false} tickLine={false} tick={{fill: '#9A9AB2', fontWeight: 600}} />
                                 <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{fill: '#9A9AB2', fontWeight: 600}} />
-                                {/* Fix: changed 'shadow' to 'boxShadow' */}
                                 <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
                                 <Area type="monotone" dataKey="credits" stroke="#6932D5" strokeWidth={3} fillOpacity={1} fill="url(#usageGradientWH)" />
                             </AreaChart>

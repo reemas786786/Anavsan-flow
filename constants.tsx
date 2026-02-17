@@ -336,7 +336,7 @@ export const IconArrowRight: React.FC<{ className?: string }> = ({ className }) 
 
 export const IconActivity: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12h3m3 0l3-9 4.5 16.5L18.75 12h3" />
     </svg>
 );
 
@@ -359,11 +359,6 @@ export const accountNavItems = [
         children: []
     },
     {
-        name: 'Applications',
-        icon: IconLayers,
-        children: []
-    },
-    {
         name: 'Warehouses',
         icon: IconDatabase,
         children: []
@@ -372,15 +367,6 @@ export const accountNavItems = [
         name: 'Queries',
         icon: IconCode,
         children: []
-    },
-    {
-        name: 'Optimization',
-        icon: IconWand,
-        children: [
-            { name: 'Query analyzer', icon: IconSearch },
-            { name: 'Query optimizer', icon: IconSparkles },
-            { name: 'Query simulator', icon: IconBeaker }
-        ]
     },
     {
         name: 'Storage',
@@ -406,6 +392,15 @@ export const accountNavItems = [
         name: 'Cortex',
         icon: IconSparkles,
         children: []
+    },
+    {
+        name: 'Optimization',
+        icon: IconWand,
+        children: [
+            { name: 'Query analyzer', icon: IconSearch },
+            { name: 'Query optimizer', icon: IconSparkles },
+            { name: 'Query simulator', icon: IconBeaker }
+        ]
     }
 ];
 

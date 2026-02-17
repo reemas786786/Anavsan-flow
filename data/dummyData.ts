@@ -1,4 +1,3 @@
-
 import { 
     Account, DashboardItem, SQLFile, TopQuery, OptimizationOpportunity, Warehouse, User, Widget, 
     SimilarQuery, QueryListItem, QueryStatus, QueryType, QuerySeverity, StorageBreakdownItem, 
@@ -172,19 +171,92 @@ export const recommendationsData: Recommendation[] = (function() {
     const resourceTypes: ResourceType[] = ['Query', 'Warehouse', 'Storage', 'Database', 'User', 'Application', 'Account'];
     const accounts = ['Finance Prod', 'Account B', 'Account C'];
     const insightTypes = ['Scan Optimization', 'Rightsizing', 'Cleanup', 'Security'];
-    
-    for (let i = 1; i <= 50; i++) {
+    const warehouses = ['COMPUTE_WH', 'ETL_WH', 'ANALYTICS_WH', 'LOAD_WH'];
+
+    // 1. Specific High-Value Recommendations for COMPUTE_WH (fixes empty context state)
+    recs.push({
+        id: 'REC-SPEC-001',
+        resourceType: 'Warehouse',
+        affectedResource: 'COMPUTE_WH',
+        severity: 'High',
+        insightType: 'Rightsizing',
+        message: 'COMPUTE_WH is frequently reaching 90%+ peak utilization. Performance is constrained during peak ETL hours.',
+        detailedExplanation: 'Historical analysis over the last 14 days indicates that COMPUTE_WH is undersized for the current query volume. This results in significant queuing and degraded end-user experience during morning reporting windows.',
+        timestamp: new Date().toISOString(),
+        accountName: 'Finance Prod',
+        status: 'New',
+        warehouseName: 'COMPUTE_WH',
+        suggestion: 'Upgrade warehouse size to LARGE during the 09:00 - 11:00 UTC window to eliminate query queuing.',
+        metrics: { utilization: 92, creditsBefore: 1800, estimatedSavings: 0 }
+    });
+
+    recs.push({
+        id: 'REC-SPEC-002',
+        resourceType: 'Query',
+        affectedResource: 'q-9482103',
+        severity: 'High Cost',
+        insightType: 'Scan Optimization',
+        message: 'Query q-9482103 on COMPUTE_WH is performing full table scans on FACT_SALES.',
+        detailedExplanation: 'This query scans 450GB of data per execution. Because FACT_SALES is not clustered by EVENT_DATE, the query engine cannot prune partitions, leading to 10x higher costs than necessary.',
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+        accountName: 'Finance Prod',
+        status: 'New',
+        warehouseName: 'COMPUTE_WH',
+        userName: 'jane_doe',
+        suggestion: 'Apply a explicit filter on EVENT_DATE or implement a CLUSTERING KEY on (EVENT_DATE) for FACT_SALES.',
+        metrics: { creditsBefore: 4.5, estimatedSavings: 3.6, queryText: 'SELECT * FROM FACT_SALES WHERE EVENT_DATE >= "2023-01-01";' }
+    });
+
+    recs.push({
+        id: 'REC-SPEC-003',
+        resourceType: 'Warehouse',
+        affectedResource: 'COMPUTE_WH',
+        severity: 'Cost Saving',
+        insightType: 'Cleanup',
+        message: 'COMPUTE_WH idle time is 22%. Auto-suspend is currently set to 600 seconds.',
+        timestamp: new Date(Date.now() - 7200000).toISOString(),
+        accountName: 'Finance Prod',
+        status: 'In Progress',
+        warehouseName: 'COMPUTE_WH',
+        suggestion: 'Reduce AUTO_SUSPEND to 60 seconds. This is projected to save approximately 15% in monthly compute credits.',
+        metrics: { creditsBefore: 1800, estimatedSavings: 270, suspensionTime: '600s' }
+    });
+
+    // 2. Recommendations for other warehouses to ensure they also have context
+    recs.push({
+        id: 'REC-SPEC-004',
+        resourceType: 'Warehouse',
+        affectedResource: 'LOAD_WH',
+        severity: 'High',
+        insightType: 'Rightsizing',
+        message: 'LOAD_WH (X-Small) is consistently at 100% peak utilization.',
+        timestamp: new Date().toISOString(),
+        accountName: 'Finance Prod',
+        status: 'New',
+        warehouseName: 'LOAD_WH',
+        suggestion: 'Consider scaling to SMALL to reduce ingestion latency for high-frequency streams.',
+        metrics: { utilization: 100, creditsBefore: 600 }
+    });
+
+    // 3. Generate 46 generic recommendations with improved name matching
+    for (let i = 1; i <= 46; i++) {
         const type = resourceTypes[i % resourceTypes.length];
+        const warehouse = warehouses[i % warehouses.length];
+        const account = accounts[i % accounts.length];
+        const severity = i % 5 === 0 ? 'High' : i % 3 === 0 ? 'Cost Saving' : 'Medium';
+        
         recs.push({
             id: `REC-${String(i).padStart(3, '0')}`,
             resourceType: type,
-            affectedResource: `${type}_${i}`,
-            severity: i % 5 === 0 ? 'High' : 'Medium',
+            affectedResource: type === 'Warehouse' ? warehouse : type === 'Query' ? `q-9482${100+i}` : `${type}_${i}`,
+            severity: severity as SeverityImpact,
             insightType: insightTypes[i % insightTypes.length],
-            message: `Identified potential optimization for ${type} ${i}.`,
-            timestamp: new Date().toISOString(),
-            accountName: accounts[i % accounts.length],
-            status: 'New',
+            message: `Identified potential ${insightTypes[i % insightTypes.length].toLowerCase()} for ${type} in ${account}.`,
+            timestamp: new Date(Date.now() - i * 3600000).toISOString(),
+            accountName: account,
+            status: i % 4 === 0 ? 'Resolved' : 'New',
+            warehouseName: warehouse,
+            userName: i % 2 === 0 ? 'jane_doe' : 'mike_de'
         });
     }
     return recs;
@@ -240,7 +312,6 @@ export const accountSpend = {
     tokens: { monthly: 98000, forecasted: 110000 }
 };
 
-// Added missing data exports required by App.tsx and other components
 export const sqlFilesData: SQLFile[] = [
     {
         id: 'file-1',
