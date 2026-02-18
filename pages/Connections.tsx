@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, ConnectionStatus } from '../types';
 import { IconDotsVertical, IconSearch, IconView, IconEdit, IconDelete, IconAdd, IconArrowUp, IconArrowDown, IconClock } from '../constants';
@@ -137,26 +136,6 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
                                     </button>
                                 </th>
                                 <th scope="col" className="px-6 py-4 font-bold text-left border-b border-border-color">
-                                    <button onClick={() => requestSort('warehousesCount')} className="group flex items-center">
-                                        Warehouses <SortIcon columnKey="warehousesCount" />
-                                    </button>
-                                </th>
-                                <th scope="col" className="px-6 py-4 font-bold text-left border-b border-border-color">
-                                    <button onClick={() => requestSort('storageGB')} className="group flex items-center">
-                                        Storage <SortIcon columnKey="storageGB" />
-                                    </button>
-                                </th>
-                                <th scope="col" className="px-6 py-4 font-bold text-left border-b border-border-color">
-                                    <button onClick={() => requestSort('tablesCount')} className="group flex items-center">
-                                        Tables <SortIcon columnKey="tablesCount" />
-                                    </button>
-                                </th>
-                                <th scope="col" className="px-6 py-4 font-bold text-left border-b border-border-color">
-                                    <button onClick={() => requestSort('queriesCount')} className="group flex items-center">
-                                        Queries <SortIcon columnKey="queriesCount" />
-                                    </button>
-                                </th>
-                                <th scope="col" className="px-6 py-4 font-bold text-left border-b border-border-color">
                                     <button onClick={() => requestSort('lastSynced')} className="group flex items-center">
                                         Last Synced <SortIcon columnKey="lastSynced" />
                                     </button>
@@ -177,42 +156,6 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
                                             <span className="font-bold text-link group-hover/cell:underline">{account.name}</span>
                                             <span className="text-[10px] text-text-muted font-mono">{account.identifier}</span>
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-3">
-                                        <button 
-                                            onClick={() => onSelectAccount(account, 'All Warehouses')}
-                                            className="font-bold text-text-primary hover:text-primary hover:bg-primary/5 px-2 py-1 rounded transition-colors"
-                                            title="View Warehouses"
-                                        >
-                                            {account.warehousesCount}
-                                        </button>
-                                    </td>
-                                    <td className="px-6 py-3">
-                                        <button 
-                                            onClick={() => onSelectAccount(account, 'Storage summary')}
-                                            className="font-bold text-text-primary hover:text-primary hover:bg-primary/5 px-2 py-1 rounded transition-colors"
-                                            title="View Storage Summary"
-                                        >
-                                            {(account.storageGB / 1000).toFixed(1)} TB
-                                        </button>
-                                    </td>
-                                    <td className="px-6 py-3">
-                                        <button 
-                                            onClick={() => onSelectAccount(account, 'Databases')}
-                                            className="font-bold text-text-primary hover:text-primary hover:bg-primary/5 px-2 py-1 rounded transition-colors"
-                                            title="View Databases & Tables"
-                                        >
-                                            {account.tablesCount}
-                                        </button>
-                                    </td>
-                                    <td className="px-6 py-3">
-                                        <button 
-                                            onClick={() => onSelectAccount(account, 'All queries')}
-                                            className="font-bold text-text-primary hover:text-primary hover:bg-primary/5 px-2 py-1 rounded transition-colors"
-                                            title="View All Queries"
-                                        >
-                                            {account.queriesCount}
-                                        </button>
                                     </td>
                                     <td className="px-6 py-3 text-left">
                                         <div className="flex items-center gap-1.5 text-text-muted font-medium">

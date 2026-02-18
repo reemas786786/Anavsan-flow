@@ -11,7 +11,7 @@ interface WarehouseDetailViewProps {
     warehouses: Warehouse[];
     onSelectWarehouse: (warehouse: Warehouse) => void;
     onBack: () => void;
-    onNavigateToRecommendations?: (filters: { search?: string; account?: string }) => void;
+    onNavigateToRecommendations?: (filters: { search?: string; account?: string }, context?: any) => void;
 }
 
 // --- HELPER & CHILD COMPONENTS ---
@@ -23,36 +23,29 @@ const DetailItem: React.FC<{ label: string; value: React.ReactNode; }> = ({ labe
     </div>
 );
 
-const HealthBadge: React.FC<{ health: WarehouseHealth }> = ({ health }) => {
-    const styles = {
-        'Optimized': 'bg-emerald-50 text-emerald-800 border-emerald-200',
-        'Under-utilized': 'bg-amber-50 text-amber-900 border-amber-200',
-        'Over-provisioned': 'bg-red-50 text-red-900 border-red-200',
-    };
-    return (
-        <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-black uppercase rounded border ${styles[health]}`}>
-            {health.replace('-', ' ')}
-        </span>
-    );
-};
+const SummaryMetricCard: React.FC<{ 
+    label: string; 
+    value: string; 
+    subValue?: string; 
+}> = ({ label, value, subValue }) => (
+    <div className="bg-white p-4 rounded-[20px] border border-border-light flex flex-col h-[100px] text-left shadow-sm w-full">
+        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{label}</p>
+        <div className="mt-auto">
+            <p className="text-[20px] font-black text-text-strong tracking-tight leading-none">{value}</p>
+            {subValue && <p className="text-[10px] font-bold text-text-secondary mt-1 tracking-tight">{subValue}</p>}
+        </div>
+    </div>
+);
 
-const StatusBadge: React.FC<{ status: Warehouse['status'] }> = ({ status }) => {
-    const colorClasses: Record<Warehouse['status'], string> = {
-        Running: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-        Active: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-        Suspended: 'bg-slate-100 text-slate-700 border-slate-200',
-        Idle: 'bg-blue-50 text-blue-800 border-blue-200',
-    };
-    const dotClasses: Record<Warehouse['status'], string> = {
-        Running: 'bg-emerald-600 animate-pulse',
-        Active: 'bg-emerald-600',
-        Suspended: 'bg-slate-400',
-        Idle: 'bg-blue-600',
-    };
+const HealthBadge: React.FC<{ health: string }> = ({ health }) => {
+    const isOverutilized = health.toLowerCase().includes('over');
+    const styles = isOverutilized 
+        ? 'bg-red-50 text-red-900 border-red-200'
+        : 'bg-emerald-50 text-emerald-800 border-emerald-200';
+    
     return (
-        <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-black uppercase rounded border ${colorClasses[status]}`}>
-            <span className={`w-1.5 h-1.5 mr-1.5 rounded-full ${dotClasses[status]}`}></span>
-            {status}
+        <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-black uppercase rounded border ${styles}`}>
+            {health}
         </span>
     );
 };
@@ -216,26 +209,21 @@ const WarehouseDetailView: React.FC<WarehouseDetailViewProps> = ({ warehouse, on
                             <div className="flex flex-col">
                                 <div className="flex items-center gap-3">
                                     <h1 className="text-[28px] font-bold text-text-strong tracking-tight">{warehouse.name}</h1>
-                                    <div className="flex items-center gap-2">
-                                        <HealthBadge health={warehouse.health} />
-                                        <StatusBadge status={warehouse.status} />
-                                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{warehouse.size}</span>
-                                    </div>
                                 </div>
                                 <p className="text-sm text-text-secondary font-medium mt-1">Detailed performance metrics and configuration for this compute cluster.</p>
                             </div>
                         </div>
 
-                        {/* Carbon System Notification Component */}
+                        {/* Carbon System Actionable Notification Component */}
                         {isNotificationVisible && (
-                            <div className="hidden lg:flex items-center justify-between bg-[#edf5ff] border border-[#d0e2ff] border-l-[4px] border-l-[#0f62fe] px-4 py-3 min-w-[520px] shadow-sm animate-in fade-in slide-in-from-right-2 duration-500">
+                            <div className="hidden lg:flex items-center justify-between bg-[#edf5ff] border border-[#d0e2ff] border-l-[4px] border-l-[#0f62fe] px-4 py-3 min-w-[540px] shadow-sm animate-in fade-in slide-in-from-right-2 duration-500">
                                 <div className="flex items-center gap-3">
                                     <div className="flex-shrink-0 text-[#0f62fe]">
                                         <IconInfo className="w-5 h-5" />
                                     </div>
-                                    <div className="flex gap-2 text-sm leading-tight">
-                                        <span className="font-bold text-[#161616]">Platform AI</span>
-                                        <span className="text-[#161616]">
+                                    <div className="flex flex-wrap gap-x-1.5 text-sm leading-tight text-[#161616]">
+                                        <span className="font-bold">Platform AI</span>
+                                        <span>
                                             {insightCount > 0 
                                                 ? `Detected ${insightCount} optimizations for this cluster.` 
                                                 : 'This warehouse is currently running at peak operational health.'}
@@ -245,7 +233,7 @@ const WarehouseDetailView: React.FC<WarehouseDetailViewProps> = ({ warehouse, on
                                 <div className="flex items-center gap-4 ml-6">
                                     {insightCount > 0 && (
                                         <button 
-                                            onClick={() => onNavigateToRecommendations?.({ search: warehouse.name })}
+                                            onClick={() => onNavigateToRecommendations?.({ search: warehouse.name }, { warehouse })}
                                             className="text-sm font-semibold text-[#0f62fe] hover:underline whitespace-nowrap"
                                         >
                                             View optimizations
@@ -287,48 +275,39 @@ const WarehouseDetailView: React.FC<WarehouseDetailViewProps> = ({ warehouse, on
                 {/* Content Area */}
                 <main className="animate-in fade-in duration-500">
                     {activeTab === 'Details' ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                            {/* Left Column: Metadata & Config */}
-                            <div className="lg:col-span-4 space-y-6">
-                                <div className="bg-white p-8 rounded-[24px] border border-border-light shadow-sm space-y-8">
-                                    <h3 className="text-sm font-black text-text-strong uppercase tracking-[0.2em] border-b border-border-light pb-4">Configurations</h3>
-                                    <div className="grid grid-cols-1 gap-y-8">
-                                        <DetailItem label="Size" value={warehouse.size} />
-                                        <DetailItem label="Auto Suspend" value="600 seconds" />
-                                        <DetailItem label="Auto Resume" value="Enabled" />
-                                        <DetailItem label="Scaling Policy" value="STANDARD" />
-                                        <DetailItem label="Clusters" value="1 Min / 1 Max" />
-                                        <DetailItem label="Resumed On" value="3 hours ago" />
-                                    </div>
-                                </div>
-                                <PrivilegesTable />
+                        <div className="space-y-8">
+                            {/* NEW: 6-Metric Summary Grid */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                <SummaryMetricCard label="Credits Used" value={`${warehouse.tokens.toLocaleString()}`} subValue="cr" />
+                                <SummaryMetricCard label="Avg Runtime" value="4.2s" subValue="Standard performance" />
+                                <SummaryMetricCard label="Query Count" value="120K" subValue="Total executions" />
+                                <SummaryMetricCard label="Queue Load" value="0.63" subValue="Wait efficiency" />
+                                <SummaryMetricCard label="Spillage" value="1.2 GB" subValue="Local memory spill" />
+                                <SummaryMetricCard label="Idle Time" value="4%" subValue="Operational waste" />
                             </div>
 
-                            {/* Right Column: Consumption & Trends */}
-                            <div className="lg:col-span-8 space-y-6">
-                                <div className="bg-white p-8 rounded-[24px] border border-border-light shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-                                    <div className="text-center md:text-left">
-                                        <h3 className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-1">Credits Consumed</h3>
-                                        <p className="text-3xl font-black text-text-primary tracking-tight">
-                                            {warehouse.tokens.toLocaleString()} <span className="text-lg font-medium text-text-secondary">cr</span>
-                                        </p>
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                                {/* Left Column: Metadata & Config */}
+                                <div className="lg:col-span-4 space-y-6">
+                                    <div className="bg-white p-8 rounded-[24px] border border-border-light shadow-sm space-y-8">
+                                        <h3 className="text-sm font-black text-text-strong uppercase tracking-[0.2em] border-b border-border-light pb-4">Configurations</h3>
+                                        <div className="grid grid-cols-1 gap-y-8">
+                                            <DetailItem label="Health Status" value={<HealthBadge health="OVERUTILIZED" />} />
+                                            <DetailItem label="Size" value={warehouse.size} />
+                                            <DetailItem label="Type" value="STANDARD" />
+                                            <DetailItem label="Scaling" value="MULTI CLUSTER (1–3)" />
+                                            <DetailItem label="Auto Suspend" value="600 seconds" />
+                                            <DetailItem label="Auto Resume" value="Enabled" />
+                                            <DetailItem label="Resumed On" value="3 hours ago" />
+                                        </div>
                                     </div>
-                                    <div className="h-px w-full md:h-12 md:w-px bg-border-light"></div>
-                                    <div className="text-center md:text-left">
-                                        <h3 className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-1">Peak Utilization</h3>
-                                        <p className="text-3xl font-black text-text-primary tracking-tight">
-                                            {warehouse.peakUtilization}%
-                                        </p>
-                                    </div>
-                                    <div className="h-px w-full md:h-12 md:w-px bg-border-light"></div>
-                                    <div className="text-center md:text-left">
-                                        <h3 className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-1">Queries Run</h3>
-                                        <p className="text-3xl font-black text-text-primary tracking-tight">
-                                            {warehouse.queriesExecuted.toLocaleString()}
-                                        </p>
-                                    </div>
+                                    <PrivilegesTable />
                                 </div>
-                                <CreditTrendChart />
+
+                                {/* Right Column: Trends */}
+                                <div className="lg:col-span-8 space-y-6">
+                                    <CreditTrendChart />
+                                </div>
                             </div>
                         </div>
                     ) : (
