@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Warehouse, WarehouseHealth } from '../types';
 import { IconArrowUp, IconArrowDown, IconSearch, IconSparkles, IconInfo, IconChevronRight } from '../constants';
 import Pagination from '../components/Pagination';
-import DateRangeDropdown from '../components/DateRangeDropdown';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import InfoTooltip from '../components/InfoTooltip';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar } from 'recharts';
@@ -39,7 +38,6 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
     const [itemsPerPage, setItemsPerPage] = useState(10);
     
     const [search, setSearch] = useState('');
-    const [dateFilter, setDateFilter] = useState<string | { start: string; end: string }>('All');
     const [sizeFilter, setSizeFilter] = useState<string[]>([]);
     const [healthFilter, setHealthFilter] = useState<string[]>([]);
 
@@ -111,7 +109,7 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
 
     const SortIcon: React.FC<{ columnKey: keyof Warehouse }> = ({ columnKey }) => {
         if (!sortConfig || sortConfig.key !== columnKey) return <span className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-50"><IconArrowUp/></span>;
-        return sortConfig.direction === 'ascending' ? <IconArrowUp className="w-4 h-4 ml-1" /> : <IconArrowDown className="w-4 h-4 ml-1" />;
+        return sortConfig.direction === 'ascending' ? <IconArrowUp className="w-4 h-4 ml-1" /> : <IconArrowDown className="h-4 w-4 ml-1" />;
     };
 
     return (
@@ -131,11 +129,11 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
             {/* Main Inventory Table */}
             <div className="bg-white rounded-2xl flex flex-col shadow-sm border border-border-light overflow-hidden flex-shrink-0">
                 <div className="p-4 flex flex-wrap items-center gap-6 border-b border-border-light bg-white rounded-t-[12px] relative z-20 overflow-visible flex-shrink-0">
-                    <DateRangeDropdown selectedValue={dateFilter} onChange={setDateFilter} />
-                    <div className="w-px h-4 bg-border-color hidden sm:block"></div>
-                    <MultiSelectDropdown label="Size" options={warehouseSizes} selectedOptions={sizeFilter} onChange={setSizeFilter} selectionMode="single" />
-                    <div className="w-px h-4 bg-border-color hidden sm:block"></div>
-                    <MultiSelectDropdown label="Health status" options={healthOptions} selectedOptions={healthFilter} onChange={setHealthFilter} selectionMode="single" />
+                    <div className="flex items-center gap-3">
+                        <MultiSelectDropdown label="Size" options={warehouseSizes} selectedOptions={sizeFilter} onChange={setSizeFilter} selectionMode="single" />
+                        <div className="w-px h-4 bg-border-color hidden sm:block"></div>
+                        <MultiSelectDropdown label="Health status" options={healthOptions} selectedOptions={healthFilter} onChange={setHealthFilter} selectionMode="single" />
+                    </div>
                     <div className="relative flex-grow ml-auto max-w-xs">
                         <IconSearch className="h-4 w-4 text-text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
                         <input

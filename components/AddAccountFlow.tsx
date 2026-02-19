@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { IconClose, IconClipboardCopy, IconCheck, IconHelpCircle, IconAdd, IconSparkles, IconUser, IconAdjustments, IconDatabase, IconRefresh, IconInfo, IconChevronRight, IconLockClosed, IconCheckCircle } from '../constants';
 
@@ -111,63 +110,65 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
                     </div>
                 </div>
 
-                {/* Unified Form area */}
+                {/* Unified Form area - Updated to Horizontal Layout for major components */}
                 <div className="flex-grow overflow-y-auto bg-[#F8F9FB] no-scrollbar">
-                    <div className="px-10 py-10 space-y-12 text-left max-w-7xl mx-auto">
+                    <div className="px-10 py-10 space-y-12 text-left max-w-[1600px] mx-auto">
                         
-                        {/* Section 1: Account Identification */}
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <div className="flex items-center gap-3 mb-8">
-                                <div className="w-8 h-8 rounded-lg bg-status-success/10 flex items-center justify-center text-status-success">
-                                    <IconCheck className="w-4 h-4" />
+                        <div className="flex flex-col xl:flex-row gap-12 items-start">
+                            
+                            {/* Left Side: Forms Column */}
+                            <div className="w-full xl:w-[420px] space-y-12 flex-shrink-0">
+                                
+                                {/* Column 1: Account Identification */}
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div className="flex items-center gap-3 mb-8">
+                                        <div className="w-8 h-8 rounded-lg bg-status-success/10 flex items-center justify-center text-status-success">
+                                            <IconCheck className="w-4 h-4" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <h3 className="text-sm font-black text-text-strong uppercase tracking-widest">Account information</h3>
+                                            <p className="text-[10px] text-text-muted font-bold uppercase mt-0.5 tracking-tight">Validate information for mapping</p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-y-6">
+                                        <div className="space-y-2">
+                                            <label className="block text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Account display name <span className="text-status-error">*</span></label>
+                                            <input 
+                                                type="text" 
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                                className="w-full bg-white border border-border-light rounded-[20px] px-6 py-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all font-medium"
+                                                placeholder="e.g. Production Data"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="block text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Snowflake account identifier <span className="text-status-error">*</span></label>
+                                            <input 
+                                                type="text" 
+                                                value={formData.identifier}
+                                                onChange={(e) => setFormData({...formData, identifier: e.target.value})}
+                                                className="w-full bg-white border border-border-light rounded-[20px] px-6 py-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all font-mono"
+                                                placeholder="e.g. XY12345.us-east-1"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="block text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Admin Snowflake username <span className="text-status-error">*</span></label>
+                                            <input 
+                                                type="text" 
+                                                value={formData.username}
+                                                onChange={(e) => setFormData({...formData, username: e.target.value})}
+                                                className="w-full bg-white border border-border-light rounded-[20px] px-6 py-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all font-medium"
+                                                placeholder="e.g. jdoe"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex flex-col">
-                                    <h3 className="text-sm font-black text-text-strong uppercase tracking-widest">Account information</h3>
-                                    <p className="text-[10px] text-text-muted font-bold uppercase mt-0.5 tracking-tight">Validate information for mapping and optimization</p>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                <div className="space-y-2">
-                                    <label className="block text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Account display name <span className="text-status-error">*</span></label>
-                                    <input 
-                                        type="text" 
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                        className="w-full bg-white border border-border-light rounded-[20px] px-6 py-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all font-medium"
-                                        placeholder="e.g. Production Data"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="block text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Snowflake account identifier <span className="text-status-error">*</span></label>
-                                    <input 
-                                        type="text" 
-                                        value={formData.identifier}
-                                        onChange={(e) => setFormData({...formData, identifier: e.target.value})}
-                                        className="w-full bg-white border border-border-light rounded-[20px] px-6 py-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all font-mono"
-                                        placeholder="e.g. XY12345.us-east-1"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="block text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Admin Snowflake username <span className="text-status-error">*</span></label>
-                                    <input 
-                                        type="text" 
-                                        value={formData.username}
-                                        onChange={(e) => setFormData({...formData, username: e.target.value})}
-                                        className="w-full bg-white border border-border-light rounded-[20px] px-6 py-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all font-medium"
-                                        placeholder="e.g. jdoe"
-                                    />
-                                </div>
-                            </div>
-                        </div>
 
-                        <div className="h-px bg-border-light w-full"></div>
+                                <div className="h-px bg-border-light w-full"></div>
 
-                        {/* Section 2: Create Anavsan User (Split Layout) */}
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
-                            <div className="flex flex-col lg:flex-row gap-12">
-                                {/* Left Side: Credential Inputs */}
-                                <div className="lg:w-[420px] space-y-8 flex-shrink-0">
-                                    <div className="flex items-center gap-3 mb-6">
+                                {/* Column 2: Create Anavsan User (Stacked vertically) */}
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
+                                    <div className="flex items-center gap-3 mb-8">
                                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-black text-xs">2</div>
                                         <div className="flex flex-col">
                                             <h3 className="text-sm font-black text-text-strong uppercase tracking-widest">Create Anavsan user</h3>
@@ -218,40 +219,40 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
                                         </div>
                                     </div>
                                     
-                                    <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex gap-3">
+                                    <div className="mt-6 p-4 bg-primary/5 rounded-2xl border border-primary/10 flex gap-3">
                                         <IconInfo className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
                                         <p className="text-[11px] text-text-secondary font-medium leading-relaxed">
                                             Handshake verification typically takes 10-15 seconds.
                                         </p>
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* Right Side: Consolidated Setup Script Area */}
-                                <div className="flex-grow space-y-6">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-2xl bg-sidebar-topbar text-white flex items-center justify-center">
-                                            <IconAdjustments className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-black text-text-strong tracking-tight">Consolidated Setup Script</h3>
-                                            <p className="text-sm text-text-secondary font-medium">Run this script as <span className="font-bold text-text-strong underline decoration-primary/30 underline-offset-2">ACCOUNTADMIN</span> in Snowflake.</p>
-                                        </div>
+                            {/* Column 3: Consolidated Setup Script Area (PLACED HORIZONTALLY) */}
+                            <div className="flex-grow space-y-6 w-full xl:w-auto h-full">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-2xl bg-sidebar-topbar text-white flex items-center justify-center">
+                                        <IconAdjustments className="w-5 h-5" />
                                     </div>
-                                    
-                                    <div className="h-[480px]">
-                                        <CodeBlock code={setupScript} />
+                                    <div>
+                                        <h3 className="text-lg font-black text-text-strong tracking-tight">Consolidated Setup Script</h3>
+                                        <p className="text-sm text-text-secondary font-medium">Run this script as <span className="font-bold text-text-strong underline decoration-primary/30 underline-offset-2">ACCOUNTADMIN</span> in Snowflake.</p>
                                     </div>
+                                </div>
+                                
+                                <div className="h-[640px]">
+                                    <CodeBlock code={setupScript} />
+                                </div>
 
-                                    <div className="flex items-center gap-4 bg-white p-6 rounded-[24px] border border-border-light shadow-sm">
-                                        <div className="w-12 h-12 rounded-full bg-status-success-light flex items-center justify-center flex-shrink-0">
-                                            <IconCheckCircle className="w-6 h-6 text-status-success-dark" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <h4 className="text-sm font-bold text-text-strong">Secure hand-shake</h4>
-                                            <p className="text-xs text-text-secondary leading-relaxed font-medium">
-                                                Anavsan performs a metadata-only audit. No production table data is accessed or stored.
-                                            </p>
-                                        </div>
+                                <div className="flex items-center gap-4 bg-white p-6 rounded-[24px] border border-border-light shadow-sm">
+                                    <div className="w-12 h-12 rounded-full bg-status-success-light flex items-center justify-center flex-shrink-0">
+                                        <IconCheckCircle className="w-6 h-6 text-status-success-dark" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h4 className="text-sm font-bold text-text-strong">Secure hand-shake</h4>
+                                        <p className="text-xs text-text-secondary leading-relaxed font-medium">
+                                            Anavsan performs a metadata-only audit. No production table data is accessed or stored.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
