@@ -113,7 +113,7 @@ const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWareh
     };
 
     return (
-        <div className="px-6 pt-4 pb-12 flex flex-col space-y-6 overflow-y-auto no-scrollbar h-full">
+        <div className="px-4 pt-4 pb-12 flex flex-col space-y-6 overflow-y-auto no-scrollbar h-full">
             <div className="mb-4">
                 <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Warehouses</h1>
                 <p className="text-sm text-text-secondary font-medium mt-1">Manage, monitor health, and optimize all compute clusters in this account.</p>

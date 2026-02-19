@@ -62,7 +62,7 @@ const AccountUsersListView: React.FC<AccountUsersListViewProps> = ({ accountName
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
     return (
-        <div className="flex flex-col h-full bg-background px-6 pt-4 pb-12 space-y-4">
+        <div className="flex flex-col h-full bg-background px-4 pt-4 pb-12 space-y-4">
             <div className="flex-shrink-0 mb-8">
                 <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Users</h1>
                 <p className="text-sm text-text-secondary font-medium mt-1">Track individual consumption and activity for users in this account.</p>

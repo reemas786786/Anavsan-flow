@@ -364,7 +364,7 @@ export const accountNavItems = [
         children: []
     },
     {
-        name: 'Queries',
+        name: 'High-impact queries',
         icon: IconCode,
         children: []
     },

@@ -448,7 +448,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onSelectWarehouse={setSelectedWarehouse} 
                     onNavigateToRecommendations={onNavigateToRecommendations} 
                 />;
-            case 'Queries':
+            case 'High-impact queries':
                 return <QueryListView 
                     onShareQueryClick={onShareQueryClick} 
                     onSelectQuery={setSelectedQuery} 
@@ -505,7 +505,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         }
     };
 
-    const isListView = ['Queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator', 'Warehouses', 'Applications', 'Cortex', 'Storage', 'Workloads', 'Services', 'Users', 'Credit trend'].includes(activePage);
+    const isListView = ['High-impact queries', 'Queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator', 'Warehouses', 'Applications', 'Cortex', 'Storage', 'Workloads', 'Services', 'Users', 'Credit trend'].includes(activePage);
 
     return (
         <div className="flex flex-col h-full overflow-hidden bg-background">

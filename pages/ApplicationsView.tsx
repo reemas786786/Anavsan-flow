@@ -83,7 +83,7 @@ const ApplicationDetailView: React.FC<{
     }, [appRecommendations, application]);
 
     return (
-        <div className="flex flex-col h-full bg-background overflow-y-auto no-scrollbar px-6 pt-4 pb-12 space-y-8">
+        <div className="flex flex-col h-full bg-background overflow-y-auto no-scrollbar px-4 pt-4 pb-12 space-y-8">
             <div className="max-w-[1440px] mx-auto w-full space-y-8">
                 {/* Header Section */}
                 <div className="flex items-center gap-4">

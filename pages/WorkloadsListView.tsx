@@ -53,7 +53,7 @@ const WorkloadsListView: React.FC<WorkloadsListViewProps> = ({ accountName, onNa
     const totalPages = Math.ceil(filteredWorkloads.length / itemsPerPage);
 
     return (
-        <div className="flex flex-col h-full bg-background px-6 pt-4 pb-12 space-y-4">
+        <div className="flex flex-col h-full bg-background px-4 pt-4 pb-12 space-y-4">
             <div className="flex-shrink-0 mb-8">
                 <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Workloads</h1>
                 <p className="text-sm text-text-secondary font-medium mt-1">Monitor and optimize performance categories for this account.</p>

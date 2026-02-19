@@ -82,7 +82,7 @@ const CreditTrendView: React.FC<CreditTrendViewProps> = ({ account }) => {
     }, [dateFilter]);
 
     return (
-        <div className="flex flex-col h-full bg-background px-6 pt-4 pb-12 space-y-8 overflow-y-auto no-scrollbar">
+        <div className="flex flex-col h-full bg-background px-4 pt-4 pb-12 space-y-8 overflow-y-auto no-scrollbar">
             <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Credit trend</h1>

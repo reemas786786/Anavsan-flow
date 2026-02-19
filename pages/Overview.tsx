@@ -405,7 +405,7 @@ const Overview: React.FC<OverviewProps> = ({ accounts, onSelectAccount, onSelect
     }
 
     return (
-        <div className="flex flex-col gap-4 p-4 pb-20 max-w-[1440px] mx-auto">
+        <div className="flex flex-col h-full bg-background gap-4 p-4 pb-20 max-w-[1440px] mx-auto overflow-y-auto no-scrollbar">
             <div className="flex justify-between items-end">
                 <div>
                     <h1 className="text-[28px] font-bold text-text-strong tracking-tight">AI data cloud overview</h1>
@@ -470,7 +470,7 @@ const Overview: React.FC<OverviewProps> = ({ accounts, onSelectAccount, onSelect
                         <SummaryMetricCard 
                             label="Queries" 
                             value="950" 
-                            onClick={() => onNavigate('Resource summary', undefined, { tab: 'Queries' })} 
+                            onClick={() => onNavigate('Resource summary', undefined, { tab: 'High-impact queries' })} 
                         />
                     </div>
                 </div>

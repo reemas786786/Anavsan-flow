@@ -253,9 +253,9 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                         onClick={() => onNavigate('Users')} 
                     />
                     <SummaryMetricCard 
-                        label="Queries" 
+                        label="High-impact queries" 
                         value={account.queriesCount} 
-                        onClick={() => onNavigate('Queries')} 
+                        onClick={() => onNavigate('High-impact queries')} 
                     />
                 </div>
             </div>
@@ -291,7 +291,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
 
                 {/* 2. Top Queries Bar Chart - Click handler moved to Bar for reliable detail drill-down */}
                 <div className="lg:col-span-12">
-                    <WidgetCard title="Top queries by credits" infoText="Queries in this account consuming the highest amount of credits." headerActions={<button onClick={() => onNavigate('Queries')} className="text-[11px] font-bold text-link hover:underline">View all</button>}>
+                    <WidgetCard title="Top queries by credits" infoText="Queries in this account consuming the highest amount of credits." headerActions={<button onClick={() => onNavigate('High-impact queries')} className="text-[11px] font-bold text-link hover:underline">View all</button>}>
                         <div className="h-[380px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart 
