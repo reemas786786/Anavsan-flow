@@ -417,14 +417,6 @@ export const NAV_ITEMS_TOP: NavItem[] = [
             { name: 'Query vault' }
         ]
     },
-    {
-        name: 'Activity logs',
-        icon: IconFileText,
-        subItems: [
-            { name: 'Query logs' },
-            { name: 'System logs' }
-        ]
-    },
     { name: 'Recommendations', icon: IconLightbulb },
     { name: 'Reports', icon: IconReports },
     { name: 'AI agent', icon: IconAIAgent },
@@ -438,6 +430,14 @@ export const NAV_ITEMS_BOTTOM: NavItem[] = [
             { name: 'Your plan' },
             { name: 'Billing history' },
             { name: 'Team consumption' }
+        ]
+    },
+    {
+        name: 'Activity logs',
+        icon: IconFileText,
+        subItems: [
+            { name: 'Query logs' },
+            { name: 'System logs' }
         ]
     },
     { name: 'Integrations', icon: IconShare },

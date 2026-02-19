@@ -325,6 +325,7 @@ const StorageTabbedView: React.FC<{
 
 const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, onBackToAccounts, backLabel, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource, selectedWarehouse, setSelectedWarehouse, warehouses, assignment, currentUser, onUpdateAssignmentStatus, onAssignToEngineer, onResolveAssignment, selectedApplicationId, setSelectedApplicationId, breadcrumbItems, onNavigateToRecommendations }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
+    const [isQueryDrillDown, setIsQueryDrillDown] = useState(false);
     
     // State for All Queries filters
     const [allQueriesFilters, setAllQueriesFilters] = useState<QueryListFilters>({
@@ -395,7 +396,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
     };
 
     const isDatabaseDetailView = !!selectedDatabaseId;
-    const isDeepDrillDown = !!selectedWarehouse || !!selectedQuery || !!selectedPullRequest || isDatabaseDetailView;
+    const isDeepDrillDown = !!selectedWarehouse || !!selectedQuery || !!selectedPullRequest || isDatabaseDetailView || isQueryDrillDown;
     
     const renderContent = () => {
         if (selectedWarehouse) {
@@ -457,6 +458,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onSimulateQuery={(q) => onSimulateQuery(q, 'Queries')} 
                     filters={allQueriesFilters} 
                     setFilters={setAllQueriesFilters} 
+                    onDrillDownChange={setIsQueryDrillDown}
                 />;
             case 'Query analyzer':
                 return <QueryAnalyzerView 
