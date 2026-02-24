@@ -448,6 +448,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                             <StorageSummaryView 
                                 onSelectDatabase={(id) => { handleSidebarPageChange('Databases'); setSelectedDatabaseId(id === '__view_all__' ? null : id); }} 
                                 onSetBigScreenWidget={onSetBigScreenWidget} 
+                                onNavigate={handleSidebarPageChange}
                             />
                         </main>
                     </div>

@@ -67,7 +67,11 @@ const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) 
     </div>
 );
 
-const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => void, onSetBigScreenWidget: (widget: BigScreenWidget) => void }> = ({ onSelectDatabase, onSetBigScreenWidget }) => {
+const StorageSummaryView: React.FC<{ 
+    onSelectDatabase: (databaseId: string) => void, 
+    onSetBigScreenWidget: (widget: BigScreenWidget) => void,
+    onNavigate: (page: string) => void
+}> = ({ onSelectDatabase, onSetBigScreenWidget, onNavigate }) => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const [tableViewData, setTableViewData] = useState<{
@@ -216,26 +220,43 @@ const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => v
                         <p className="text-2xl font-black text-text-strong">{(storageSummaryData.totalCredits / 1000).toFixed(1)}K</p>
                         <p className="text-xs font-bold text-text-muted mt-1">{(storageSummaryData.totalStorageGB / 1000).toFixed(0)} TB</p>
                     </div>
-                    <div className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50">
-                        <p className="text-sm font-medium text-text-muted mb-2">Databases</p>
+                    
+                    {/* Group 1: Database related */}
+                    <button 
+                        onClick={() => onNavigate('Databases')}
+                        className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50 text-left hover:border-primary/30 hover:bg-surface-hover transition-all group"
+                    >
+                        <p className="text-sm font-medium text-text-muted mb-2 group-hover:text-primary">Databases</p>
                         <p className="text-2xl font-black text-text-strong">12</p>
                         <p className="text-xs font-bold text-text-muted mt-1">Active</p>
-                    </div>
-                    <div className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50">
-                        <p className="text-sm font-medium text-text-muted mb-2">Schemas</p>
+                    </button>
+                    <button 
+                        onClick={() => onNavigate('Databases')}
+                        className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50 text-left hover:border-primary/30 hover:bg-surface-hover transition-all group"
+                    >
+                        <p className="text-sm font-medium text-text-muted mb-2 group-hover:text-primary">Schemas</p>
                         <p className="text-2xl font-black text-text-strong">45</p>
                         <p className="text-xs font-bold text-text-muted mt-1">Across all DBs</p>
-                    </div>
-                    <div className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50">
-                        <p className="text-sm font-medium text-text-muted mb-2">Tables</p>
+                    </button>
+                    <button 
+                        onClick={() => onNavigate('Databases')}
+                        className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50 text-left hover:border-primary/30 hover:bg-surface-hover transition-all group"
+                    >
+                        <p className="text-sm font-medium text-text-muted mb-2 group-hover:text-primary">Tables</p>
                         <p className="text-2xl font-black text-text-strong">850</p>
                         <p className="text-xs font-bold text-text-muted mt-1">Total count</p>
-                    </div>
-                    <div className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50">
-                        <p className="text-sm font-medium text-text-muted mb-2">Unused tables</p>
+                    </button>
+
+                    {/* Group 2: Unused tables */}
+                    <button 
+                        onClick={() => onNavigate('Unused tables')}
+                        className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50 text-left hover:border-primary/30 hover:bg-surface-hover transition-all group"
+                    >
+                        <p className="text-sm font-medium text-text-muted mb-2 group-hover:text-primary">Unused tables</p>
                         <p className="text-2xl font-black text-text-strong">{totalUnusedGB.toLocaleString()} GB</p>
                         <p className="text-xs font-bold text-text-muted mt-1">{unusedTablesData.length} count</p>
-                    </div>
+                    </button>
+
                     <div className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50">
                         <p className="text-sm font-medium text-text-muted mb-2">Failsafe</p>
                         <p className="text-2xl font-black text-text-strong">{failsafeData?.storageGB.toLocaleString()} GB</p>
