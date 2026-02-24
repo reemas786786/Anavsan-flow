@@ -92,7 +92,6 @@ const WarehouseHealthWidget: React.FC<{ warehouses: Warehouse[], onNavigate: (pa
 const ComputeOverview: React.FC<ComputeOverviewProps> = ({ account, warehouses, onNavigate, onSelectWarehouse }) => {
     const computeCredits = Math.round(account.tokens * 0.82);
     const cortexCredits = Math.round(account.tokens * 0.02);
-    const activeWarehouses = warehouses.filter(w => w.status === 'Active').length;
     
     const resourceDistribution = [
         { name: 'Warehouse', value: computeCredits, color: '#6932D5', page: 'Warehouse' },
@@ -112,29 +111,22 @@ const ComputeOverview: React.FC<ComputeOverviewProps> = ({ account, warehouses, 
 
     return (
         <div className="flex flex-col h-full bg-background">
-            <header className="px-4 pt-4 pb-4 flex flex-col gap-4 flex-shrink-0 bg-surface border-b border-border-light mb-6">
+            <header className="px-4 pt-4 pb-4 flex flex-col gap-4 flex-shrink-0 mb-6">
                 <div>
-                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Overview</h1>
+                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Compute overview</h1>
                     <p className="text-sm text-text-secondary font-medium mt-1">Monitor and optimize virtual warehouse performance and Cortex AI usage.</p>
                 </div>
             </header>
             
             <div className="flex-1 px-4 pb-12 overflow-y-auto no-scrollbar space-y-6 animate-in fade-in duration-500">
                 {/* Summary Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <SummaryMetricCard 
                         label="Compute Credits" 
                         value={computeCredits.toLocaleString()} 
                         subValue="cr" 
                         icon={IconDatabase} 
                         color="bg-primary/10 text-primary" 
-                    />
-                    <SummaryMetricCard 
-                        label="Active Warehouses" 
-                        value={activeWarehouses.toString()} 
-                        subValue={`of ${warehouses.length}`} 
-                        icon={IconBolt} 
-                        color="bg-amber-50 text-amber-600" 
                     />
                     <SummaryMetricCard 
                         label="Total Queries" 
@@ -153,14 +145,14 @@ const ComputeOverview: React.FC<ComputeOverviewProps> = ({ account, warehouses, 
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     {/* Warehouse Health Widget */}
-                    <div className="lg:col-span-4 h-[400px]">
+                    <div className="lg:col-span-6 h-[400px]">
                         <WarehouseHealthWidget warehouses={warehouses} onNavigate={onNavigate} />
                     </div>
 
                     {/* Distribution Chart */}
                     <WidgetCard 
                         title="Credits by Resource" 
-                        className="lg:col-span-4 h-[400px]"
+                        className="lg:col-span-6 h-[400px]"
                         infoText="Distribution of compute credits across different resource types."
                     >
                         <div className="h-full flex flex-col">
@@ -205,7 +197,7 @@ const ComputeOverview: React.FC<ComputeOverviewProps> = ({ account, warehouses, 
                     {/* Top Warehouses */}
                     <WidgetCard 
                         title="Top Warehouses by Credits" 
-                        className="lg:col-span-4 h-[400px]"
+                        className="lg:col-span-12 h-[400px]"
                         headerActions={
                             <button onClick={() => onNavigate('Warehouse')} className="text-[11px] font-bold text-link hover:underline">View all</button>
                         }

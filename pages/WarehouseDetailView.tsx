@@ -290,7 +290,7 @@ const WarehouseDetailView: React.FC<WarehouseDetailViewProps> = ({ warehouse, on
                                 {/* Left Column: Metadata & Config */}
                                 <div className="lg:col-span-4 space-y-6">
                                     <div className="bg-white p-8 rounded-[24px] border border-border-light shadow-sm space-y-8">
-                                        <h3 className="text-sm font-black text-text-strong uppercase tracking-[0.2em] border-b border-border-light pb-4">Configurations</h3>
+                                        <h3 className="text-sm font-black text-text-strong uppercase tracking-[0.2em] border-b border-border-light pb-4">Details</h3>
                                         <div className="grid grid-cols-1 gap-y-8">
                                             <DetailItem label="Health Status" value={<HealthBadge health="OVERUTILIZED" />} />
                                             <DetailItem label="Size" value={warehouse.size} />

@@ -438,7 +438,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
             case 'Storage overview':
                 return (
                     <div className="flex flex-col h-full bg-background">
-                        <header className="px-4 pt-4 pb-4 flex flex-col gap-4 flex-shrink-0 bg-surface border-b border-border-light mb-0">
+                        <header className="px-4 pt-4 pb-4 flex flex-col gap-4 flex-shrink-0 mb-0">
                             <div>
                                 <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Storage Overview</h1>
                                 <p className="text-sm text-text-secondary font-medium mt-1">Explore and manage storage costs, table health, and database efficiency.</p>
