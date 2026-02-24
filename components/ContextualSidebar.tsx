@@ -57,7 +57,7 @@ const ContextualNavItem: React.FC<{
                         }`}
                     >
                         <item.icon className={`h-5 w-5 shrink-0 ${isItemActuallyActive ? 'text-primary' : 'text-text-strong'}`} />
-                        <span>{item.name}</span>
+                        <span>{item.label || item.name}</span>
                     </button>
                 </li>
             );
@@ -71,7 +71,7 @@ const ContextualNavItem: React.FC<{
                 >
                     <div className="flex items-center gap-3">
                         <item.icon className={`h-5 w-5 shrink-0 ${isSomeChildActive ? 'text-primary' : 'text-text-strong'}`} />
-                        <span className={`text-sm font-bold text-text-strong`}>{item.name}</span>
+                        <span className={`text-sm font-bold text-text-strong`}>{item.label || item.name}</span>
                     </div>
                     {isSubMenuOpen ? <ChevronUpIcon className="h-4 w-4 text-text-secondary" /> : <ChevronDownIcon className="h-4 w-4 text-text-secondary" />}
                 </button>
@@ -88,7 +88,7 @@ const ContextualNavItem: React.FC<{
                                     }`}
                                 >
                                     <child.icon className="h-4 w-4 shrink-0" />
-                                    <span>{child.name}</span>
+                                    <span>{child.label || child.name}</span>
                                 </button>
                             </li>
                         ))}
@@ -121,7 +121,7 @@ const ContextualNavItem: React.FC<{
                         onMouseEnter={handleFlyoutEnter}
                         onMouseLeave={handleFlyoutLeave}
                     >
-                        <div className="px-3 py-2 text-sm font-semibold text-text-strong">{item.name}</div>
+                        <div className="px-3 py-2 text-sm font-semibold text-text-strong">{item.label || item.name}</div>
                         {hasChildren ? (
                              <ul className="space-y-0.5">
                                 {item.children.map(child => (
@@ -134,7 +134,7 @@ const ContextualNavItem: React.FC<{
                                                 : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
                                             }`}
                                         >
-                                            <span>{child.name}</span>
+                                            <span>{child.label || child.name}</span>
                                         </button>
                                     </li>
                                 ))}

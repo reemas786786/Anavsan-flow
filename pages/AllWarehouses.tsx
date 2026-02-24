@@ -30,16 +30,17 @@ interface AllWarehousesProps {
     warehouses: Warehouse[];
     onSelectWarehouse: (warehouse: Warehouse) => void;
     onNavigateToRecommendations?: (filters: { search?: string; account?: string }) => void;
+    initialHealthFilter?: string[];
 }
 
-const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWarehouse, onNavigateToRecommendations }) => {
+const AllWarehouses: React.FC<AllWarehousesProps> = ({ warehouses, onSelectWarehouse, onNavigateToRecommendations, initialHealthFilter }) => {
     const [sortConfig, setSortConfig] = useState<{ key: keyof Warehouse; direction: 'ascending' | 'descending' } | null>({ key: 'name', direction: 'ascending' });
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     
     const [search, setSearch] = useState('');
     const [sizeFilter, setSizeFilter] = useState<string[]>([]);
-    const [healthFilter, setHealthFilter] = useState<string[]>([]);
+    const [healthFilter, setHealthFilter] = useState<string[]>(initialHealthFilter || []);
 
     const warehouseSizes = ['X-Small', 'Small', 'Medium', 'Large', 'X-Large'];
     const healthOptions = ['Optimized', 'Under-utilized', 'Over-provisioned'];

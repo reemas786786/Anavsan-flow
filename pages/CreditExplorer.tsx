@@ -83,8 +83,8 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
         if (account && onSelectAccount) {
             const subPageMap: Record<ResourceCategory, string> = {
                 'Accounts': 'Account overview',
-                'Compute': 'Warehouse',
-                'Storage': 'Overview',
+                'Compute': 'Compute overview',
+                'Storage': 'Storage overview',
                 'Workloads': 'Workloads',
                 'Services': 'Services',
                 'Cortex': 'Cortex',

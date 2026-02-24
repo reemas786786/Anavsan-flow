@@ -17,6 +17,7 @@ import QueryOptimizerView from './QueryOptimizerView';
 import QuerySimulatorView from './QuerySimulatorView';
 import SlowQueriesView from './SlowQueriesView';
 import AllWarehouses from './AllWarehouses';
+import ComputeOverview from './ComputeOverview';
 import WarehouseDetailView from './WarehouseDetailView';
 import ContextualSidebar from '../components/ContextualSidebar';
 import ApplicationsView from './ApplicationsView';
@@ -262,6 +263,7 @@ const CortexListView: React.FC<{
 const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, onBackToAccounts, backLabel, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource, selectedWarehouse, setSelectedWarehouse, warehouses, assignment, currentUser, onUpdateAssignmentStatus, onAssignToEngineer, onResolveAssignment, selectedApplicationId, setSelectedApplicationId, breadcrumbItems, onNavigateToRecommendations }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
     const [isQueryDrillDown, setIsQueryDrillDown] = useState(false);
+    const [warehouseHealthFilter, setWarehouseHealthFilter] = useState<string[] | undefined>(undefined);
     
     // State for All Queries filters
     const [allQueriesFilters, setAllQueriesFilters] = useState<QueryListFilters>({
@@ -328,6 +330,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         setSelectedQuery(null);
         setSelectedPullRequest(null);
         setSelectedDatabaseId(null);
+        setWarehouseHealthFilter(undefined);
         onPageChange(newPage);
     };
 
@@ -379,12 +382,25 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onSelectApp={setSelectedApplicationId} 
                     onNavigateToRecommendations={onNavigateToRecommendations} 
                 />;
+            case 'Compute overview':
+                return <ComputeOverview 
+                    account={account} 
+                    warehouses={generatedAccountWarehouses} 
+                    onNavigate={(page, healthFilter) => {
+                        if (healthFilter) {
+                            setWarehouseHealthFilter([healthFilter]);
+                        }
+                        onPageChange(page);
+                    }} 
+                    onSelectWarehouse={setSelectedWarehouse} 
+                />;
             case 'Warehouse':
             case 'Serverless':
                 return <AllWarehouses 
                     warehouses={generatedAccountWarehouses} 
                     onSelectWarehouse={setSelectedWarehouse} 
                     onNavigateToRecommendations={onNavigateToRecommendations} 
+                    initialHealthFilter={warehouseHealthFilter}
                 />;
             case 'Queries':
                 return <QueryListView 
@@ -419,7 +435,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onSaveClick={onSaveQueryClick} 
                 />;
             case 'Storage':
-            case 'Overview':
+            case 'Storage overview':
                 return (
                     <div className="flex flex-col h-full bg-background">
                         <header className="px-4 pt-4 pb-4 flex flex-col gap-4 flex-shrink-0 bg-surface border-b border-border-light mb-0">
@@ -497,7 +513,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         }
     };
 
-    const isListView = ['Queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator', 'Warehouse', 'Serverless', 'Applications', 'Cortex', 'Storage', 'Overview', 'Databases', 'Unused tables', 'Workloads', 'Services', 'Users', 'Credit trend'].includes(activePage);
+    const isListView = ['Queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator', 'Warehouse', 'Serverless', 'Applications', 'Cortex', 'Storage', 'Storage overview', 'Databases', 'Unused tables', 'Workloads', 'Services', 'Users', 'Credit trend', 'Compute overview'].includes(activePage);
 
     return (
         <div className="flex flex-col h-full overflow-hidden bg-background">
@@ -520,7 +536,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                         </div>
                     </div>
                     
-                    <div className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar ${isDeepDrillDown || ['Storage', 'Overview', 'Databases', 'Unused tables'].includes(activePage) ? '' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
+                    <div className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar ${isDeepDrillDown || ['Storage', 'Storage overview', 'Databases', 'Unused tables', 'Compute overview'].includes(activePage) ? '' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
                         <div className="lg:hidden p-4 pb-0">
                              <MobileNav activePage={activePage} onPageChange={handleSidebarPageChange} accountNavItems={accountNavItems} />
                         </div>

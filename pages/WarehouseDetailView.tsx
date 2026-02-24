@@ -51,18 +51,52 @@ const HealthBadge: React.FC<{ health: string }> = ({ health }) => {
 };
 
 const CreditTrendChart: React.FC = () => {
-    const data = [
-      { date: 'Oct 10', credits: 1.2 }, { date: 'Oct 11', credits: 1.5 }, { date: 'Oct 12', credits: 1.1 },
-      { date: 'Oct 13', credits: 1.8 }, { date: 'Oct 14', credits: 2.0 }, { date: 'Oct 15', credits: 1.7 },
-      { date: 'Oct 16', credits: 2.2 },
-    ];
+    const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('7d');
+    
+    const data = useMemo(() => {
+        const days = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
+        return Array.from({ length: days }).map((_, i) => {
+            const date = new Date();
+            date.setDate(date.getDate() - (days - 1 - i));
+            return {
+                date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                credits: parseFloat((Math.random() * 1.5 + 0.5).toFixed(1))
+            };
+        });
+    }, [dateRange]);
+
     return (
         <div className="bg-white p-6 rounded-[24px] border border-border-light shadow-sm">
-            <h3 className="text-[11px] font-black text-text-strong uppercase tracking-widest mb-6">Credit Trend (Last 7 Days)</h3>
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-[11px] font-black text-text-strong uppercase tracking-widest">Credit Trend</h3>
+                <div className="flex bg-surface-nested p-1 rounded-lg border border-border-light">
+                    {(['7d', '30d', '90d'] as const).map(range => (
+                        <button
+                            key={range}
+                            onClick={() => setDateRange(range)}
+                            className={`px-3 py-1 text-[10px] font-black uppercase rounded-md transition-all ${
+                                dateRange === range 
+                                ? 'bg-white text-primary shadow-sm' 
+                                : 'text-text-muted hover:text-text-secondary'
+                            }`}
+                        >
+                            {range}
+                        </button>
+                    ))}
+                </div>
+            </div>
             <div style={{ height: 250 }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                        <XAxis dataKey="date" stroke="#9A9AB2" fontSize={10} axisLine={false} tickLine={false} tick={{fontWeight: 700}} />
+                        <XAxis 
+                            dataKey="date" 
+                            stroke="#9A9AB2" 
+                            fontSize={10} 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{fontWeight: 700}} 
+                            interval={dateRange === '90d' ? 14 : dateRange === '30d' ? 4 : 0}
+                        />
                         <YAxis stroke="#9A9AB2" fontSize={10} unit="cr" axisLine={false} tickLine={false} tick={{fontWeight: 700}} />
                         <Tooltip contentStyle={{ backgroundColor: '#FFFFFF', border: 'none', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
                         <defs>
@@ -74,37 +108,6 @@ const CreditTrendChart: React.FC = () => {
                         <Area type="monotone" dataKey="credits" stroke="#6932D5" strokeWidth={3} fillOpacity={1} fill="url(#creditGradientDetail)" />
                     </AreaChart>
                 </ResponsiveContainer>
-            </div>
-        </div>
-    );
-};
-
-const PrivilegesTable: React.FC = () => {
-    const privileges = [
-        { role: 'SYSADMIN', privilege: 'OWNERSHIP', grantedTo: 'ROLE' },
-        { role: 'ACCOUNTADMIN', privilege: 'ALL', grantedTo: 'ROLE' },
-        { role: 'ANALYST_ROLE', privilege: 'USAGE', grantedTo: 'ROLE' },
-    ];
-    return (
-        <div className="bg-white p-6 rounded-[24px] border border-border-light shadow-sm">
-            <h3 className="text-[11px] font-black text-text-strong uppercase tracking-widest mb-6">Privileges</h3>
-            <div className="overflow-auto">
-                <table className="w-full text-sm">
-                    <thead className="text-left text-[10px] text-text-muted font-black uppercase tracking-widest sticky top-0 bg-white z-10 border-b border-border-light">
-                        <tr>
-                            <th className="py-2 px-3">Role</th>
-                            <th className="py-2 px-3">Privilege</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border-light">
-                        {privileges.map((p, i) => (
-                            <tr key={i} className="hover:bg-surface-nested group">
-                                <td className="py-3 px-3 font-bold text-text-primary group-hover:text-primary transition-colors">{p.role}</td>
-                                <td className="py-3 px-3 text-text-secondary font-medium">{p.privilege}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
             </div>
         </div>
     );
@@ -277,13 +280,10 @@ const WarehouseDetailView: React.FC<WarehouseDetailViewProps> = ({ warehouse, on
                     {activeTab === 'Details' ? (
                         <div className="space-y-8">
                             {/* NEW: 6-Metric Summary Grid */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <SummaryMetricCard label="Credits Used" value={`${warehouse.tokens.toLocaleString()}`} subValue="cr" />
                                 <SummaryMetricCard label="Avg Runtime" value="4.2s" subValue="Standard performance" />
                                 <SummaryMetricCard label="Query Count" value="120K" subValue="Total executions" />
-                                <SummaryMetricCard label="Queue Load" value="0.63" subValue="Wait efficiency" />
-                                <SummaryMetricCard label="Spillage" value="1.2 GB" subValue="Local memory spill" />
-                                <SummaryMetricCard label="Idle Time" value="4%" subValue="Operational waste" />
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -301,7 +301,6 @@ const WarehouseDetailView: React.FC<WarehouseDetailViewProps> = ({ warehouse, on
                                             <DetailItem label="Resumed On" value="3 hours ago" />
                                         </div>
                                     </div>
-                                    <PrivilegesTable />
                                 </div>
 
                                 {/* Right Column: Trends */}

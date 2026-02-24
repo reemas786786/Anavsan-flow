@@ -362,6 +362,7 @@ export const accountNavItems = [
         name: 'Compute',
         icon: IconDatabase,
         children: [
+            { name: 'Compute overview', label: 'Overview', icon: IconOverview },
             { name: 'Warehouse', icon: IconDatabase },
             { name: 'Serverless', icon: IconBolt },
             { name: 'Cortex', icon: IconSparkles }
@@ -376,7 +377,7 @@ export const accountNavItems = [
         name: 'Storage',
         icon: IconDatabase,
         children: [
-            { name: 'Overview', icon: IconOverview },
+            { name: 'Storage overview', label: 'Overview', icon: IconOverview },
             { name: 'Databases', icon: IconDatabase },
             { name: 'Unused tables', icon: IconList }
         ]

@@ -139,7 +139,6 @@ const UnusedTablesView: React.FC = () => {
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors text-right" onClick={() => handleSort('sizeGB')}>Size</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors text-right" onClick={() => handleSort('rows')}>Rows</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors text-right" onClick={() => handleSort('lastAccessed')}>Last used</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-border-light">
@@ -160,9 +159,6 @@ const UnusedTablesView: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right text-sm font-medium text-text-secondary">
                                         {new Date(table.lastAccessed).toLocaleDateString()}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button className="text-primary hover:underline text-sm font-bold">Archive</button>
                                     </td>
                                 </tr>
                             ))}

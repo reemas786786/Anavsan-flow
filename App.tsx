@@ -243,7 +243,11 @@ const App: React.FC = () => {
                 }
             }
         } else if (accountViewPage !== 'Account overview') {
-            items.push({ label: accountViewPage });
+            let label = accountViewPage;
+            if (accountViewPage === 'Compute overview' || accountViewPage === 'Storage overview') {
+                label = 'Overview';
+            }
+            items.push({ label });
         }
         return items;
     }
