@@ -16,7 +16,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
     }
 
     return (
-        <nav aria-label="breadcrumb" className="flex items-center space-x-1 text-[11px] font-bold text-text-muted">
+        <nav aria-label="breadcrumb" className="flex items-center space-x-1 text-[13px] font-bold text-text-muted">
             {items.map((item, index) => (
                 <React.Fragment key={index}>
                     {index > 0 && (

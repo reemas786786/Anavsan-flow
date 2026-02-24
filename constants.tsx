@@ -359,19 +359,27 @@ export const accountNavItems = [
         children: []
     },
     {
-        name: 'Warehouses',
+        name: 'Compute',
         icon: IconDatabase,
-        children: []
+        children: [
+            { name: 'Warehouse', icon: IconDatabase },
+            { name: 'Serverless', icon: IconBolt },
+            { name: 'Cortex', icon: IconSparkles }
+        ]
     },
     {
-        name: 'High-impact queries',
+        name: 'Queries',
         icon: IconCode,
         children: []
     },
     {
         name: 'Storage',
         icon: IconDatabase,
-        children: []
+        children: [
+            { name: 'Overview', icon: IconOverview },
+            { name: 'Databases', icon: IconDatabase },
+            { name: 'Unused tables', icon: IconList }
+        ]
     },
     {
         name: 'Workloads',
@@ -386,11 +394,6 @@ export const accountNavItems = [
     {
         name: 'Users',
         icon: IconUser,
-        children: []
-    },
-    {
-        name: 'Cortex',
-        icon: IconSparkles,
         children: []
     },
     {

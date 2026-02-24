@@ -17,7 +17,7 @@ import {
 import Pagination from '../components/Pagination';
 import InfoTooltip from '../components/InfoTooltip';
 
-type ResourceCategory = 'Accounts' | 'Compute' | 'Storage' | 'Workloads' | 'Services' | 'Cortex' | 'User' | 'High-impact queries';
+type ResourceCategory = 'Accounts' | 'Compute' | 'Storage' | 'Workloads' | 'Services' | 'Cortex' | 'User' | 'Queries';
 
 const categories: { id: ResourceCategory; label: string }[] = [
     { id: 'Accounts', label: 'Accounts' },
@@ -27,7 +27,7 @@ const categories: { id: ResourceCategory; label: string }[] = [
     { id: 'Services', label: 'Services' },
     { id: 'Cortex', label: 'Cortex' },
     { id: 'User', label: 'Users' },
-    { id: 'High-impact queries', label: 'Queries' }
+    { id: 'Queries', label: 'Queries' }
 ];
 
 /**
@@ -83,13 +83,13 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
         if (account && onSelectAccount) {
             const subPageMap: Record<ResourceCategory, string> = {
                 'Accounts': 'Account overview',
-                'Compute': 'Warehouses',
-                'Storage': 'Storage',
+                'Compute': 'Warehouse',
+                'Storage': 'Overview',
                 'Workloads': 'Workloads',
                 'Services': 'Services',
                 'Cortex': 'Cortex',
                 'User': 'Users',
-                'High-impact queries': 'High-impact queries'
+                'Queries': 'Queries'
             };
             
             onSelectAccount(account, subPageMap[activeCategory], activeCategory);
@@ -105,7 +105,7 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
             'Services': ['Account'],
             'Cortex': ['Query'],
             'User': ['User'],
-            'High-impact queries': ['Query']
+            'Queries': ['Query']
         };
         
         const relevantTypes = typesForCategory[category] || ['All'];
@@ -188,6 +188,8 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                     return connectionsData.map(acc => {
                         const storageCredits = Math.round(acc.tokens * 0.12);
                         const unusedGB = Math.round(acc.storageGB * (0.05 + Math.random() * 0.15));
+                        const failsafeGB = Math.round(acc.storageGB * 0.08);
+                        const timeTravelGB = Math.round(acc.storageGB * 0.15);
                         return {
                             id: acc.id,
                             accountName: acc.name,
@@ -198,6 +200,10 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                             size: acc.storageGB >= 1000 ? `${(acc.storageGB / 1000).toFixed(1)} TB` : `${acc.storageGB} GB`,
                             unusedRaw: unusedGB,
                             unused: unusedGB >= 1000 ? `${(unusedGB / 1000).toFixed(1)} TB` : `${unusedGB} GB`,
+                            failsafeRaw: failsafeGB,
+                            failsafe: failsafeGB >= 1000 ? `${(failsafeGB / 1000).toFixed(1)} TB` : `${failsafeGB} GB`,
+                            timetravelRaw: timeTravelGB,
+                            timetravel: timeTravelGB >= 1000 ? `${(timeTravelGB / 1000).toFixed(1)} TB` : `${timeTravelGB} GB`,
                             insights: getInsightCount(acc.name, 'Storage')
                         };
                     });
@@ -251,7 +257,7 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                         queries: acc.queriesCount,
                         insights: getInsightCount(acc.name, 'User')
                     }));
-                case 'High-impact queries':
+                case 'Queries':
                     return connectionsData.map(acc => {
                         const highImpactCount = Math.floor(Math.random() * 150) + 50;
                         return {
@@ -262,7 +268,7 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                             queriesCount: acc.queriesCount,
                             highImpactQueriesRaw: highImpactCount,
                             highImpactQueries: highImpactCount.toString(),
-                            insights: getInsightCount(acc.name, 'High-impact queries')
+                            insights: getInsightCount(acc.name, 'Queries')
                         };
                     });
                 default:
@@ -291,11 +297,11 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
         const headers = (() => {
             switch (activeCategory) {
                 case 'Accounts': return ['Account name', 'Total credits', 'Compute credits', 'Storage credits', 'Service credits', 'Insights'];
-                case 'Compute': return ['Account name', 'Compute credits', 'Warehouses', 'Queries', 'Insights'];
-                case 'Storage': return ['Account name', 'Storage credits', 'Storage size', 'Unused table size', 'Insights'];
+                case 'Compute': return ['Account name', 'Compute credits', 'Warehouse', 'Queries', 'Insights'];
+                case 'Storage': return ['Account name', 'Storage credits', 'Storage size', 'Unused table size', 'Failsafe Size', 'Time Travel Size', 'Insights'];
                 case 'Cortex': return ['Account name', 'Model count', 'Tokens', 'Credits', 'Insights'];
                 case 'User': return ['Account name', 'User count', 'Queries', 'Insights'];
-                case 'High-impact queries': return ['Account name', 'Queries count', 'High-impact queries', 'Insights'];
+                case 'Queries': return ['Account name', 'Queries count', 'Queries', 'Insights'];
                 case 'Workloads': return ['Account name', 'Workloads', 'Service credits', 'Insights'];
                 case 'Services': return ['Account name', 'Service credits', 'Services used', 'Insights'];
                 default: return ['Account name', 'Total credits', 'Insights'];
@@ -360,10 +366,10 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                     { label: 'Total user count', value: rows.reduce((s, r) => s + (r.userCountRaw || 0), 0).toLocaleString() },
                     { label: 'Total queries', value: formatK(rows.reduce((s, r) => s + (r.queriesRaw || 0), 0)) }
                 ];
-            case 'High-impact queries':
+            case 'Queries':
                 return [
                     { label: 'Total queries count', value: formatK(rows.reduce((s, r) => s + (r.queriesCountRaw || 0), 0)) },
-                    { label: 'Total high-impact queries', value: rows.reduce((s, r) => s + (r.highImpactQueriesRaw || 0), 0).toLocaleString() }
+                    { label: 'Total repeated queries', value: rows.reduce((s, r) => s + (r.highImpactQueriesRaw || 0), 0).toLocaleString() }
                 ];
             default:
                 return [];
@@ -497,7 +503,7 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                                             if (h === 'Storage credits') return 'storage';
                                             if (h === 'Service credits') return 'serviceCredits';
                                             if (h === 'Workloads') return 'workloads';
-                                            if (h === 'Warehouses') return 'workloads';
+                                            if (h === 'Warehouse') return 'workloads';
                                             if (h === 'Users') return 'users';
                                             if (h === 'Queries') return 'queries';
                                             
@@ -507,7 +513,7 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                                             if (h === 'Unit cost') return 'unitCost';
                                             if (h === 'Idle %') return 'idleTime';
                                             if (h === 'Queries count') return 'queriesCount';
-                                            if (h === 'High-impact queries') return 'highImpactQueries';
+                                            if (h === 'Queries') return 'highImpactQueries';
                                             if (h === 'Avg runtime') return 'avgRuntime';
                                             if (h === 'Services used') return 'count';
                                             if (h === 'Top service') return 'type';

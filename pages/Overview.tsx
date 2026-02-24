@@ -470,7 +470,7 @@ const Overview: React.FC<OverviewProps> = ({ accounts, onSelectAccount, onSelect
                         <SummaryMetricCard 
                             label="Queries" 
                             value="950" 
-                            onClick={() => onNavigate('Resource summary', undefined, { tab: 'High-impact queries' })} 
+                            onClick={() => onNavigate('Resource summary', undefined, { tab: 'Queries' })} 
                         />
                     </div>
                 </div>

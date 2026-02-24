@@ -1,17 +1,27 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, PieChart, Pie } from 'recharts';
-import { storageSummaryData, storageGrowthData, databasesData, storageByTypeData } from '../data/dummyData';
+import { storageSummaryData, storageGrowthData, databasesData, storageByTypeData, databaseTablesData, unusedTablesData } from '../data/dummyData';
 import InfoTooltip from '../components/InfoTooltip';
 import { BigScreenWidget } from '../types';
-import { IconDotsVertical } from '../constants';
+import { IconDotsVertical, IconList, IconInfo } from '../constants';
 import SidePanel from '../components/SidePanel';
 import TableView from '../components/TableView';
 
 
-const WidgetCard: React.FC<{ children: React.ReactNode, className?: string, title?: string }> = ({ children, className = '', title }) => (
+const WidgetCard: React.FC<{ children: React.ReactNode, className?: string, title?: string, actions?: React.ReactNode }> = ({ children, className = '', title, actions }) => (
     <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-4 break-inside-avoid mb-4 flex flex-col ${className}`}>
-        {title && <h3 className="text-base font-semibold text-text-strong mb-4">{title}</h3>}
+        {(title || actions) && (
+            <div className="flex justify-between items-center mb-4">
+                {title && (
+                    <div className="flex items-center gap-1.5">
+                        <h3 className="text-base font-semibold text-text-strong">{title}</h3>
+                        <IconInfo className="w-4 h-4 text-text-muted cursor-help" />
+                    </div>
+                )}
+                {actions && <div className="flex items-center gap-2">{actions}</div>}
+            </div>
+        )}
         {children}
     </div>
 );
@@ -50,6 +60,13 @@ const WidgetActionMenu: React.FC<WidgetActionMenuProps> = ({ widgetId, onExpand,
 );
 
 
+const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+    <div className="bg-white px-5 py-2.5 rounded-full border border-border-light shadow-sm flex items-center gap-2 flex-shrink-0 transition-all hover:border-primary/30">
+        <span className="text-[13px] text-text-secondary font-medium whitespace-nowrap">{label}:</span>
+        <span className="text-[13px] font-black text-text-strong whitespace-nowrap">{value}</span>
+    </div>
+);
+
 const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => void, onSetBigScreenWidget: (widget: BigScreenWidget) => void }> = ({ onSelectDatabase, onSetBigScreenWidget }) => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -58,9 +75,27 @@ const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => v
         data: { name: string; cost: number; credits: number; percentage: number }[];
     } | null>(null);
     
-    const topDatabases = [...databasesData].sort((a, b) => b.cost - a.cost).slice(0, 5);
+    const topDatabasesBySize = [...databasesData].sort((a, b) => b.sizeGB - a.sizeGB).slice(0, 5);
+    
+    const schemasBySize = useMemo(() => {
+        const map: Record<string, number> = {};
+        databaseTablesData.forEach(t => {
+            map[t.schemaName] = (map[t.schemaName] || 0) + t.totalSizeGB;
+        });
+        return Object.entries(map)
+            .map(([name, size]) => ({ name, size }))
+            .sort((a, b) => b.size - a.size)
+            .slice(0, 5);
+    }, []);
+
+    const topTablesBySize = [...databaseTablesData].sort((a, b) => b.totalSizeGB - a.totalSizeGB).slice(0, 5);
+
     const storageByTypeChartData = storageByTypeData.filter(item => item.type !== 'Staging');
     const totalStorageByType = storageByTypeChartData.reduce((sum, item) => sum + item.storageGB, 0);
+
+    const failsafeData = storageByTypeData.find(d => d.type === 'Fail-safe');
+    const timeTravelData = storageByTypeData.find(d => d.type === 'Time Travel');
+    const totalUnusedGB = unusedTablesData.reduce((sum, t) => sum + t.sizeGB, 0);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -93,10 +128,20 @@ const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => v
         let fileName = '';
 
         switch (widgetType) {
-            case 'top-spend-db':
-                fileName = 'top_spend_by_databases';
-                headers = ['Database Name', 'Cost ($)', 'Storage (GB)'];
-                dataRows = databasesData.map(db => [db.name, db.cost, db.sizeGB]);
+            case 'top-db-size':
+                fileName = 'top_databases_by_size';
+                headers = ['Database Name', 'Size (GB)'];
+                dataRows = databasesData.map(db => [db.name, db.sizeGB]);
+                break;
+            case 'top-schema-size':
+                fileName = 'top_schemas_by_size';
+                headers = ['Schema Name', 'Size (GB)'];
+                dataRows = schemasBySize.map(s => [s.name, s.size]);
+                break;
+            case 'top-table-size':
+                fileName = 'top_tables_by_size';
+                headers = ['Table Name', 'Size (GB)'];
+                dataRows = databaseTablesData.map(t => [t.name, t.totalSizeGB]);
                 break;
             case 'storage-by-type':
                 fileName = 'storage_by_type';
@@ -118,15 +163,15 @@ const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => v
     };
 
     const handleOpenTableView = (widgetType: string) => {
-        if (widgetType === 'top-spend-db') {
-            const totalCost = databasesData.reduce((acc, db) => acc + db.cost, 0);
+        if (widgetType === 'top-db-size') {
+            const totalSize = databasesData.reduce((acc, db) => acc + db.sizeGB, 0);
             setTableViewData({
-                title: 'Top spend by databases',
+                title: 'Top databases by size',
                 data: databasesData.map(db => ({
                     name: db.name,
-                    cost: db.cost,
-                    credits: db.sizeGB, // using size as a proxy for a second metric
-                    percentage: totalCost > 0 ? (db.cost / totalCost) * 100 : 0
+                    cost: db.sizeGB,
+                    credits: db.sizeGB,
+                    percentage: totalSize > 0 ? (db.sizeGB / totalSize) * 100 : 0
                 }))
             });
         } else if (widgetType === 'storage-by-type') {
@@ -145,27 +190,102 @@ const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => v
     };
 
     return (
-        <div className="space-y-4">
-            <div className="columns-1 lg:columns-2 gap-4">
-                {/* Widget 1: Total Storage & Spend */}
-                <WidgetCard>
-                    <div className="flex items-center">
-                        <h3 className="text-base font-semibold text-text-strong">Total storage summary</h3>
-                        <InfoTooltip text="Overall storage usage and associated credit/monetary spend for the selected time period." />
+        <div className="flex flex-col h-full gap-4">
+            <WidgetCard 
+                title="Storage summary"
+                actions={
+                    <>
+                        <button className="p-1 rounded-full text-text-secondary hover:bg-surface-hover hover:text-primary transition-colors">
+                            <IconList className="w-5 h-5" />
+                        </button>
+                        <WidgetActionMenu
+                            widgetId="storage-summary"
+                            openMenu={openMenu}
+                            handleMenuClick={handleMenuClick}
+                            menuRef={menuRef}
+                            onExpand={() => {}}
+                            onTableView={null}
+                            onDownload={() => {}}
+                        />
+                    </>
+                }
+            >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50">
+                        <p className="text-sm font-medium text-text-muted mb-2">Storage credits</p>
+                        <p className="text-2xl font-black text-text-strong">{(storageSummaryData.totalCredits / 1000).toFixed(1)}K</p>
+                        <p className="text-xs font-bold text-text-muted mt-1">{(storageSummaryData.totalStorageGB / 1000).toFixed(0)} TB</p>
                     </div>
-                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="bg-surface-nested p-4 rounded-3xl sm:col-span-2">
-                            <p className="text-sm text-text-secondary">Storage credits</p>
-                            <p className="text-3xl font-black text-primary mt-1">{storageSummaryData.totalCredits.toLocaleString()} cr</p>
-                        </div>
-                        <div className="bg-surface-nested p-4 rounded-3xl">
-                            <p className="text-sm text-text-secondary">Total storage used</p>
-                            <p className="text-2xl font-bold text-text-primary mt-1">{storageSummaryData.totalStorageGB.toLocaleString()} GB</p>
-                        </div>
-                        <div className="bg-surface-nested p-4 rounded-3xl">
-                            <p className="text-sm text-text-secondary">Est. monthly cost</p>
-                            <p className="text-2xl font-bold text-text-primary mt-1">${storageSummaryData.totalSpend.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                        </div>
+                    <div className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50">
+                        <p className="text-sm font-medium text-text-muted mb-2">Unused tables</p>
+                        <p className="text-2xl font-black text-text-strong">{totalUnusedGB.toLocaleString()} GB</p>
+                        <p className="text-xs font-bold text-text-muted mt-1">{unusedTablesData.length} count</p>
+                    </div>
+                    <div className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50">
+                        <p className="text-sm font-medium text-text-muted mb-2">Failsafe</p>
+                        <p className="text-2xl font-black text-text-strong">{failsafeData?.storageGB.toLocaleString()} GB</p>
+                        <p className="text-xs font-bold text-text-muted mt-1">650 count</p>
+                    </div>
+                    <div className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50">
+                        <p className="text-sm font-medium text-text-muted mb-2">Time travel</p>
+                        <p className="text-2xl font-black text-text-strong">{timeTravelData?.storageGB.toLocaleString()} GB</p>
+                        <p className="text-xs font-bold text-text-muted mt-1">650 count</p>
+                    </div>
+                </div>
+            </WidgetCard>
+
+            <div className="columns-1 lg:columns-2 gap-4">
+                {/* Widget: Top Databases by Size */}
+                <WidgetCard title="Top databases by size">
+                    <div className="h-64 mt-2">
+                         <ResponsiveContainer width="100%" height="100%">
+                            <BarChart layout="vertical" data={topDatabasesBySize} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} tickFormatter={(value) => `${(value/1000).toFixed(1)}k`} />
+                                <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={100} tick={{width: 90}} />
+                                <Tooltip
+                                    cursor={{ fill: '#F3F0FA' }}
+                                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }}
+                                    formatter={(value: number) => [`${value.toLocaleString()} GB`, 'Size']}
+                                />
+                                <Bar dataKey="sizeGB" fill="#6932D5" radius={[0, 4, 4, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </WidgetCard>
+
+                {/* Widget: Top Schemas by Size */}
+                <WidgetCard title="Top schemas by size">
+                    <div className="h-64 mt-2">
+                         <ResponsiveContainer width="100%" height="100%">
+                            <BarChart layout="vertical" data={schemasBySize} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} tickFormatter={(value) => `${(value/1000).toFixed(1)}k`} />
+                                <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={100} tick={{width: 90}} />
+                                <Tooltip
+                                    cursor={{ fill: '#F3F0FA' }}
+                                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }}
+                                    formatter={(value: number) => [`${value.toLocaleString()} GB`, 'Size']}
+                                />
+                                <Bar dataKey="size" fill="#A78BFA" radius={[0, 4, 4, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </WidgetCard>
+
+                {/* Widget: Top Tables by Size */}
+                <WidgetCard title="Top tables by size">
+                    <div className="h-64 mt-2">
+                         <ResponsiveContainer width="100%" height="100%">
+                            <BarChart layout="vertical" data={topTablesBySize} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} tickFormatter={(value) => `${(value/1000).toFixed(1)}k`} />
+                                <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={100} tick={{width: 90}} />
+                                <Tooltip
+                                    cursor={{ fill: '#F3F0FA' }}
+                                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }}
+                                    formatter={(value: number) => [`${value.toLocaleString()} GB`, 'Size']}
+                                />
+                                <Bar dataKey="totalSizeGB" fill="#C4B5FD" radius={[0, 4, 4, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                 </WidgetCard>
 
@@ -233,53 +353,6 @@ const StorageSummaryView: React.FC<{ onSelectDatabase: (databaseId: string) => v
                                 </div>
                             ))}
                         </div>
-                    </div>
-                </WidgetCard>
-
-                {/* Widget 2: Top Spend by Databases */}
-                <WidgetCard>
-                    <div className="flex justify-between items-start">
-                        <div className="flex-grow">
-                            <div className="flex items-center">
-                                <h3 className="text-base font-semibold text-text-strong">Top spend by databases</h3>
-                                <InfoTooltip text="Databases ranked by storage cost. Click a bar to view details." />
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button 
-                                onClick={() => onSelectDatabase('__view_all__')}
-                                className="text-sm font-semibold text-link hover:underline whitespace-nowrap"
-                            >
-                                View All
-                            </button>
-                             <WidgetActionMenu
-                                widgetId="top-spend-db"
-                                openMenu={openMenu}
-                                handleMenuClick={handleMenuClick}
-                                menuRef={menuRef}
-                                onExpand={() => { onSetBigScreenWidget({ type: 'top_spend_by_db', title: 'Top spend by databases' }); setOpenMenu(null); }}
-                                onTableView={() => handleOpenTableView('top-spend-db')}
-                                onDownload={() => handleDownloadCSV('top-spend-db')}
-                            />
-                        </div>
-                    </div>
-                    <div className="h-80 mt-4">
-                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart layout="vertical" data={topDatabases} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} tickFormatter={(value) => `$${value/1000}k`} />
-                                <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={100} tick={{width: 90}} />
-                                <Tooltip
-                                    cursor={{ fill: '#F3F0FA' }}
-                                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }}
-                                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Cost']}
-                                />
-                                <Bar dataKey="cost" fill="#A78BFA" radius={[0, 4, 4, 0]}>
-                                    {topDatabases.map((entry) => (
-                                        <Cell key={`cell-${entry.id}`} cursor="pointer" onClick={() => onSelectDatabase(entry.id)} className="hover:fill-primary" />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
                     </div>
                 </WidgetCard>
 

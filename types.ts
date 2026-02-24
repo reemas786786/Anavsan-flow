@@ -268,9 +268,14 @@ export interface StorageGrowthPoint {
 }
 
 export interface UnusedTable {
+    id: string;
     name: string;
-    size: string;
+    sizeGB: number;
+    rows: number;
     lastAccessed: string;
+    createdBy: string;
+    database: string;
+    schema: string;
     potentialSavings: number; 
 }
 
@@ -364,7 +369,13 @@ export interface Database {
 export interface DatabaseTable {
     id: string;
     name: string;
-    sizeGB: number;
+    databaseName?: string;
+    schemaName: string;
+    activeSizeGB: number;
+    timeTravelSizeGB: number;
+    failSafeSizeGB: number;
+    totalSizeGB: number;
+    retentionTimeDays: number;
     rows: number;
     monthlyGrowth: number;
 }

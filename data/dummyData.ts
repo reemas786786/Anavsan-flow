@@ -282,7 +282,79 @@ export const totalStorageMetrics = { totalSizeGB: 45000, totalCost: 2500 };
 export const storageGrowthForecast = { nextMonthSizeGB: 48000, nextMonthCost: 2700 };
 export const topStorageConsumersData: TopStorageConsumer[] = [];
 export const databaseTablesData: DatabaseTable[] = [
-    { id: 't-1', name: 'FACT_SALES', sizeGB: 1200, rows: 15000000, monthlyGrowth: 4.5 },
+    { 
+        id: 't-1', 
+        name: 'FACT_SALES', 
+        databaseName: 'PROD_DB',
+        schemaName: 'PUBLIC',
+        activeSizeGB: 850,
+        timeTravelSizeGB: 250,
+        failSafeSizeGB: 100,
+        totalSizeGB: 1200,
+        retentionTimeDays: 7,
+        rows: 15000000, 
+        monthlyGrowth: 4.5 
+    },
+    { 
+        id: 't-2', 
+        name: 'DIM_CUSTOMERS', 
+        databaseName: 'PROD_DB',
+        schemaName: 'PUBLIC',
+        activeSizeGB: 45,
+        timeTravelSizeGB: 12,
+        failSafeSizeGB: 5,
+        totalSizeGB: 62,
+        retentionTimeDays: 7,
+        rows: 1200000, 
+        monthlyGrowth: 1.2 
+    },
+    { 
+        id: 't-3', 
+        name: 'RAW_LOGS', 
+        databaseName: 'STAGING_DB',
+        schemaName: 'RAW_DATA',
+        activeSizeGB: 2100,
+        timeTravelSizeGB: 450,
+        failSafeSizeGB: 150,
+        totalSizeGB: 2700,
+        retentionTimeDays: 1,
+        rows: 85000000, 
+        monthlyGrowth: 12.5 
+    },
+    { 
+        id: 't-4', 
+        name: 'WEB_EVENTS', 
+        databaseName: 'ANALYTICS_DB',
+        schemaName: 'EVENTS',
+        activeSizeGB: 1450,
+        timeTravelSizeGB: 320,
+        failSafeSizeGB: 130,
+        totalSizeGB: 1900,
+        retentionTimeDays: 3,
+        rows: 42000000, 
+        monthlyGrowth: 8.2 
+    },
+    { 
+        id: 't-5', 
+        name: 'USER_SESSIONS', 
+        databaseName: 'ANALYTICS_DB',
+        schemaName: 'EVENTS',
+        activeSizeGB: 680,
+        timeTravelSizeGB: 140,
+        failSafeSizeGB: 60,
+        totalSizeGB: 880,
+        retentionTimeDays: 3,
+        rows: 28000000, 
+        monthlyGrowth: 5.5 
+    },
+];
+
+export const unusedTablesData: UnusedTable[] = [
+    { id: 'ut-1', name: 'TEMP_SALES_OCT', sizeGB: 450, rows: 1250000, lastAccessed: '2023-10-01', createdBy: 'mike_de', database: 'PROD_DB', schema: 'PUBLIC', potentialSavings: 25 },
+    { id: 'ut-2', name: 'BACKUP_USERS_V1', sizeGB: 280, rows: 850000, lastAccessed: '2023-09-15', createdBy: 'jane_doe', database: 'PROD_DB', schema: 'BACKUPS', potentialSavings: 15 },
+    { id: 'ut-3', name: 'TEST_RESULTS_FINAL', sizeGB: 120, rows: 45000, lastAccessed: '2023-08-20', createdBy: 'alex_analyst', database: 'STAGING_DB', schema: 'TESTING', potentialSavings: 8 },
+    { id: 'ut-4', name: 'OLD_WEB_LOGS_2022', sizeGB: 1500, rows: 45000000, lastAccessed: '2023-01-10', createdBy: 'system_etl', database: 'ANALYTICS_DB', schema: 'ARCHIVE', potentialSavings: 85 },
+    { id: 'ut-5', name: 'TMP_JOIN_RESULTS', sizeGB: 85, rows: 12000, lastAccessed: '2023-11-01', createdBy: 'mike_de', database: 'ANALYTICS_DB', schema: 'PUBLIC', potentialSavings: 5 },
 ];
 export const dataAgeDistributionData: DataAgeDistributionItem[] = [];
 export const storageByTierData = {

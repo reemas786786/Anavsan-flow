@@ -6,6 +6,7 @@ import Breadcrumb from '../components/Breadcrumb';
 import QueryListView from './QueryListView';
 import StorageSummaryView from './StorageSummaryView';
 import DatabasesView from './DatabasesView';
+import UnusedTablesView from './UnusedTablesView';
 import QueryDetailView from './QueryDetailView';
 import PullRequestsView from './PullRequestsView';
 import PullRequestDetailView from './PullRequestDetailView';
@@ -257,71 +258,6 @@ const CortexListView: React.FC<{
     );
 };
 
-const StorageTabbedView: React.FC<{ 
-    onSetBigScreenWidget: (widget: BigScreenWidget) => void;
-    selectedDatabaseId: string | null;
-    setSelectedDatabaseId: (id: string | null) => void;
-}> = ({ onSetBigScreenWidget, selectedDatabaseId, setSelectedDatabaseId }) => {
-    const [activeTab, setActiveTab] = useState<'Storage overview' | 'Databases'>('Storage overview');
-
-    if (selectedDatabaseId) {
-        return (
-            <div className="p-4 bg-background h-full">
-                <DatabasesView 
-                    selectedDatabaseId={selectedDatabaseId} 
-                    onSelectDatabase={setSelectedDatabaseId} 
-                    onBackToList={() => setSelectedDatabaseId(null)} 
-                />
-            </div>
-        );
-    }
-
-    return (
-        <div className="flex flex-col h-full bg-background">
-            <header className="px-4 pt-4 pb-0 flex flex-col gap-4 flex-shrink-0 bg-surface border-b border-border-light mb-0">
-                <div>
-                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Storage</h1>
-                    <p className="text-sm text-text-secondary font-medium mt-1 mb-2">Explore and manage storage costs, table health, and database efficiency.</p>
-                </div>
-                
-                {/* KPI Labels removed as per user request */}
-
-                <div className="flex gap-8">
-                    {(['Storage overview', 'Databases'] as const).map(tab => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`pb-4 text-sm font-bold transition-all relative whitespace-nowrap ${
-                                activeTab === tab 
-                                ? 'text-primary' 
-                                : 'text-text-muted hover:text-text-secondary'
-                            }`}
-                        >
-                            {tab}
-                            {activeTab === tab && (
-                                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full animate-in fade-in slide-in-from-bottom-1 duration-300" />
-                            )}
-                        </button>
-                    ))}
-                </div>
-            </header>
-            <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
-                {activeTab === 'Storage overview' ? (
-                    <StorageSummaryView 
-                        onSelectDatabase={(id) => { setActiveTab('Databases'); setSelectedDatabaseId(id === '__view_all__' ? null : id); }} 
-                        onSetBigScreenWidget={onSetBigScreenWidget} 
-                    />
-                ) : (
-                    <DatabasesView 
-                        selectedDatabaseId={null} 
-                        onSelectDatabase={setSelectedDatabaseId} 
-                        onBackToList={() => setSelectedDatabaseId(null)} 
-                />
-                )}
-            </main>
-        </div>
-    );
-};
 
 const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, onBackToAccounts, backLabel, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource, selectedWarehouse, setSelectedWarehouse, warehouses, assignment, currentUser, onUpdateAssignmentStatus, onAssignToEngineer, onResolveAssignment, selectedApplicationId, setSelectedApplicationId, breadcrumbItems, onNavigateToRecommendations }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
@@ -443,13 +379,14 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onSelectApp={setSelectedApplicationId} 
                     onNavigateToRecommendations={onNavigateToRecommendations} 
                 />;
-            case 'Warehouses':
+            case 'Warehouse':
+            case 'Serverless':
                 return <AllWarehouses 
                     warehouses={generatedAccountWarehouses} 
                     onSelectWarehouse={setSelectedWarehouse} 
                     onNavigateToRecommendations={onNavigateToRecommendations} 
                 />;
-            case 'High-impact queries':
+            case 'Queries':
                 return <QueryListView 
                     onShareQueryClick={onShareQueryClick} 
                     onSelectQuery={setSelectedQuery} 
@@ -482,12 +419,65 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onSaveClick={onSaveQueryClick} 
                 />;
             case 'Storage':
+            case 'Overview':
                 return (
-                    <StorageTabbedView 
-                        onSetBigScreenWidget={onSetBigScreenWidget} 
-                        selectedDatabaseId={selectedDatabaseId}
-                        setSelectedDatabaseId={setSelectedDatabaseId}
-                    />
+                    <div className="flex flex-col h-full bg-background">
+                        <header className="px-4 pt-4 pb-4 flex flex-col gap-4 flex-shrink-0 bg-surface border-b border-border-light mb-0">
+                            <div>
+                                <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Storage Overview</h1>
+                                <p className="text-sm text-text-secondary font-medium mt-1">Explore and manage storage costs, table health, and database efficiency.</p>
+                            </div>
+                        </header>
+                        <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
+                            <StorageSummaryView 
+                                onSelectDatabase={(id) => { handleSidebarPageChange('Databases'); setSelectedDatabaseId(id === '__view_all__' ? null : id); }} 
+                                onSetBigScreenWidget={onSetBigScreenWidget} 
+                            />
+                        </main>
+                    </div>
+                );
+            case 'Databases':
+                if (selectedDatabaseId) {
+                    return (
+                        <div className="p-4 bg-background h-full">
+                            <DatabasesView 
+                                selectedDatabaseId={selectedDatabaseId} 
+                                onSelectDatabase={setSelectedDatabaseId} 
+                                onBackToList={() => setSelectedDatabaseId(null)} 
+                            />
+                        </div>
+                    );
+                }
+                return (
+                    <div className="flex flex-col h-full bg-background">
+                        <header className="px-4 pt-6 pb-2 flex flex-col gap-4 flex-shrink-0 bg-transparent mb-0">
+                            <div>
+                                <h1 className="text-[32px] font-black text-text-strong tracking-tight">Databases</h1>
+                                <p className="text-sm text-text-secondary font-medium mt-1">Manage and optimize your account's databases and tables.</p>
+                            </div>
+                        </header>
+                        <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
+                            <DatabasesView 
+                                selectedDatabaseId={null} 
+                                onSelectDatabase={setSelectedDatabaseId} 
+                                onBackToList={() => setSelectedDatabaseId(null)} 
+                            />
+                        </main>
+                    </div>
+                );
+            case 'Unused tables':
+                return (
+                    <div className="flex flex-col h-full bg-background">
+                        <header className="px-4 pt-6 pb-2 flex flex-col gap-4 flex-shrink-0 bg-transparent mb-0">
+                            <div>
+                                <h1 className="text-[32px] font-black text-text-strong tracking-tight">Unused Tables</h1>
+                                <p className="text-sm text-text-secondary font-medium mt-1">Identify and remove tables that haven't been accessed recently to save costs.</p>
+                            </div>
+                        </header>
+                        <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
+                            <UnusedTablesView onNavigateToRecommendations={onNavigateToRecommendations} />
+                        </main>
+                    </div>
                 );
             case 'Workloads':
                 return <WorkloadsListView accountName={account.name} onNavigateToRecommendations={onNavigateToRecommendations} />;
@@ -507,7 +497,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         }
     };
 
-    const isListView = ['High-impact queries', 'Queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator', 'Warehouses', 'Applications', 'Cortex', 'Storage', 'Workloads', 'Services', 'Users', 'Credit trend'].includes(activePage);
+    const isListView = ['Queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator', 'Warehouse', 'Serverless', 'Applications', 'Cortex', 'Storage', 'Overview', 'Databases', 'Unused tables', 'Workloads', 'Services', 'Users', 'Credit trend'].includes(activePage);
 
     return (
         <div className="flex flex-col h-full overflow-hidden bg-background">
@@ -530,7 +520,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                         </div>
                     </div>
                     
-                    <div className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar ${isDeepDrillDown || activePage === 'Storage' ? '' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
+                    <div className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar ${isDeepDrillDown || ['Storage', 'Overview', 'Databases', 'Unused tables'].includes(activePage) ? '' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
                         <div className="lg:hidden p-4 pb-0">
                              <MobileNav activePage={activePage} onPageChange={handleSidebarPageChange} accountNavItems={accountNavItems} />
                         </div>

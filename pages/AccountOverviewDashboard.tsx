@@ -221,13 +221,13 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                         label="Compute" 
                         value={formatK(account.tokens * 0.82)} 
                         subValue="Credits" 
-                        onClick={() => onNavigate('Warehouses')} 
+                        onClick={() => onNavigate('Warehouse')} 
                     />
                     <SummaryMetricCard 
                         label="Storage" 
                         value={account.storageGB >= 1000 ? `${(account.storageGB / 1000).toFixed(1)} TB` : `${account.storageGB} GB`} 
                         subValue={`${formatK(account.tokens * 0.12)} Credits`}
-                        onClick={() => onNavigate('Storage')} 
+                        onClick={() => onNavigate('Overview')} 
                     />
                     <SummaryMetricCard 
                         label="Workloads" 
@@ -253,9 +253,9 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
                         onClick={() => onNavigate('Users')} 
                     />
                     <SummaryMetricCard 
-                        label="High-impact queries" 
+                        label="Queries" 
                         value={account.queriesCount} 
-                        onClick={() => onNavigate('High-impact queries')} 
+                        onClick={() => onNavigate('Queries')} 
                     />
                 </div>
             </div>
@@ -263,7 +263,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* 1. Top Warehouses Bar Chart - Click handler moved to Bar for reliable detail drill-down */}
                 <div className="lg:col-span-12">
-                    <WidgetCard title="Top warehouses by credits" infoText="Resource-intensive warehouses ranked by credit usage." headerActions={<button onClick={() => onNavigate('Warehouses')} className="text-[11px] font-bold text-link hover:underline">View all</button>}>
+                    <WidgetCard title="Top warehouses by credits" infoText="Resource-intensive warehouses ranked by credit usage." headerActions={<button onClick={() => onNavigate('Warehouse')} className="text-[11px] font-bold text-link hover:underline">View all</button>}>
                         <div className="h-[320px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart 
@@ -291,7 +291,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
 
                 {/* 2. Top Queries Bar Chart - Click handler moved to Bar for reliable detail drill-down */}
                 <div className="lg:col-span-12">
-                    <WidgetCard title="Top queries by credits" infoText="Queries in this account consuming the highest amount of credits." headerActions={<button onClick={() => onNavigate('High-impact queries')} className="text-[11px] font-bold text-link hover:underline">View all</button>}>
+                    <WidgetCard title="Top queries by credits" infoText="Queries in this account consuming the highest amount of credits." headerActions={<button onClick={() => onNavigate('Queries')} className="text-[11px] font-bold text-link hover:underline">View all</button>}>
                         <div className="h-[380px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart 
@@ -343,7 +343,7 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
 
                 {/* 4. Storage Growth Trend Area Chart */}
                 <div className="lg:col-span-6">
-                    <WidgetCard title="Storage growth trend" infoText="Data volume expansion in GB/TB over time." headerActions={<button onClick={() => onNavigate('Storage')} className="text-[11px] font-bold text-link hover:underline">Explore storage</button>}>
+                    <WidgetCard title="Storage growth trend" infoText="Daily storage volume expansion in GB/TB over time." headerActions={<button onClick={() => onNavigate('Overview')} className="text-[11px] font-bold text-link hover:underline">Explore storage</button>}>
                         <div className="h-[320px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={storageGrowthData} margin={{ top: 5, right: 20, left: -10, bottom: 20 }}>

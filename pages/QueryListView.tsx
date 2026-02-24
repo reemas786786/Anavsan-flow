@@ -297,8 +297,8 @@ const QueryListView: React.FC<QueryListViewProps> = ({
     return (
         <div className="flex flex-col h-full bg-background space-y-3 px-4 pt-4 pb-12">
             <div className="flex-shrink-0 mb-8">
-                <h1 className="text-[28px] font-bold text-text-strong tracking-tight">High-impact queries</h1>
-                <p className="text-sm text-text-secondary font-medium mt-1">View, group, and analyze high-impact Snowflake query executions.</p>
+                <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Queries</h1>
+                <p className="text-sm text-text-secondary font-medium mt-1">View, group, and analyze repeated Snowflake query executions.</p>
             </div>
             
             <div className="bg-surface rounded-2xl flex flex-col flex-grow min-h-0 shadow-sm border border-border-light overflow-hidden">

@@ -219,9 +219,9 @@ const App: React.FC = () => {
 
         if (selectedWarehouse) {
             items.push({ 
-                label: 'Warehouses', 
+                label: 'Warehouse', 
                 onClick: () => {
-                    setAccountViewPage('Warehouses');
+                    setAccountViewPage('Warehouse');
                     setSelectedWarehouse(null);
                 } 
             });
