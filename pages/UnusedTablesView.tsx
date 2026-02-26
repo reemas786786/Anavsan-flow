@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { unusedTablesData } from '../data/dummyData';
 import { formatStorageSize } from '../utils/storageMetrics';
-import { IconSearch, IconInfo, IconChevronDown, IconSparkles } from '../constants';
+import { IconSearch, IconInfo, IconChevronDown } from '../constants';
 import InfoTooltip from '../components/InfoTooltip';
 
 const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) => (
@@ -77,32 +77,21 @@ const UnusedTablesView: React.FC<UnusedTablesViewProps> = ({
         });
     };
 
-    const totalPotentialSavings = unusedTablesData.reduce((sum, table) => sum + table.potentialSavings, 0);
     const totalUnusedStorage = unusedTablesData.reduce((sum, table) => sum + table.sizeGB, 0);
 
     return (
         <div className="flex flex-col h-full gap-4">
             {/* Banner */}
-            <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                    <IconSparkles className="w-5 h-5" />
-                </div>
-                <div className="flex-1">
-                    <p className="text-sm font-bold text-text-strong">Anavsan has identified tables inactive for over 15 days.</p>
-                    <p className="text-xs text-text-secondary mt-0.5">Optimizing or deleting them can help reduce your storage usage and costs.</p>
-                </div>
-                <button 
-                    onClick={() => onNavigateToRecommendations?.({ search: 'unused' })}
-                    className="px-4 py-2 bg-primary text-white text-xs font-black rounded-full hover:bg-primary-hover transition-all shadow-sm"
-                >
-                    VIEW RECOMMENDATIONS
-                </button>
+            <div className="bg-[#f0f7ff] border border-[#d1e9ff] border-l-4 border-l-[#0066ff] p-4 flex items-center gap-3 shadow-sm mb-2">
+                <IconInfo className="w-5 h-5 text-[#0066ff] flex-shrink-0" />
+                <p className="text-[13px] font-medium text-[#1e1e1e]">
+                    Anavsan has identified tables inactive for over 15 days. Optimizing or deleting them can help reduce your storage usage and costs.
+                </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 overflow-x-auto no-scrollbar flex-shrink-0">
                 <KPILabel label="Unused tables" value={unusedTablesData.length.toString()} />
                 <KPILabel label="Total unused storage" value={formatStorageSize(totalUnusedStorage)} />
-                <KPILabel label="Est. monthly savings" value={`$${totalPotentialSavings.toLocaleString()}`} />
             </div>
 
             <div className="bg-white rounded-[12px] border border-border-light shadow-sm flex flex-col min-h-0">

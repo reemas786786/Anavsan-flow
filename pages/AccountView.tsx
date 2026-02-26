@@ -530,8 +530,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     <div className="flex flex-col h-full bg-background">
                         <header className="px-4 pt-6 pb-2 flex flex-col gap-4 flex-shrink-0 bg-transparent mb-0">
                             <div>
-                                <h1 className="text-[32px] font-black text-text-strong tracking-tight">Unused Tables</h1>
-                                <p className="text-sm text-text-secondary font-medium mt-1">Identify and remove tables that haven't been accessed recently to save costs.</p>
+                                <h1 className="text-[32px] font-black text-text-strong tracking-tight">Unused tables</h1>
                             </div>
                         </header>
                         <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
