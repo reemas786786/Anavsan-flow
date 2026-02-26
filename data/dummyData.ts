@@ -124,9 +124,12 @@ export const warehousesData: Warehouse[] = [
 ];
 
 export const databasesData: Database[] = [
-    { id: 'db-1', name: 'PROD_DB', sizeGB: 12500, cost: 3200, credits: 1250, tableCount: 45, userCount: 12, users: [] },
-    { id: 'db-2', name: 'STAGING_DB', sizeGB: 8400, cost: 1800, credits: 700, tableCount: 22, userCount: 5, users: [] },
-    { id: 'db-3', name: 'ANALYTICS_DB', sizeGB: 15600, cost: 4100, credits: 1600, tableCount: 120, userCount: 25, users: [] },
+    { id: 'db-1', name: 'PROD_ANALYTICS', sizeGB: 42000, cost: 12500, credits: 1250, tableCount: 1256, userCount: 45, users: [] },
+    { id: 'db-2', name: 'DATABASE_SPEND_ALERT', sizeGB: 12000, cost: 3200, credits: 320, tableCount: 1230, userCount: 12, users: [] },
+    { id: 'db-3', name: 'DATABASE_SYSTEM', sizeGB: 11000, cost: 2800, credits: 280, tableCount: 958, userCount: 8, users: [] },
+    { id: 'db-4', name: 'DATABASE_QUERY_OPTIMIZATION', sizeGB: 9500, cost: 2100, credits: 210, tableCount: 522, userCount: 15, users: [] },
+    { id: 'db-5', name: 'DATABASE_SECURITY', sizeGB: 9400, cost: 2000, credits: 200, tableCount: 365, userCount: 10, users: [] },
+    { id: 'db-6', name: 'DATABASE_INSIGHT', sizeGB: 8500, cost: 1800, credits: 180, tableCount: 258, userCount: 22, users: [] },
 ];
 
 export const spendTrendsData = (function() {
@@ -263,9 +266,9 @@ export const recommendationsData: Recommendation[] = (function() {
 })();
 
 export const storageByTypeData: StorageByTypeItem[] = [
-    { type: 'Active', storageGB: 45000, cost: 2500, color: '#6932D5' },
-    { type: 'Time Travel', storageGB: 1500, cost: 150, color: '#A78BFA' },
-    { type: 'Fail-safe', storageGB: 800, cost: 80, color: '#C4B5FD' },
+    { type: 'Active', storageGB: 45000, cost: 12500, color: '#6932D5' },
+    { type: 'Time Travel', storageGB: 15000, cost: 1500, color: '#A78BFA' },
+    { type: 'Fail-safe', storageGB: 5600, cost: 1200, color: '#C4B5FD' },
 ];
 
 export const accountCostBreakdown = [
@@ -277,84 +280,124 @@ export const topQueriesData: TopQuery[] = [
     { id: 'q-1', queryText: 'SELECT * FROM FACT_SALES WHERE EVENT_DATE >= "2023-01-01"', tokens: 4.5, cost: 12.50, user: 'jane_doe', duration: '02:30' },
 ];
 
-export const storageSummaryData = { totalStorageGB: 45000, totalSpend: 2500, totalCredits: 2100 };
-export const totalStorageMetrics = { totalSizeGB: 45000, totalCost: 2500 };
-export const storageGrowthForecast = { nextMonthSizeGB: 48000, nextMonthCost: 2700 };
+export const storageSummaryData = { totalStorageGB: 65600, totalSpend: 15200, totalCredits: 30100 };
+export const totalStorageMetrics = { totalSizeGB: 65600, totalCost: 15200 };
+export const storageGrowthForecast = { nextMonthSizeGB: 68000, nextMonthCost: 16500 };
 export const topStorageConsumersData: TopStorageConsumer[] = [];
 export const databaseTablesData: DatabaseTable[] = [
     { 
         id: 't-1', 
-        name: 'FACT_SALES', 
-        databaseName: 'PROD_DB',
-        schemaName: 'PUBLIC',
-        activeSizeGB: 850,
-        timeTravelSizeGB: 250,
-        failSafeSizeGB: 100,
-        totalSizeGB: 1200,
+        name: 'Data Analysis Overview', 
+        databaseName: 'PROD_ANALYTICS',
+        schemaName: 'Schema 145',
+        activeSizeGB: 22000,
+        timeTravelSizeGB: 2500,
+        failSafeSizeGB: 500,
+        totalSizeGB: 25000,
         retentionTimeDays: 7,
-        rows: 15000000, 
-        monthlyGrowth: 4.5 
+        rows: 12300000, 
+        monthlyGrowth: 4.5,
+        accountId: 'acc-1',
+        accountName: 'Finance Prod'
     },
     { 
         id: 't-2', 
-        name: 'DIM_CUSTOMERS', 
-        databaseName: 'PROD_DB',
-        schemaName: 'PUBLIC',
-        activeSizeGB: 45,
-        timeTravelSizeGB: 12,
-        failSafeSizeGB: 5,
-        totalSizeGB: 62,
-        retentionTimeDays: 7,
-        rows: 1200000, 
-        monthlyGrowth: 1.2 
+        name: 'Cost Monitoring Notification', 
+        databaseName: 'DATABASE_SPEND_ALERT',
+        schemaName: 'Schema Cost Notification',
+        activeSizeGB: 8000,
+        timeTravelSizeGB: 1500,
+        failSafeSizeGB: 500,
+        totalSizeGB: 10000,
+        retentionTimeDays: 90,
+        rows: 11900000, 
+        monthlyGrowth: 1.2,
+        accountId: 'acc-1',
+        accountName: 'Finance Prod'
     },
     { 
         id: 't-3', 
-        name: 'RAW_LOGS', 
-        databaseName: 'STAGING_DB',
-        schemaName: 'RAW_DATA',
-        activeSizeGB: 2100,
-        timeTravelSizeGB: 450,
-        failSafeSizeGB: 150,
-        totalSizeGB: 2700,
-        retentionTimeDays: 1,
-        rows: 85000000, 
-        monthlyGrowth: 12.5 
+        name: 'Data Management Framework', 
+        databaseName: 'DATABASE_SYSTEM',
+        schemaName: 'Schema 145',
+        activeSizeGB: 8000,
+        timeTravelSizeGB: 1500,
+        failSafeSizeGB: 500,
+        totalSizeGB: 10000,
+        retentionTimeDays: 12,
+        rows: 10900000, 
+        monthlyGrowth: 12.5,
+        accountId: 'acc-1',
+        accountName: 'Finance Prod'
     },
     { 
         id: 't-4', 
-        name: 'WEB_EVENTS', 
-        databaseName: 'ANALYTICS_DB',
-        schemaName: 'EVENTS',
-        activeSizeGB: 1450,
-        timeTravelSizeGB: 320,
-        failSafeSizeGB: 130,
-        totalSizeGB: 1900,
-        retentionTimeDays: 3,
-        rows: 42000000, 
-        monthlyGrowth: 8.2 
+        name: 'Query Performance Enhancement', 
+        databaseName: 'DATABASE_SYSTEM',
+        schemaName: 'Schema Cost Notification',
+        activeSizeGB: 5000,
+        timeTravelSizeGB: 1000,
+        failSafeSizeGB: 200,
+        totalSizeGB: 6200,
+        retentionTimeDays: 7,
+        rows: 9400000, 
+        monthlyGrowth: 8.2,
+        accountId: 'acc-2',
+        accountName: 'Account B'
     },
     { 
         id: 't-5', 
-        name: 'USER_SESSIONS', 
-        databaseName: 'ANALYTICS_DB',
-        schemaName: 'EVENTS',
-        activeSizeGB: 680,
-        timeTravelSizeGB: 140,
-        failSafeSizeGB: 60,
-        totalSizeGB: 880,
-        retentionTimeDays: 3,
-        rows: 28000000, 
-        monthlyGrowth: 5.5 
+        name: 'Data Protection Measures', 
+        databaseName: 'DATABASE_SECURITY',
+        schemaName: 'Schema Cost Notification',
+        activeSizeGB: 5000,
+        timeTravelSizeGB: 1000,
+        failSafeSizeGB: 200,
+        totalSizeGB: 6200,
+        retentionTimeDays: 7,
+        rows: 9300000, 
+        monthlyGrowth: 5.5,
+        accountId: 'acc-2',
+        accountName: 'Account B'
+    },
+    { 
+        id: 't-6', 
+        name: 'Data Analysis Summary', 
+        databaseName: 'DATABASE_SECURITY',
+        schemaName: 'Schema Cost Notification',
+        activeSizeGB: 3500,
+        timeTravelSizeGB: 500,
+        failSafeSizeGB: 100,
+        totalSizeGB: 4100,
+        retentionTimeDays: 7,
+        rows: 8400000, 
+        monthlyGrowth: 3.2,
+        accountId: 'acc-3',
+        accountName: 'Account C'
+    },
+    { 
+        id: 't-7', 
+        name: 'Expenditure Alert Notification', 
+        databaseName: 'DATABASE_SECURITY',
+        schemaName: 'Schema Cost Notification',
+        activeSizeGB: 3500,
+        timeTravelSizeGB: 500,
+        failSafeSizeGB: 100,
+        totalSizeGB: 4100,
+        retentionTimeDays: 14,
+        rows: 8100000, 
+        monthlyGrowth: 2.8,
+        accountId: 'acc-3',
+        accountName: 'Account C'
     },
 ];
 
 export const unusedTablesData: UnusedTable[] = [
-    { id: 'ut-1', name: 'TEMP_SALES_OCT', sizeGB: 450, rows: 1250000, lastAccessed: '2023-10-01', createdBy: 'mike_de', database: 'PROD_DB', schema: 'PUBLIC', potentialSavings: 25 },
-    { id: 'ut-2', name: 'BACKUP_USERS_V1', sizeGB: 280, rows: 850000, lastAccessed: '2023-09-15', createdBy: 'jane_doe', database: 'PROD_DB', schema: 'BACKUPS', potentialSavings: 15 },
-    { id: 'ut-3', name: 'TEST_RESULTS_FINAL', sizeGB: 120, rows: 45000, lastAccessed: '2023-08-20', createdBy: 'alex_analyst', database: 'STAGING_DB', schema: 'TESTING', potentialSavings: 8 },
-    { id: 'ut-4', name: 'OLD_WEB_LOGS_2022', sizeGB: 1500, rows: 45000000, lastAccessed: '2023-01-10', createdBy: 'system_etl', database: 'ANALYTICS_DB', schema: 'ARCHIVE', potentialSavings: 85 },
-    { id: 'ut-5', name: 'TMP_JOIN_RESULTS', sizeGB: 85, rows: 12000, lastAccessed: '2023-11-01', createdBy: 'mike_de', database: 'ANALYTICS_DB', schema: 'PUBLIC', potentialSavings: 5 },
+    { id: 'ut-1', name: 'Old Analysis Cache', sizeGB: 420, rows: 399, lastAccessed: '2025-10-01', unusedDays: 145, createdBy: 'mike_de', database: 'PROD_ANALYTICS', schema: 'Schema 145', potentialSavings: 25, accountId: 'acc-1', accountName: 'Finance Prod' },
+    { id: 'ut-2', name: 'Legacy Spend Logs', sizeGB: 120, rows: 119, lastAccessed: '2025-11-15', unusedDays: 90, createdBy: 'jane_doe', database: 'DATABASE_SPEND_ALERT', schema: 'Schema Cost Notification', potentialSavings: 15, accountId: 'acc-1', accountName: 'Finance Prod' },
+    { id: 'ut-3', name: 'Framework Test Data', sizeGB: 110, rows: 109, lastAccessed: '2025-12-20', unusedDays: 65, createdBy: 'alex_analyst', database: 'DATABASE_SYSTEM', schema: 'Schema 145', potentialSavings: 8, accountId: 'acc-1', accountName: 'Finance Prod' },
+    { id: 'ut-4', name: 'Performance Temp', sizeGB: 95, rows: 94, lastAccessed: '2026-01-10', unusedDays: 45, createdBy: 'system_etl', database: 'DATABASE_SYSTEM', schema: 'Schema Cost Notification', potentialSavings: 85, accountId: 'acc-2', accountName: 'Account B' },
+    { id: 'ut-5', name: 'Protection Backup', sizeGB: 94, rows: 93, lastAccessed: '2026-02-01', unusedDays: 24, createdBy: 'mike_de', database: 'DATABASE_SECURITY', schema: 'Schema Cost Notification', potentialSavings: 5, accountId: 'acc-2', accountName: 'Account B' },
 ];
 export const dataAgeDistributionData: DataAgeDistributionItem[] = [];
 export const storageByTierData = {

@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { Database, DatabaseTable, User } from '../types';
 import { databasesData, databaseTablesData, usersData } from '../data/dummyData';
+import { formatStorageSize } from '../utils/storageMetrics';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { IconChevronLeft, IconSearch, IconAdjustments, IconChevronDown } from '../constants';
 
@@ -68,7 +69,7 @@ const DatabaseDetailView: React.FC<{ database: Database, onBack: () => void }> =
 
             {/* Pill Section for Database Level Metrics */}
             <div className="flex flex-wrap items-center gap-3 overflow-x-auto no-scrollbar flex-shrink-0">
-                <KPILabel label="Total size" value={`${database.sizeGB.toLocaleString()} GB`} />
+                <KPILabel label="Total size" value={formatStorageSize(database.sizeGB)} />
                 <KPILabel label="Est. cost" value={`$${database.cost.toLocaleString()}`} />
                 <KPILabel label="Tables" value={database.tableCount.toString()} />
                 <KPILabel label="Users" value={database.userCount.toString()} />
@@ -97,8 +98,8 @@ const DatabaseDetailView: React.FC<{ database: Database, onBack: () => void }> =
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Schema name</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Total size (GB)</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Active size (GB)</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Fail safe (GB)</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Time travel (GB)</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Fail safe (GB)</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Retention time (Days)</th>
                             </tr>
                         </thead>
@@ -110,8 +111,8 @@ const DatabaseDetailView: React.FC<{ database: Database, onBack: () => void }> =
                                         <td className="px-6 py-4 text-sm font-medium text-text-secondary">{table.schemaName}</td>
                                         <td className="px-6 py-4 text-sm text-right font-black text-primary">{table.totalSizeGB.toLocaleString()}</td>
                                         <td className="px-6 py-4 text-sm text-right font-medium text-text-strong">{table.activeSizeGB.toLocaleString()}</td>
-                                        <td className="px-6 py-4 text-sm text-right font-medium text-text-secondary">{table.failSafeSizeGB.toLocaleString()}</td>
                                         <td className="px-6 py-4 text-sm text-right font-medium text-text-secondary">{table.timeTravelSizeGB.toLocaleString()}</td>
+                                        <td className="px-6 py-4 text-sm text-right font-medium text-text-secondary">{table.failSafeSizeGB.toLocaleString()}</td>
                                         <td className="px-6 py-4 text-sm text-right font-medium text-text-muted">{table.retentionTimeDays}</td>
                                     </tr>
                                 ))
@@ -132,42 +133,27 @@ const DatabaseDetailView: React.FC<{ database: Database, onBack: () => void }> =
 
 const DatabaseListView: React.FC<{ onSelectDatabase: (databaseId: string) => void }> = ({ onSelectDatabase }) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedDb, setSelectedDb] = useState('All databases');
-    const [selectedSchema, setSelectedSchema] = useState('All schemas');
 
-    const dbOptions = useMemo(() => ['All databases', ...Array.from(new Set(databaseTablesData.map(t => t.databaseName).filter((n): n is string => !!n)))], []);
-    const schemaOptions = useMemo(() => ['All schemas', ...Array.from(new Set(databaseTablesData.map(t => t.schemaName)))], []);
-
-    const filteredTables = useMemo(() => {
-        return databaseTablesData.filter(table => {
+    const filteredDatabases = useMemo(() => {
+        return databasesData.filter(db => {
             const matchesSearch = !searchQuery || 
-                table.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                table.schemaName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                table.databaseName?.toLowerCase().includes(searchQuery.toLowerCase());
-            
-            const matchesDb = selectedDb === 'All databases' || table.databaseName === selectedDb;
-            const matchesSchema = selectedSchema === 'All schemas' || table.schemaName === selectedSchema;
-
-            return matchesSearch && matchesDb && matchesSchema;
+                db.name.toLowerCase().includes(searchQuery.toLowerCase());
+            return matchesSearch;
         });
-    }, [searchQuery, selectedDb, selectedSchema]);
+    }, [searchQuery]);
 
     const aggregateMetrics = useMemo(() => {
-        const totalActive = filteredTables.reduce((sum, t) => sum + t.activeSizeGB, 0);
-        const totalTimeTravel = filteredTables.reduce((sum, t) => sum + t.timeTravelSizeGB, 0);
-        const totalFailSafe = filteredTables.reduce((sum, t) => sum + t.failSafeSizeGB, 0);
-        const totalSize = filteredTables.reduce((sum, t) => sum + t.totalSizeGB, 0);
-        const uniqueDbs = new Set(filteredTables.map(t => t.databaseName)).size;
+        const totalSize = filteredDatabases.reduce((sum, db) => sum + db.sizeGB, 0);
+        const totalCost = filteredDatabases.reduce((sum, db) => sum + db.cost, 0);
+        const totalTables = filteredDatabases.reduce((sum, db) => sum + db.tableCount, 0);
 
         return {
-            totalActive,
-            totalTimeTravel,
-            totalFailSafe,
             totalSize,
-            totalTables: filteredTables.length,
-            totalDbs: uniqueDbs
+            totalCost,
+            totalTables,
+            totalDbs: filteredDatabases.length,
         };
-    }, [filteredTables]);
+    }, [filteredDatabases]);
 
     return (
          <div className="flex flex-col h-full gap-4">
@@ -175,59 +161,20 @@ const DatabaseListView: React.FC<{ onSelectDatabase: (databaseId: string) => voi
             <div className="flex flex-wrap items-center gap-3 overflow-x-auto no-scrollbar flex-shrink-0">
                 <KPILabel label="Databases" value={aggregateMetrics.totalDbs.toString()} />
                 <KPILabel label="Tables" value={aggregateMetrics.totalTables.toString()} />
-                <KPILabel label="Total size" value={`${aggregateMetrics.totalSize.toLocaleString()} GB`} />
-                <KPILabel label="Active size" value={`${aggregateMetrics.totalActive.toLocaleString()} GB`} />
-                <KPILabel label="Time travel" value={`${aggregateMetrics.totalTimeTravel.toLocaleString()} GB`} />
-                <KPILabel label="Fail safe" value={`${aggregateMetrics.totalFailSafe.toLocaleString()} GB`} />
+                <KPILabel label="Total size" value={formatStorageSize(aggregateMetrics.totalSize)} />
+                <KPILabel label="Total cost" value={`$${aggregateMetrics.totalCost.toLocaleString()}`} />
             </div>
 
             <div className="bg-white rounded-[12px] border border-border-light shadow-sm flex flex-col min-h-0">
                 <div className="px-4 py-3 flex items-center border-b border-border-light bg-white rounded-t-[12px] relative z-20 overflow-visible flex-shrink-0">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-text-secondary">Database</span>
-                            <div className="relative">
-                                <select
-                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
-                                    value={selectedDb}
-                                    onChange={(e) => setSelectedDb(e.target.value)}
-                                >
-                                    {dbOptions.map(opt => <option key={opt} value={opt}>{opt === 'All databases' ? 'All' : opt}</option>)}
-                                </select>
-                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
-                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="h-4 w-[1px] bg-border-light" />
-
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-text-secondary">Schema</span>
-                            <div className="relative">
-                                <select
-                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
-                                    value={selectedSchema}
-                                    onChange={(e) => setSelectedSchema(e.target.value)}
-                                >
-                                    {schemaOptions.map(opt => <option key={opt} value={opt}>{opt === 'All schemas' ? 'All' : opt}</option>)}
-                                </select>
-                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
-                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="h-4 w-[1px] bg-border-light" />
-                    </div>
-
+                    <h3 className="text-sm font-bold text-text-strong">Databases</h3>
                     <div className="relative flex-1 ml-4">
                         <input 
                             type="text" 
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="bg-transparent border-none text-sm font-medium focus:ring-0 outline-none pr-8 placeholder:text-text-muted w-full text-right"
-                            placeholder="Search databases, schemas, or tables..."
+                            placeholder="Search databases..."
                         />
                         <IconSearch className="w-4 h-4 text-text-muted absolute right-0 top-1/2 -translate-y-1/2" />
                     </div>
@@ -237,45 +184,38 @@ const DatabaseListView: React.FC<{ onSelectDatabase: (databaseId: string) => voi
                     <table className="w-full text-left border-separate border-spacing-0">
                         <thead className="bg-[#F8F9FA] sticky top-0 z-10">
                             <tr>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Table name</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Schema name</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Total size (GB)</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Active size (GB)</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Fail safe (GB)</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Time travel (GB)</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Retention time</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Databases</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Tables</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Size (GB)</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Cost</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Credits</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Users</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-border-light">
-                            {filteredTables.length > 0 ? (
-                                filteredTables.map(table => {
-                                    const db = databasesData.find(d => d.name === table.databaseName);
-                                    return (
-                                        <tr 
-                                            key={table.id} 
-                                            className="hover:bg-surface-nested transition-colors group" 
-                                        >
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-bold text-text-primary">
-                                                    {table.name}
-                                                </div>
-                                                <div className="text-[11px] text-text-muted mt-0.5 font-medium">
-                                                    Database: {table.databaseName}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm font-medium text-text-secondary">{table.schemaName}</td>
-                                            <td className="px-6 py-4 text-sm text-right font-black text-primary">{table.totalSizeGB.toLocaleString()}</td>
-                                            <td className="px-6 py-4 text-sm text-right font-medium text-text-strong">{table.activeSizeGB.toLocaleString()}</td>
-                                            <td className="px-6 py-4 text-sm text-right font-medium text-text-secondary">{table.failSafeSizeGB.toLocaleString()}</td>
-                                            <td className="px-6 py-4 text-sm text-right font-medium text-text-secondary">{table.timeTravelSizeGB.toLocaleString()}</td>
-                                            <td className="px-6 py-4 text-sm text-right font-medium text-text-muted">{table.retentionTimeDays}d</td>
-                                        </tr>
-                                    );
-                                })
+                            {filteredDatabases.length > 0 ? (
+                                filteredDatabases.map(db => (
+                                    <tr 
+                                        key={db.id} 
+                                        className="hover:bg-surface-nested transition-colors group cursor-pointer" 
+                                        onClick={() => onSelectDatabase(db.id)}
+                                    >
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">
+                                                {db.name}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-right font-medium text-text-secondary">{db.tableCount.toLocaleString()}</td>
+                                        <td className="px-6 py-4 text-sm text-right font-black text-primary">{db.sizeGB.toLocaleString()}</td>
+                                        <td className="px-6 py-4 text-sm text-right font-medium text-text-strong">${db.cost.toLocaleString()}</td>
+                                        <td className="px-6 py-4 text-sm text-right font-medium text-text-secondary">{db.credits.toLocaleString()}</td>
+                                        <td className="px-6 py-4 text-sm text-right font-medium text-text-muted">{db.userCount}</td>
+                                    </tr>
+                                ))
                             ) : (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-12 text-center text-text-muted italic">
-                                        No tables match your search criteria.
+                                    <td colSpan={6} className="px-6 py-12 text-center text-text-muted italic">
+                                        No databases match your search criteria.
                                     </td>
                                 </tr>
                             )}

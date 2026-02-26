@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, PieChart, Pie } from 'recharts';
 import { storageSummaryData, storageGrowthData, databasesData, storageByTypeData, databaseTablesData, unusedTablesData } from '../data/dummyData';
+import { calculateStorageMetrics, formatStorageSize } from '../utils/storageMetrics';
 import InfoTooltip from '../components/InfoTooltip';
 import { BigScreenWidget } from '../types';
 import { IconDotsVertical, IconList, IconInfo } from '../constants';
@@ -78,8 +79,10 @@ const StorageSummaryView: React.FC<{
         title: string;
         data: { name: string; cost: number; credits: number; percentage: number }[];
     } | null>(null);
+
+    const metrics = useMemo(() => calculateStorageMetrics(), []);
     
-    const topDatabasesBySize = [...databasesData].sort((a, b) => b.sizeGB - a.sizeGB).slice(0, 5);
+    const topDatabasesBySize = [...databasesData].sort((a, b) => b.sizeGB - a.sizeGB).slice(0, 8);
     
     const schemasBySize = useMemo(() => {
         const map: Record<string, number> = {};
@@ -89,12 +92,18 @@ const StorageSummaryView: React.FC<{
         return Object.entries(map)
             .map(([name, size]) => ({ name, size }))
             .sort((a, b) => b.size - a.size)
-            .slice(0, 5);
+            .slice(0, 8);
     }, []);
 
-    const topTablesBySize = [...databaseTablesData].sort((a, b) => b.totalSizeGB - a.totalSizeGB).slice(0, 5);
+    const topTablesBySize = [...databaseTablesData].sort((a, b) => b.totalSizeGB - a.totalSizeGB).slice(0, 8);
 
-    const storageByTypeChartData = storageByTypeData.filter(item => item.type !== 'Staging');
+    const storageByTypeChartData = [
+        { type: 'Active bytes', storageGB: 45000, color: '#6932D5' },
+        { type: 'Staged bytes', storageGB: 800, color: '#A78BFA' },
+        { type: 'Time travel', storageGB: 1500, color: '#C4B5FD' },
+        { type: 'Failsafe', storageGB: 200, color: '#D1D1E9' },
+        { type: 'Hybrid bytes', storageGB: 120, color: '#E5E5F7' },
+    ];
     const totalStorageByType = storageByTypeChartData.reduce((sum, item) => sum + item.storageGB, 0);
 
     const failsafeData = storageByTypeData.find(d => d.type === 'Fail-safe');
@@ -214,232 +223,125 @@ const StorageSummaryView: React.FC<{
                     </>
                 }
             >
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-                    <div className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50">
-                        <p className="text-sm font-medium text-text-muted mb-2">Storage credits</p>
-                        <p className="text-2xl font-black text-text-strong">{(storageSummaryData.totalCredits / 1000).toFixed(1)}K</p>
-                        <p className="text-xs font-bold text-text-muted mt-1">{(storageSummaryData.totalStorageGB / 1000).toFixed(0)} TB</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left shadow-sm w-full">
+                        <p className="text-[10px] font-bold text-[#9A9AB2] uppercase tracking-widest">Total credits</p>
+                        <div className="mt-auto">
+                            <p className="text-[18px] font-black text-[#161616] tracking-tight leading-none">2.1K</p>
+                            <p className="text-[10px] font-bold text-[#5A5A72] mt-1 tracking-tight">{formatStorageSize(metrics.totalSizeGB)}</p>
+                        </div>
                     </div>
                     
-                    {/* Group 1: Database related */}
                     <button 
                         onClick={() => onNavigate('Databases')}
-                        className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50 text-left hover:border-primary/30 hover:bg-surface-hover transition-all group"
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
                     >
-                        <p className="text-sm font-medium text-text-muted mb-2 group-hover:text-primary">Databases</p>
-                        <p className="text-2xl font-black text-text-strong">12</p>
-                        <p className="text-xs font-bold text-text-muted mt-1">Active</p>
+                        <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Databases</p>
+                        <div className="mt-auto">
+                            <p className="text-[18px] font-black text-[#161616] tracking-tight leading-none">{metrics.databaseCount}</p>
+                        </div>
                     </button>
                     <button 
-                        onClick={() => onNavigate('Databases')}
-                        className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50 text-left hover:border-primary/30 hover:bg-surface-hover transition-all group"
+                        onClick={() => onNavigate('Schemas')}
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
                     >
-                        <p className="text-sm font-medium text-text-muted mb-2 group-hover:text-primary">Schemas</p>
-                        <p className="text-2xl font-black text-text-strong">45</p>
-                        <p className="text-xs font-bold text-text-muted mt-1">Across all DBs</p>
+                        <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Schemas</p>
+                        <div className="mt-auto">
+                            <p className="text-[18px] font-black text-[#161616] tracking-tight leading-none">{metrics.schemaCount}</p>
+                        </div>
                     </button>
                     <button 
-                        onClick={() => onNavigate('Databases')}
-                        className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50 text-left hover:border-primary/30 hover:bg-surface-hover transition-all group"
+                        onClick={() => onNavigate('Tables')}
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
                     >
-                        <p className="text-sm font-medium text-text-muted mb-2 group-hover:text-primary">Tables</p>
-                        <p className="text-2xl font-black text-text-strong">850</p>
-                        <p className="text-xs font-bold text-text-muted mt-1">Total count</p>
+                        <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Tables</p>
+                        <div className="mt-auto">
+                            <p className="text-[18px] font-black text-[#161616] tracking-tight leading-none">{metrics.tableCount}</p>
+                        </div>
                     </button>
+                </div>
 
-                    {/* Group 2: Unused tables */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
                     <button 
                         onClick={() => onNavigate('Unused tables')}
-                        className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50 text-left hover:border-primary/30 hover:bg-surface-hover transition-all group"
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
                     >
-                        <p className="text-sm font-medium text-text-muted mb-2 group-hover:text-primary">Unused tables</p>
-                        <p className="text-2xl font-black text-text-strong">{totalUnusedGB.toLocaleString()} GB</p>
-                        <p className="text-xs font-bold text-text-muted mt-1">{unusedTablesData.length} count</p>
+                        <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Unused tables</p>
+                        <div className="mt-auto">
+                            <p className="text-[18px] font-black text-[#161616] tracking-tight leading-none">{metrics.unusedTableCount}</p>
+                            <p className="text-[10px] font-bold text-[#5A5A72] mt-1 tracking-tight">{formatStorageSize(metrics.unusedSizeGB)}</p>
+                        </div>
                     </button>
 
-                    <div className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50">
-                        <p className="text-sm font-medium text-text-muted mb-2">Failsafe</p>
-                        <p className="text-2xl font-black text-text-strong">{failsafeData?.storageGB.toLocaleString()} GB</p>
-                        <p className="text-xs font-bold text-text-muted mt-1">650 count</p>
-                    </div>
-                    <div className="bg-surface-nested p-5 rounded-[24px] border border-border-light/50">
-                        <p className="text-sm font-medium text-text-muted mb-2">Time travel</p>
-                        <p className="text-2xl font-black text-text-strong">{timeTravelData?.storageGB.toLocaleString()} GB</p>
-                        <p className="text-xs font-bold text-text-muted mt-1">650 count</p>
-                    </div>
+                    <button 
+                        onClick={() => onNavigate('Databases')}
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                    >
+                        <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Failsafe</p>
+                        <div className="mt-auto">
+                            <p className="text-[18px] font-black text-[#161616] tracking-tight leading-none">{formatStorageSize(metrics.failSafeSizeGB)}</p>
+                        </div>
+                    </button>
+                    <button 
+                        onClick={() => onNavigate('Databases')}
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                    >
+                        <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Time travel</p>
+                        <div className="mt-auto">
+                            <p className="text-[18px] font-black text-[#161616] tracking-tight leading-none">{formatStorageSize(metrics.timeTravelSizeGB)}</p>
+                        </div>
+                    </button>
                 </div>
             </WidgetCard>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Table Type Widget */}
-                <WidgetCard title="Table type breakdown">
-                    <div className="flex flex-col md:flex-row items-center gap-8 py-4">
+                <WidgetCard title="Table type">
+                    <div className="grid grid-cols-2 gap-4 py-4">
+                        <div className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 col-span-1">
+                            <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Permanent</p>
+                            <p className="text-2xl font-black text-text-strong">650</p>
+                            <p className="text-xs font-bold text-text-muted mt-1">35.5 GB</p>
+                        </div>
+                        <div className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 col-span-1">
+                            <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Transient</p>
+                            <p className="text-2xl font-black text-text-strong">120</p>
+                            <p className="text-xs font-bold text-text-muted mt-1">23.2 GB</p>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 col-span-2">
+                            <div className="bg-surface-nested p-4 rounded-2xl border border-border-light/50">
+                                <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Temporary</p>
+                                <p className="text-xl font-black text-text-strong">45</p>
+                                <p className="text-xs font-bold text-text-muted mt-1">4.4 GB</p>
+                            </div>
+                            <div className="bg-surface-nested p-4 rounded-2xl border border-border-light/50">
+                                <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Hybrid</p>
+                                <p className="text-xl font-black text-text-strong">25</p>
+                                <p className="text-xs font-bold text-text-muted mt-1">5.6 GB</p>
+                            </div>
+                            <div className="bg-surface-nested p-4 rounded-2xl border border-border-light/50">
+                                <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Dynamic</p>
+                                <p className="text-xl font-black text-text-strong">10</p>
+                                <p className="text-xs font-bold text-text-muted mt-1">1.2 GB</p>
+                            </div>
+                        </div>
+                    </div>
+                </WidgetCard>
+
+                {/* Storage Type Widget */}
+                <WidgetCard title="Storage type">
+                    <div className="flex items-center gap-8 py-4">
                         <div className="relative w-48 h-48 flex-shrink-0">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
-                                        data={[
-                                            { name: 'Permanent', value: 650, color: '#6932D5' },
-                                            { name: 'Transient', value: 120, color: '#A78BFA' },
-                                            { name: 'Temporary', value: 45, color: '#C4B5FD' },
-                                            { name: 'Hybrid', value: 25, color: '#10B981' },
-                                            { name: 'Dynamic', value: 10, color: '#F59E0B' },
-                                        ]}
-                                        dataKey="value"
-                                        nameKey="name"
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius="60%"
-                                        outerRadius="80%"
-                                        paddingAngle={5}
-                                        stroke="none"
-                                    >
-                                        {[
-                                            { name: 'Permanent', value: 650, color: '#6932D5' },
-                                            { name: 'Transient', value: 120, color: '#A78BFA' },
-                                            { name: 'Temporary', value: 45, color: '#C4B5FD' },
-                                            { name: 'Hybrid', value: 25, color: '#10B981' },
-                                            { name: 'Dynamic', value: 10, color: '#F59E0B' },
-                                        ].map((entry) => (
-                                            <Cell key={`cell-${entry.name}`} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip />
-                                </PieChart>
-                            </ResponsiveContainer>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span className="text-2xl font-bold text-text-primary">850</span>
-                                <span className="text-xs text-text-secondary uppercase font-bold tracking-widest">Tables</span>
-                            </div>
-                        </div>
-                        <div className="flex-1 grid grid-cols-1 gap-3 w-full">
-                            {[
-                                { name: 'Permanent', value: 650, color: '#6932D5' },
-                                { name: 'Transient', value: 120, color: '#A78BFA' },
-                                { name: 'Temporary', value: 45, color: '#C4B5FD' },
-                                { name: 'Hybrid', value: 25, color: '#10B981' },
-                                { name: 'Dynamic', value: 10, color: '#F59E0B' },
-                            ].map(item => (
-                                <div key={item.name} className="flex items-center justify-between p-2 rounded-xl hover:bg-surface-nested transition-colors">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                                        <span className="text-xs font-bold text-text-secondary">{item.name}</span>
-                                    </div>
-                                    <span className="text-xs font-black text-text-strong">{item.value}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </WidgetCard>
-
-                {/* Storage Usage Widget */}
-                <WidgetCard title="Storage usage breakdown">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-2">
-                        {[
-                            { label: 'Active Bytes', value: '45.0 TB', color: 'text-primary', bgColor: 'bg-primary/5' },
-                            { label: 'Time Travel', value: '1.5 TB', color: 'text-indigo-600', bgColor: 'bg-indigo-50' },
-                            { label: 'Fail-safe', value: '800 GB', color: 'text-violet-600', bgColor: 'bg-violet-50' },
-                            { label: 'Staged Bytes', value: '350 GB', color: 'text-amber-600', bgColor: 'bg-amber-50' },
-                            { label: 'Hybrid Bytes', value: '120 GB', color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
-                            { label: 'Unused Bytes', value: '450 GB', color: 'text-red-600', bgColor: 'bg-red-50' },
-                        ].map((stat) => (
-                            <div key={stat.label} className="flex flex-col p-4 rounded-2xl border border-border-light bg-white shadow-sm">
-                                <div className={`w-8 h-8 rounded-lg ${stat.bgColor} flex items-center justify-center mb-3`}>
-                                    <div className={`w-2 h-2 rounded-full ${stat.color.replace('text-', 'bg-')}`} />
-                                </div>
-                                <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">{stat.label}</span>
-                                <span className={`text-lg font-black text-text-strong`}>{stat.value}</span>
-                            </div>
-                        ))}
-                    </div>
-                </WidgetCard>
-            </div>
-
-            <div className="columns-1 lg:columns-2 gap-4">
-                {/* Widget: Top Databases by Size */}
-                <WidgetCard title="Top databases by size">
-                    <div className="h-64 mt-2">
-                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart layout="vertical" data={topDatabasesBySize} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} tickFormatter={(value) => `${(value/1000).toFixed(1)}k`} />
-                                <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={100} tick={{width: 90}} />
-                                <Tooltip
-                                    cursor={{ fill: '#F3F0FA' }}
-                                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }}
-                                    formatter={(value: number) => [`${value.toLocaleString()} GB`, 'Size']}
-                                />
-                                <Bar dataKey="sizeGB" fill="#6932D5" radius={[0, 4, 4, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </WidgetCard>
-
-                {/* Widget: Top Schemas by Size */}
-                <WidgetCard title="Top schemas by size">
-                    <div className="h-64 mt-2">
-                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart layout="vertical" data={schemasBySize} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} tickFormatter={(value) => `${(value/1000).toFixed(1)}k`} />
-                                <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={100} tick={{width: 90}} />
-                                <Tooltip
-                                    cursor={{ fill: '#F3F0FA' }}
-                                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }}
-                                    formatter={(value: number) => [`${value.toLocaleString()} GB`, 'Size']}
-                                />
-                                <Bar dataKey="size" fill="#A78BFA" radius={[0, 4, 4, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </WidgetCard>
-
-                {/* Widget: Top Tables by Size */}
-                <WidgetCard title="Top tables by size">
-                    <div className="h-64 mt-2">
-                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart layout="vertical" data={topTablesBySize} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} tickFormatter={(value) => `${(value/1000).toFixed(1)}k`} />
-                                <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={100} tick={{width: 90}} />
-                                <Tooltip
-                                    cursor={{ fill: '#F3F0FA' }}
-                                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }}
-                                    formatter={(value: number) => [`${value.toLocaleString()} GB`, 'Size']}
-                                />
-                                <Bar dataKey="totalSizeGB" fill="#C4B5FD" radius={[0, 4, 4, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </WidgetCard>
-
-                {/* Widget 4: Storage by Type */}
-                <WidgetCard>
-                    <div className="flex justify-between items-start">
-                        <div className="flex items-center">
-                            <h3 className="text-base font-semibold text-text-strong">Storage by type</h3>
-                            <InfoTooltip text="Breakdown of storage usage by category." />
-                        </div>
-                         <WidgetActionMenu
-                            widgetId="storage-by-type"
-                            openMenu={openMenu}
-                            handleMenuClick={handleMenuClick}
-                            menuRef={menuRef}
-                            onExpand={() => { onSetBigScreenWidget({ type: 'storage_by_type', title: 'Storage by type' }); setOpenMenu(null); }}
-                            onTableView={() => handleOpenTableView('storage-by-type')}
-                            onDownload={() => handleDownloadCSV('storage-by-type')}
-                        />
-                    </div>
-                    <div className="flex-grow flex flex-col items-center justify-center mt-4">
-                        <div className="relative w-48 h-48">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={storageByTypeChartData.map(item => ({...item}))}
+                                        data={storageByTypeChartData}
                                         dataKey="storageGB"
                                         nameKey="type"
                                         cx="50%"
                                         cy="50%"
                                         innerRadius="60%"
                                         outerRadius="80%"
-                                        fill="#8884d8"
                                         paddingAngle={5}
                                         stroke="none"
                                     >
@@ -447,80 +349,113 @@ const StorageSummaryView: React.FC<{
                                             <Cell key={`cell-${entry.type}`} fill={entry.color} />
                                         ))}
                                     </Pie>
-                                    <Tooltip
-                                        formatter={(value: number) => [`${value.toLocaleString()} GB`, 'Storage']}
-                                        contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }}
-                                    />
+                                    <Tooltip />
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span className="text-2xl font-bold text-text-primary">
-                                    {totalStorageByType.toLocaleString(undefined, {maximumFractionDigits: 1})}
-                                </span>
-                                <span className="text-sm text-text-secondary">GB</span>
+                                <span className="text-2xl font-bold text-text-primary">64 TB</span>
                             </div>
                         </div>
-                        <div className="w-full mt-4 space-y-2">
+                        <div className="flex-1 grid grid-cols-1 gap-3">
                             {storageByTypeChartData.map(item => (
-                                <div key={item.type} className="flex items-center justify-between text-sm px-2">
-                                    <div className="flex items-center">
-                                        <span className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: item.color }}></span>
-                                        <span className="text-text-secondary">{item.type}</span>
+                                <div key={item.type} className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                                        <span className="text-text-secondary font-medium">{item.type}</span>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="font-semibold text-text-strong">{item.storageGB.toLocaleString()} GB</p>
-                                        <p className="text-xs text-text-muted">${item.cost.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-                                    </div>
+                                    <span className="font-bold text-text-strong">{(item.storageGB / 1000).toFixed(1)} TB</span>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </WidgetCard>
+            </div>
 
-                {/* Widget 3: Storage Growth Trend */}
-                <WidgetCard>
-                     <div className="flex justify-between items-start">
-                        <div className="flex items-center">
-                            <h3 className="text-base font-semibold text-text-strong">Storage growth trend</h3>
-                            <InfoTooltip text="Historical growth pattern for active storage and time travel usage." />
-                        </div>
-                        <WidgetActionMenu
-                            widgetId="storage-growth"
-                            openMenu={openMenu}
-                            handleMenuClick={handleMenuClick}
-                            menuRef={menuRef}
-                            onExpand={() => { onSetBigScreenWidget({ type: 'storage_growth_trend', title: 'Storage growth trend' }); setOpenMenu(null); }}
-                            onTableView={null} // Data structure not compatible with simple TableView
-                            onDownload={() => handleDownloadCSV('storage-growth')}
-                        />
-                    </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Storage Growth Trend */}
+                <WidgetCard title="Storage growth trend">
                     <div className="h-80 mt-4">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={storageGrowthData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                 <XAxis dataKey="date" stroke="#9A9AB2" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis stroke="#9A9AB2" fontSize={12} unit=" GB" tickFormatter={(value) => (value/1000).toLocaleString() + 'k'} tickLine={false} axisLine={false}/>
+                                <YAxis stroke="#9A9AB2" fontSize={12} tickLine={false} axisLine={false}/>
                                 <Tooltip
                                     contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }}
                                     labelStyle={{ color: '#1E1E2D', fontWeight: 'bold' }}
-                                    formatter={(value: number, name: string) => [`${value.toLocaleString()} GB`, name.replace(/ \(.*/, '')]}
                                 />
                                 <defs>
                                     <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#6932D5" stopOpacity={0.7}/>
                                         <stop offset="95%" stopColor="#6932D5" stopOpacity={0}/>
                                     </linearGradient>
-                                    <linearGradient id="colorTimeTravel" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#C4B5FD" stopOpacity={0.6}/>
-                                        <stop offset="95%" stopColor="#C4B5FD" stopOpacity={0}/>
-                                    </linearGradient>
                                 </defs>
                                 <Area type="monotone" dataKey="Active Storage (GB)" stroke="#6932D5" strokeWidth={2} fillOpacity={1} fill="url(#colorActive)" />
-                                <Area type="monotone" dataKey="Time Travel (GB)" stroke="#A78BFA" strokeWidth={2} fillOpacity={1} fill="url(#colorTimeTravel)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </WidgetCard>
+
+                {/* Top Database by Size */}
+                <WidgetCard 
+                    title="Top database by size"
+                    actions={<button onClick={() => onNavigate('Databases')} className="text-xs font-bold text-primary hover:underline">View all</button>}
+                >
+                    <div className="h-80 mt-4">
+                         <ResponsiveContainer width="100%" height="100%">
+                            <BarChart layout="vertical" data={topDatabasesBySize} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} hide />
+                                <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={100} axisLine={false} tickLine={false} />
+                                <Tooltip
+                                    cursor={{ fill: '#F3F0FA' }}
+                                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }}
+                                />
+                                <Bar dataKey="sizeGB" fill="#6932D5" radius={[0, 4, 4, 0]} barSize={12} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </WidgetCard>
+
+                {/* Top Schema by Size */}
+                <WidgetCard 
+                    title="Top schema by size"
+                    actions={<button onClick={() => onNavigate('Databases')} className="text-xs font-bold text-primary hover:underline">View all</button>}
+                >
+                    <div className="h-80 mt-4">
+                         <ResponsiveContainer width="100%" height="100%">
+                            <BarChart layout="vertical" data={schemasBySize} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} hide />
+                                <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={100} axisLine={false} tickLine={false} />
+                                <Tooltip
+                                    cursor={{ fill: '#F3F0FA' }}
+                                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }}
+                                />
+                                <Bar dataKey="size" fill="#6932D5" radius={[0, 4, 4, 0]} barSize={12} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </WidgetCard>
+
+                {/* Top Table by Size */}
+                <WidgetCard 
+                    title="Top table by size"
+                    actions={<button onClick={() => onNavigate('Databases')} className="text-xs font-bold text-primary hover:underline">View all</button>}
+                >
+                    <div className="h-80 mt-4">
+                         <ResponsiveContainer width="100%" height="100%">
+                            <BarChart layout="vertical" data={topTablesBySize} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} hide />
+                                <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={100} axisLine={false} tickLine={false} />
+                                <Tooltip
+                                    cursor={{ fill: '#F3F0FA' }}
+                                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E5E0', borderRadius: '1rem' }}
+                                />
+                                <Bar dataKey="totalSizeGB" fill="#6932D5" radius={[0, 4, 4, 0]} barSize={12} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </WidgetCard>
             </div>
+            
             <SidePanel
                 isOpen={!!tableViewData}
                 onClose={() => setTableViewData(null)}

@@ -379,6 +379,8 @@ export const accountNavItems = [
         children: [
             { name: 'Storage overview', label: 'Overview', icon: IconOverview },
             { name: 'Databases', icon: IconDatabase },
+            { name: 'Schemas', icon: IconList },
+            { name: 'Tables', icon: IconList },
             { name: 'Unused tables', icon: IconList }
         ]
     },

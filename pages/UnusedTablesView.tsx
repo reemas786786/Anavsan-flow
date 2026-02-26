@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { unusedTablesData } from '../data/dummyData';
+import { formatStorageSize } from '../utils/storageMetrics';
 import { IconSearch, IconInfo, IconChevronDown } from '../constants';
 import InfoTooltip from '../components/InfoTooltip';
 
@@ -71,7 +72,7 @@ const UnusedTablesView: React.FC = () => {
         <div className="flex flex-col h-full gap-4">
             <div className="flex flex-wrap items-center gap-3 overflow-x-auto no-scrollbar flex-shrink-0">
                 <KPILabel label="Unused tables" value={unusedTablesData.length.toString()} />
-                <KPILabel label="Total unused storage" value={`${totalUnusedStorage.toLocaleString()} GB`} />
+                <KPILabel label="Total unused storage" value={formatStorageSize(totalUnusedStorage)} />
                 <KPILabel label="Est. monthly savings" value={`$${totalPotentialSavings.toLocaleString()}`} />
             </div>
 
@@ -139,6 +140,7 @@ const UnusedTablesView: React.FC = () => {
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors text-right" onClick={() => handleSort('sizeGB')}>Size</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors text-right" onClick={() => handleSort('rows')}>Rows</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors text-right" onClick={() => handleSort('lastAccessed')}>Last used</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors text-right" onClick={() => handleSort('unusedDays')}>Unused days</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-border-light">
@@ -152,13 +154,16 @@ const UnusedTablesView: React.FC = () => {
                                         <div className="text-sm font-medium text-text-primary">{table.schema}</div>
                                     </td>
                                     <td className="px-6 py-4 text-right font-mono text-sm font-bold text-text-strong">
-                                        {table.sizeGB.toLocaleString()} GB
+                                        {formatStorageSize(table.sizeGB)}
                                     </td>
                                     <td className="px-6 py-4 text-right font-mono text-sm font-medium text-text-secondary">
                                         {table.rows.toLocaleString()}
                                     </td>
                                     <td className="px-6 py-4 text-right text-sm font-medium text-text-secondary">
                                         {new Date(table.lastAccessed).toLocaleDateString()}
+                                    </td>
+                                    <td className="px-6 py-4 text-right text-sm font-black text-primary">
+                                        {table.unusedDays}
                                     </td>
                                 </tr>
                             ))}

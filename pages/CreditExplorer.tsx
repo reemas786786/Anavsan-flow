@@ -5,8 +5,11 @@ import {
     recommendationsData,
     cortexModelsData,
     workloadsData,
-    servicesData
+    servicesData,
+    databaseTablesData,
+    unusedTablesData
 } from '../data/dummyData';
+import { calculateStorageMetrics, formatStorageSize } from '../utils/storageMetrics';
 import { Account, ResourceType } from '../types';
 import { 
     IconSearch, 
@@ -187,23 +190,30 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                 case 'Storage':
                     return connectionsData.map(acc => {
                         const storageCredits = Math.round(acc.tokens * 0.12);
-                        const unusedGB = Math.round(acc.storageGB * (0.05 + Math.random() * 0.15));
-                        const failsafeGB = Math.round(acc.storageGB * 0.08);
-                        const timeTravelGB = Math.round(acc.storageGB * 0.15);
+                        
+                        // Filter tables for this account
+                        const accountTables = databaseTablesData.filter(t => t.accountId === acc.id || t.accountName === acc.name);
+                        const accountUnusedTables = unusedTablesData.filter(t => t.accountId === acc.id || t.accountName === acc.name);
+                        
+                        const sizeGB = accountTables.reduce((sum, t) => sum + t.totalSizeGB, 0);
+                        const unusedGB = accountUnusedTables.reduce((sum, t) => sum + t.sizeGB, 0);
+                        const failsafeGB = accountTables.reduce((sum, t) => sum + t.failSafeSizeGB, 0);
+                        const timeTravelGB = accountTables.reduce((sum, t) => sum + t.timeTravelSizeGB, 0);
+
                         return {
                             id: acc.id,
                             accountName: acc.name,
                             accountIdentifier: acc.identifier,
                             totalRaw: storageCredits,
                             storage: formatK(storageCredits), 
-                            sizeRaw: acc.storageGB,
-                            size: acc.storageGB >= 1000 ? `${(acc.storageGB / 1000).toFixed(1)} TB` : `${acc.storageGB} GB`,
+                            sizeRaw: sizeGB,
+                            size: formatStorageSize(sizeGB),
                             unusedRaw: unusedGB,
-                            unused: unusedGB >= 1000 ? `${(unusedGB / 1000).toFixed(1)} TB` : `${unusedGB} GB`,
+                            unused: formatStorageSize(unusedGB),
                             failsafeRaw: failsafeGB,
-                            failsafe: failsafeGB >= 1000 ? `${(failsafeGB / 1000).toFixed(1)} TB` : `${failsafeGB} GB`,
+                            failsafe: formatStorageSize(failsafeGB),
                             timetravelRaw: timeTravelGB,
-                            timetravel: timeTravelGB >= 1000 ? `${(timeTravelGB / 1000).toFixed(1)} TB` : `${timeTravelGB} GB`,
+                            timetravel: formatStorageSize(timeTravelGB),
                             insights: getInsightCount(acc.name, 'Storage')
                         };
                     });
@@ -341,8 +351,8 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                 const storUnused = rows.reduce((s, r) => s + (r.unusedRaw || 0), 0);
                 return [
                     { label: 'Total storage credits', value: formatK(rows.reduce((s, r) => s + (r.totalRaw || 0), 0)) },
-                    { label: 'Total storage size', value: storSize >= 1000 ? `${(storSize / 1000).toFixed(1)} TB` : `${storSize} GB` },
-                    { label: 'Total unused table size', value: storUnused >= 1000 ? `${(storUnused / 1000).toFixed(1)} TB` : `${storUnused} GB` }
+                    { label: 'Total storage size', value: formatStorageSize(storSize) },
+                    { label: 'Total unused table size', value: formatStorageSize(storUnused) }
                 ];
             case 'Workloads':
                 return [

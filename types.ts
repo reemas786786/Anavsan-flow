@@ -273,10 +273,13 @@ export interface UnusedTable {
     sizeGB: number;
     rows: number;
     lastAccessed: string;
+    unusedDays: number;
     createdBy: string;
     database: string;
     schema: string;
     potentialSavings: number; 
+    accountId?: string;
+    accountName?: string;
 }
 
 export interface DuplicateDataPattern {
@@ -378,6 +381,8 @@ export interface DatabaseTable {
     retentionTimeDays: number;
     rows: number;
     monthlyGrowth: number;
+    accountId?: string;
+    accountName?: string;
 }
 
 export interface StorageByTypeItem {
