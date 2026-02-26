@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { unusedTablesData } from '../data/dummyData';
 import { formatStorageSize } from '../utils/storageMetrics';
-import { IconSearch, IconInfo, IconChevronDown } from '../constants';
+import { IconSearch, IconInfo, IconChevronDown, IconSparkles } from '../constants';
 import InfoTooltip from '../components/InfoTooltip';
 
 const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) => (
@@ -12,10 +12,19 @@ const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) 
     </div>
 );
 
-const UnusedTablesView: React.FC = () => {
+interface UnusedTablesViewProps {
+    onNavigateToRecommendations?: (filters: { search?: string; account?: string }) => void;
+    initialTableTypeFilter?: string | null;
+}
+
+const UnusedTablesView: React.FC<UnusedTablesViewProps> = ({ 
+    onNavigateToRecommendations,
+    initialTableTypeFilter
+}) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedDb, setSelectedDb] = useState('All databases');
     const [selectedSchema, setSelectedSchema] = useState('All schemas');
+    const [selectedTableType, setSelectedTableType] = useState(initialTableTypeFilter || 'All types');
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'sizeGB', direction: 'desc' });
 
     const dbOptions = useMemo(() => {
@@ -31,6 +40,8 @@ const UnusedTablesView: React.FC = () => {
         return ['All schemas', ...schemas.sort()];
     }, [selectedDb]);
 
+    const tableTypeOptions = ['All types', 'Permanent', 'Transient', 'Temporary', 'Hybrid', 'Dynamic'];
+
     const filteredAndSortedData = useMemo(() => {
         let result = [...unusedTablesData].filter(table => {
             const matchesSearch = table.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -38,8 +49,9 @@ const UnusedTablesView: React.FC = () => {
                                 table.schema.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesDb = selectedDb === 'All databases' || table.database === selectedDb;
             const matchesSchema = selectedSchema === 'All schemas' || table.schema === selectedSchema;
+            const matchesType = selectedTableType === 'All types' || table.tableType === selectedTableType;
             
-            return matchesSearch && matchesDb && matchesSchema;
+            return matchesSearch && matchesDb && matchesSchema && matchesType;
         });
 
         if (sortConfig) {
@@ -70,6 +82,23 @@ const UnusedTablesView: React.FC = () => {
 
     return (
         <div className="flex flex-col h-full gap-4">
+            {/* Banner */}
+            <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                    <IconSparkles className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                    <p className="text-sm font-bold text-text-strong">Anavsan has identified tables inactive for over 15 days.</p>
+                    <p className="text-xs text-text-secondary mt-0.5">Optimizing or deleting them can help reduce your storage usage and costs.</p>
+                </div>
+                <button 
+                    onClick={() => onNavigateToRecommendations?.({ search: 'unused' })}
+                    className="px-4 py-2 bg-primary text-white text-xs font-black rounded-full hover:bg-primary-hover transition-all shadow-sm"
+                >
+                    VIEW RECOMMENDATIONS
+                </button>
+            </div>
+
             <div className="flex flex-wrap items-center gap-3 overflow-x-auto no-scrollbar flex-shrink-0">
                 <KPILabel label="Unused tables" value={unusedTablesData.length.toString()} />
                 <KPILabel label="Total unused storage" value={formatStorageSize(totalUnusedStorage)} />
@@ -117,6 +146,22 @@ const UnusedTablesView: React.FC = () => {
                         </div>
 
                         <div className="h-4 w-[1px] bg-border-light" />
+
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-text-secondary">Type</span>
+                            <div className="relative">
+                                <select
+                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
+                                    value={selectedTableType}
+                                    onChange={(e) => setSelectedTableType(e.target.value)}
+                                >
+                                    {tableTypeOptions.map(opt => <option key={opt} value={opt}>{opt === 'All types' ? 'All' : opt}</option>)}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="relative flex-1 ml-4">
@@ -136,7 +181,9 @@ const UnusedTablesView: React.FC = () => {
                         <thead className="bg-[#F8F9FA] sticky top-0 z-10">
                             <tr>
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('name')}>Table name</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('schema')}>Schema name</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('database')}>Database</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('schema')}>Schema</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('tableType')}>Table type</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors text-right" onClick={() => handleSort('sizeGB')}>Size</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors text-right" onClick={() => handleSort('rows')}>Rows</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light cursor-pointer hover:text-primary transition-colors text-right" onClick={() => handleSort('lastAccessed')}>Last used</th>
@@ -148,10 +195,15 @@ const UnusedTablesView: React.FC = () => {
                                 <tr key={table.id} className="hover:bg-surface-nested transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="text-sm font-bold text-text-strong">{table.name}</div>
-                                        <div className="text-[11px] text-text-muted mt-0.5 font-medium">Database: {table.database}</div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="text-sm font-medium text-text-secondary">{table.database}</div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="text-sm font-medium text-text-primary">{table.schema}</div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="text-sm font-medium text-text-secondary">{table.tableType || 'Permanent'}</div>
                                     </td>
                                     <td className="px-6 py-4 text-right font-mono text-sm font-bold text-text-strong">
                                         {formatStorageSize(table.sizeGB)}

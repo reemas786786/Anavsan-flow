@@ -298,7 +298,8 @@ export const databaseTablesData: DatabaseTable[] = [
         rows: 12300000, 
         monthlyGrowth: 4.5,
         accountId: 'acc-1',
-        accountName: 'Finance Prod'
+        accountName: 'Finance Prod',
+        tableType: 'Permanent'
     },
     { 
         id: 't-2', 
@@ -313,7 +314,8 @@ export const databaseTablesData: DatabaseTable[] = [
         rows: 11900000, 
         monthlyGrowth: 1.2,
         accountId: 'acc-1',
-        accountName: 'Finance Prod'
+        accountName: 'Finance Prod',
+        tableType: 'Transient'
     },
     { 
         id: 't-3', 
@@ -328,7 +330,8 @@ export const databaseTablesData: DatabaseTable[] = [
         rows: 10900000, 
         monthlyGrowth: 12.5,
         accountId: 'acc-1',
-        accountName: 'Finance Prod'
+        accountName: 'Finance Prod',
+        tableType: 'Temporary'
     },
     { 
         id: 't-4', 
@@ -343,7 +346,8 @@ export const databaseTablesData: DatabaseTable[] = [
         rows: 9400000, 
         monthlyGrowth: 8.2,
         accountId: 'acc-2',
-        accountName: 'Account B'
+        accountName: 'Account B',
+        tableType: 'Hybrid'
     },
     { 
         id: 't-5', 
@@ -358,7 +362,8 @@ export const databaseTablesData: DatabaseTable[] = [
         rows: 9300000, 
         monthlyGrowth: 5.5,
         accountId: 'acc-2',
-        accountName: 'Account B'
+        accountName: 'Account B',
+        tableType: 'Dynamic'
     },
     { 
         id: 't-6', 
@@ -373,7 +378,8 @@ export const databaseTablesData: DatabaseTable[] = [
         rows: 8400000, 
         monthlyGrowth: 3.2,
         accountId: 'acc-3',
-        accountName: 'Account C'
+        accountName: 'Account C',
+        tableType: 'Permanent'
     },
     { 
         id: 't-7', 
@@ -388,16 +394,17 @@ export const databaseTablesData: DatabaseTable[] = [
         rows: 8100000, 
         monthlyGrowth: 2.8,
         accountId: 'acc-3',
-        accountName: 'Account C'
+        accountName: 'Account C',
+        tableType: 'Permanent'
     },
 ];
 
 export const unusedTablesData: UnusedTable[] = [
-    { id: 'ut-1', name: 'Old Analysis Cache', sizeGB: 420, rows: 399, lastAccessed: '2025-10-01', unusedDays: 145, createdBy: 'mike_de', database: 'PROD_ANALYTICS', schema: 'Schema 145', potentialSavings: 25, accountId: 'acc-1', accountName: 'Finance Prod' },
-    { id: 'ut-2', name: 'Legacy Spend Logs', sizeGB: 120, rows: 119, lastAccessed: '2025-11-15', unusedDays: 90, createdBy: 'jane_doe', database: 'DATABASE_SPEND_ALERT', schema: 'Schema Cost Notification', potentialSavings: 15, accountId: 'acc-1', accountName: 'Finance Prod' },
-    { id: 'ut-3', name: 'Framework Test Data', sizeGB: 110, rows: 109, lastAccessed: '2025-12-20', unusedDays: 65, createdBy: 'alex_analyst', database: 'DATABASE_SYSTEM', schema: 'Schema 145', potentialSavings: 8, accountId: 'acc-1', accountName: 'Finance Prod' },
-    { id: 'ut-4', name: 'Performance Temp', sizeGB: 95, rows: 94, lastAccessed: '2026-01-10', unusedDays: 45, createdBy: 'system_etl', database: 'DATABASE_SYSTEM', schema: 'Schema Cost Notification', potentialSavings: 85, accountId: 'acc-2', accountName: 'Account B' },
-    { id: 'ut-5', name: 'Protection Backup', sizeGB: 94, rows: 93, lastAccessed: '2026-02-01', unusedDays: 24, createdBy: 'mike_de', database: 'DATABASE_SECURITY', schema: 'Schema Cost Notification', potentialSavings: 5, accountId: 'acc-2', accountName: 'Account B' },
+    { id: 'ut-1', name: 'Old Analysis Cache', sizeGB: 420, rows: 399, lastAccessed: '2025-10-01', unusedDays: 145, createdBy: 'mike_de', database: 'PROD_ANALYTICS', schema: 'Schema 145', potentialSavings: 25, accountId: 'acc-1', accountName: 'Finance Prod', tableType: 'Permanent' },
+    { id: 'ut-2', name: 'Legacy Spend Logs', sizeGB: 120, rows: 119, lastAccessed: '2025-11-15', unusedDays: 90, createdBy: 'jane_doe', database: 'DATABASE_SPEND_ALERT', schema: 'Schema Cost Notification', potentialSavings: 15, accountId: 'acc-1', accountName: 'Finance Prod', tableType: 'Transient' },
+    { id: 'ut-3', name: 'Framework Test Data', sizeGB: 110, rows: 109, lastAccessed: '2025-12-20', unusedDays: 65, createdBy: 'alex_analyst', database: 'DATABASE_SYSTEM', schema: 'Schema 145', potentialSavings: 8, accountId: 'acc-1', accountName: 'Finance Prod', tableType: 'Temporary' },
+    { id: 'ut-4', name: 'Performance Temp', sizeGB: 95, rows: 94, lastAccessed: '2026-01-10', unusedDays: 45, createdBy: 'system_etl', database: 'DATABASE_SYSTEM', schema: 'Schema Cost Notification', potentialSavings: 85, accountId: 'acc-2', accountName: 'Account B', tableType: 'Hybrid' },
+    { id: 'ut-5', name: 'Protection Backup', sizeGB: 94, rows: 93, lastAccessed: '2026-02-01', unusedDays: 24, createdBy: 'mike_de', database: 'DATABASE_SECURITY', schema: 'Schema Cost Notification', potentialSavings: 5, accountId: 'acc-2', accountName: 'Account B', tableType: 'Dynamic' },
 ];
 export const dataAgeDistributionData: DataAgeDistributionItem[] = [];
 export const storageByTierData = {

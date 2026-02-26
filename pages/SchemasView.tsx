@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { databaseTablesData, databasesData } from '../data/dummyData';
 import { formatStorageSize } from '../utils/storageMetrics';
-import { IconSearch } from '../constants';
+import { IconSearch, IconChevronDown } from '../constants';
 
 const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) => (
     <div className="bg-white px-5 py-2.5 rounded-full border border-border-light shadow-sm flex items-center gap-2 flex-shrink-0 transition-all hover:border-primary/30">
@@ -11,8 +11,22 @@ const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) 
     </div>
 );
 
-const SchemasView: React.FC = () => {
+interface SchemasViewProps {
+    initialDatabaseFilter?: string | null;
+    onNavigateToTables?: (database: string, schema: string) => void;
+}
+
+const SchemasView: React.FC<SchemasViewProps> = ({ 
+    initialDatabaseFilter,
+    onNavigateToTables
+}) => {
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedDb, setSelectedDb] = useState(initialDatabaseFilter || 'All databases');
+
+    const dbOptions = useMemo(() => {
+        const dbs = Array.from(new Set(databaseTablesData.map(t => t.databaseName).filter(Boolean)));
+        return ['All databases', ...dbs.sort()];
+    }, []);
 
     const schemasData = useMemo(() => {
         const schemaMap = new Map<string, { 
@@ -50,11 +64,13 @@ const SchemasView: React.FC = () => {
     }, []);
 
     const filteredSchemas = useMemo(() => {
-        return schemasData.filter(s => 
-            s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.database.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    }, [schemasData, searchQuery]);
+        return schemasData.filter(s => {
+            const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                s.database.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesDb = selectedDb === 'All databases' || s.database === selectedDb;
+            return matchesSearch && matchesDb;
+        });
+    }, [schemasData, searchQuery, selectedDb]);
 
     const aggregateMetrics = useMemo(() => {
         const totalSize = filteredSchemas.reduce((sum, s) => sum + s.sizeGB, 0);
@@ -77,7 +93,24 @@ const SchemasView: React.FC = () => {
 
             <div className="bg-white rounded-[12px] border border-border-light shadow-sm flex flex-col min-h-0">
                 <div className="px-4 py-3 flex items-center border-b border-border-light bg-white rounded-t-[12px] relative z-20 overflow-visible flex-shrink-0">
-                    <h3 className="text-sm font-bold text-text-strong">Schemas</h3>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-text-secondary">Database</span>
+                            <div className="relative">
+                                <select
+                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
+                                    value={selectedDb}
+                                    onChange={(e) => setSelectedDb(e.target.value)}
+                                >
+                                    {dbOptions.map(opt => <option key={opt} value={opt}>{opt === 'All databases' ? 'All' : opt}</option>)}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="relative flex-1 ml-4">
                         <input 
                             type="text" 
@@ -106,7 +139,11 @@ const SchemasView: React.FC = () => {
                         <tbody className="bg-white divide-y divide-border-light">
                             {filteredSchemas.length > 0 ? (
                                 filteredSchemas.map((schema, idx) => (
-                                    <tr key={idx} className="hover:bg-surface-nested transition-colors group">
+                                    <tr 
+                                        key={idx} 
+                                        className="hover:bg-surface-nested transition-colors group cursor-pointer"
+                                        onClick={() => onNavigateToTables?.(schema.database, schema.name)}
+                                    >
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">
                                                 {schema.name}

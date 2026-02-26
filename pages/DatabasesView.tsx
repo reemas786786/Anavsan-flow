@@ -131,7 +131,11 @@ const DatabaseDetailView: React.FC<{ database: Database, onBack: () => void }> =
     );
 }
 
-const DatabaseListView: React.FC<{ onSelectDatabase: (databaseId: string) => void }> = ({ onSelectDatabase }) => {
+interface DatabaseListViewProps { 
+    onSelectDatabase: (databaseName: string) => void 
+}
+
+const DatabaseListView: React.FC<DatabaseListViewProps> = ({ onSelectDatabase }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const filteredDatabases = useMemo(() => {
@@ -198,7 +202,7 @@ const DatabaseListView: React.FC<{ onSelectDatabase: (databaseId: string) => voi
                                     <tr 
                                         key={db.id} 
                                         className="hover:bg-surface-nested transition-colors group cursor-pointer" 
-                                        onClick={() => onSelectDatabase(db.id)}
+                                        onClick={() => onSelectDatabase(db.name)}
                                     >
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">
@@ -228,22 +232,11 @@ const DatabaseListView: React.FC<{ onSelectDatabase: (databaseId: string) => voi
 };
 
 interface DatabasesViewProps {
-    selectedDatabaseId: string | null;
-    onSelectDatabase: (databaseId: string) => void;
-    onBackToList: () => void;
+    onNavigateToSchemas: (databaseName: string) => void;
 }
 
-const DatabasesView: React.FC<DatabasesViewProps> = ({ selectedDatabaseId, onSelectDatabase, onBackToList }) => {
-    const selectedDatabase = useMemo(() => {
-        if (!selectedDatabaseId) return null;
-        return databasesData.find(db => db.id === selectedDatabaseId) || null;
-    }, [selectedDatabaseId]);
-
-    if (selectedDatabase) {
-        return <DatabaseDetailView database={selectedDatabase} onBack={onBackToList} />;
-    }
-
-    return <DatabaseListView onSelectDatabase={onSelectDatabase} />;
+const DatabasesView: React.FC<DatabasesViewProps> = ({ onNavigateToSchemas }) => {
+    return <DatabaseListView onSelectDatabase={onNavigateToSchemas} />;
 };
 
 export default DatabasesView;

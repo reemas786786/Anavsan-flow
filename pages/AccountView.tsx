@@ -267,6 +267,11 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
     const [isQueryDrillDown, setIsQueryDrillDown] = useState(false);
     const [warehouseHealthFilter, setWarehouseHealthFilter] = useState<string[] | undefined>(undefined);
     
+    // Storage Filters
+    const [storageTableTypeFilter, setStorageTableTypeFilter] = useState<string | null>(null);
+    const [storageDatabaseFilter, setStorageDatabaseFilter] = useState<string | null>(null);
+    const [storageSchemaFilter, setStorageSchemaFilter] = useState<string | null>(null);
+    
     // State for All Queries filters
     const [allQueriesFilters, setAllQueriesFilters] = useState<QueryListFilters>({
         search: '',
@@ -333,7 +338,21 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         setSelectedPullRequest(null);
         setSelectedDatabaseId(null);
         setWarehouseHealthFilter(undefined);
+        
+        // Reset storage filters when manually changing page from sidebar, 
+        // unless it's a specific navigation with filters (handled separately)
+        setStorageTableTypeFilter(null);
+        setStorageDatabaseFilter(null);
+        setStorageSchemaFilter(null);
+        
         onPageChange(newPage);
+    };
+
+    const handleStorageNavigation = (page: string, filters?: { tableType?: string; database?: string; schema?: string }) => {
+        if (filters?.tableType) setStorageTableTypeFilter(filters.tableType);
+        if (filters?.database) setStorageDatabaseFilter(filters.database);
+        if (filters?.schema) setStorageSchemaFilter(filters.schema);
+        onPageChange(page);
     };
 
     const isDatabaseDetailView = !!selectedDatabaseId;
@@ -450,23 +469,12 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                             <StorageSummaryView 
                                 onSelectDatabase={(id) => { handleSidebarPageChange('Databases'); setSelectedDatabaseId(id === '__view_all__' ? null : id); }} 
                                 onSetBigScreenWidget={onSetBigScreenWidget} 
-                                onNavigate={handleSidebarPageChange}
+                                onNavigate={(page, filters) => handleStorageNavigation(page, filters)}
                             />
                         </main>
                     </div>
                 );
             case 'Databases':
-                if (selectedDatabaseId) {
-                    return (
-                        <div className="p-4 bg-background h-full">
-                            <DatabasesView 
-                                selectedDatabaseId={selectedDatabaseId} 
-                                onSelectDatabase={setSelectedDatabaseId} 
-                                onBackToList={() => setSelectedDatabaseId(null)} 
-                            />
-                        </div>
-                    );
-                }
                 return (
                     <div className="flex flex-col h-full bg-background">
                         <header className="px-4 pt-6 pb-2 flex flex-col gap-4 flex-shrink-0 bg-transparent mb-0">
@@ -477,9 +485,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                         </header>
                         <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
                             <DatabasesView 
-                                selectedDatabaseId={null} 
-                                onSelectDatabase={setSelectedDatabaseId} 
-                                onBackToList={() => setSelectedDatabaseId(null)} 
+                                onNavigateToSchemas={(db) => handleStorageNavigation('Schemas', { database: db })}
                             />
                         </main>
                     </div>
@@ -494,7 +500,10 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                             </div>
                         </header>
                         <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
-                            <SchemasView />
+                            <SchemasView 
+                                initialDatabaseFilter={storageDatabaseFilter}
+                                onNavigateToTables={(db, schema) => handleStorageNavigation('Tables', { database: db, schema: schema })}
+                            />
                         </main>
                     </div>
                 );
@@ -508,7 +517,11 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                             </div>
                         </header>
                         <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
-                            <TablesView />
+                            <TablesView 
+                                initialTableTypeFilter={storageTableTypeFilter}
+                                initialDatabaseFilter={storageDatabaseFilter}
+                                initialSchemaFilter={storageSchemaFilter}
+                            />
                         </main>
                     </div>
                 );
@@ -522,7 +535,10 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                             </div>
                         </header>
                         <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
-                            <UnusedTablesView onNavigateToRecommendations={onNavigateToRecommendations} />
+                            <UnusedTablesView 
+                                onNavigateToRecommendations={onNavigateToRecommendations} 
+                                initialTableTypeFilter={storageTableTypeFilter}
+                            />
                         </main>
                     </div>
                 );

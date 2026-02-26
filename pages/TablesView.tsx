@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { databaseTablesData } from '../data/dummyData';
 import { formatStorageSize } from '../utils/storageMetrics';
-import { IconSearch } from '../constants';
+import { IconSearch, IconChevronDown } from '../constants';
 
 const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) => (
     <div className="bg-white px-5 py-2.5 rounded-full border border-border-light shadow-sm flex items-center gap-2 flex-shrink-0 transition-all hover:border-primary/30">
@@ -11,8 +11,36 @@ const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) 
     </div>
 );
 
-const TablesView: React.FC = () => {
+interface TablesViewProps {
+    initialTableTypeFilter?: string | null;
+    initialDatabaseFilter?: string | null;
+    initialSchemaFilter?: string | null;
+}
+
+const TablesView: React.FC<TablesViewProps> = ({ 
+    initialTableTypeFilter, 
+    initialDatabaseFilter, 
+    initialSchemaFilter 
+}) => {
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedDb, setSelectedDb] = useState(initialDatabaseFilter || 'All databases');
+    const [selectedSchema, setSelectedSchema] = useState(initialSchemaFilter || 'All schemas');
+    const [selectedTableType, setSelectedTableType] = useState(initialTableTypeFilter || 'All types');
+
+    const dbOptions = useMemo(() => {
+        const dbs = Array.from(new Set(databaseTablesData.map(t => t.databaseName).filter(Boolean)));
+        return ['All databases', ...dbs.sort()];
+    }, []);
+
+    const schemaOptions = useMemo(() => {
+        const filteredByDb = selectedDb === 'All databases' 
+            ? databaseTablesData 
+            : databaseTablesData.filter(t => t.databaseName === selectedDb);
+        const schemas = Array.from(new Set(filteredByDb.map(t => t.schemaName)));
+        return ['All schemas', ...schemas.sort()];
+    }, [selectedDb]);
+
+    const tableTypeOptions = ['All types', 'Permanent', 'Transient', 'Temporary', 'Hybrid', 'Dynamic'];
 
     const filteredTables = useMemo(() => {
         return databaseTablesData.filter(table => {
@@ -20,9 +48,14 @@ const TablesView: React.FC = () => {
                 table.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 table.schemaName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 table.databaseName?.toLowerCase().includes(searchQuery.toLowerCase());
-            return matchesSearch;
+            
+            const matchesDb = selectedDb === 'All databases' || table.databaseName === selectedDb;
+            const matchesSchema = selectedSchema === 'All schemas' || table.schemaName === selectedSchema;
+            const matchesType = selectedTableType === 'All types' || table.tableType === selectedTableType;
+
+            return matchesSearch && matchesDb && matchesSchema && matchesType;
         });
-    }, [searchQuery]);
+    }, [searchQuery, selectedDb, selectedSchema, selectedTableType]);
 
     const aggregateMetrics = useMemo(() => {
         const totalSize = filteredTables.reduce((sum, t) => sum + t.totalSizeGB, 0);
@@ -45,7 +78,63 @@ const TablesView: React.FC = () => {
 
             <div className="bg-white rounded-[12px] border border-border-light shadow-sm flex flex-col min-h-0">
                 <div className="px-4 py-3 flex items-center border-b border-border-light bg-white rounded-t-[12px] relative z-20 overflow-visible flex-shrink-0">
-                    <h3 className="text-sm font-bold text-text-strong">Tables</h3>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-text-secondary">Database</span>
+                            <div className="relative">
+                                <select
+                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
+                                    value={selectedDb}
+                                    onChange={(e) => {
+                                        setSelectedDb(e.target.value);
+                                        setSelectedSchema('All schemas');
+                                    }}
+                                >
+                                    {dbOptions.map(opt => <option key={opt} value={opt}>{opt === 'All databases' ? 'All' : opt}</option>)}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="h-4 w-[1px] bg-border-light" />
+
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-text-secondary">Schema</span>
+                            <div className="relative">
+                                <select
+                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
+                                    value={selectedSchema}
+                                    onChange={(e) => setSelectedSchema(e.target.value)}
+                                >
+                                    {schemaOptions.map(opt => <option key={opt} value={opt}>{opt === 'All schemas' ? 'All' : opt}</option>)}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="h-4 w-[1px] bg-border-light" />
+
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-text-secondary">Type</span>
+                            <div className="relative">
+                                <select
+                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
+                                    value={selectedTableType}
+                                    onChange={(e) => setSelectedTableType(e.target.value)}
+                                >
+                                    {tableTypeOptions.map(opt => <option key={opt} value={opt}>{opt === 'All types' ? 'All' : opt}</option>)}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="relative flex-1 ml-4">
                         <input 
                             type="text" 
@@ -84,7 +173,7 @@ const TablesView: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 text-sm font-medium text-text-secondary">{table.databaseName}</td>
                                         <td className="px-6 py-4 text-sm font-medium text-text-secondary">{table.schemaName}</td>
-                                        <td className="px-6 py-4 text-sm font-medium text-text-secondary">Permanent</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-text-secondary">{table.tableType || 'Permanent'}</td>
                                         <td className="px-6 py-4 text-sm text-right font-black text-primary">{formatStorageSize(table.totalSizeGB)}</td>
                                         <td className="px-6 py-4 text-sm text-right font-medium text-text-secondary">{formatStorageSize(table.timeTravelSizeGB)}</td>
                                         <td className="px-6 py-4 text-sm text-right font-medium text-text-secondary">{formatStorageSize(table.failSafeSizeGB)}</td>

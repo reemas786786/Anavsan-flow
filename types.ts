@@ -267,6 +267,8 @@ export interface StorageGrowthPoint {
   'Time Travel (GB)': number;
 }
 
+export type TableType = 'Permanent' | 'Transient' | 'Temporary' | 'Hybrid' | 'Dynamic';
+
 export interface UnusedTable {
     id: string;
     name: string;
@@ -280,6 +282,7 @@ export interface UnusedTable {
     potentialSavings: number; 
     accountId?: string;
     accountName?: string;
+    tableType?: TableType;
 }
 
 export interface DuplicateDataPattern {
@@ -383,6 +386,7 @@ export interface DatabaseTable {
     monthlyGrowth: number;
     accountId?: string;
     accountName?: string;
+    tableType?: TableType;
 }
 
 export interface StorageByTypeItem {

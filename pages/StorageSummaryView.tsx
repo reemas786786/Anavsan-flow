@@ -11,19 +11,21 @@ import TableView from '../components/TableView';
 
 
 const WidgetCard: React.FC<{ children: React.ReactNode, className?: string, title?: string, actions?: React.ReactNode }> = ({ children, className = '', title, actions }) => (
-    <div className={`bg-surface rounded-3xl shadow-sm border border-border-color p-4 break-inside-avoid mb-4 flex flex-col ${className}`}>
+    <div className={`bg-surface p-6 rounded-[24px] shadow-sm flex flex-col border border-border-light h-full ${className}`}>
         {(title || actions) && (
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-6">
                 {title && (
                     <div className="flex items-center gap-1.5">
-                        <h3 className="text-base font-semibold text-text-strong">{title}</h3>
-                        <IconInfo className="w-4 h-4 text-text-muted cursor-help" />
+                        <h4 className="text-[14px] font-bold text-text-strong tracking-tight">{title}</h4>
+                        <IconInfo className="w-4 h-4 text-[#9A9AB2] cursor-help" />
                     </div>
                 )}
                 {actions && <div className="flex items-center gap-2">{actions}</div>}
             </div>
         )}
-        {children}
+        <div className="flex-grow">
+            {children}
+        </div>
     </div>
 );
 
@@ -71,7 +73,7 @@ const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) 
 const StorageSummaryView: React.FC<{ 
     onSelectDatabase: (databaseId: string) => void, 
     onSetBigScreenWidget: (widget: BigScreenWidget) => void,
-    onNavigate: (page: string) => void
+    onNavigate: (page: string, filters?: { tableType?: string; database?: string; schema?: string }) => void
 }> = ({ onSelectDatabase, onSetBigScreenWidget, onNavigate }) => {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -298,32 +300,47 @@ const StorageSummaryView: React.FC<{
                 {/* Table Type Widget */}
                 <WidgetCard title="Table type">
                     <div className="grid grid-cols-2 gap-4 py-4">
-                        <div className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 col-span-1">
-                            <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Permanent</p>
+                        <button 
+                            onClick={() => onNavigate('Tables', { tableType: 'Permanent' })}
+                            className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 col-span-1 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
+                        >
+                            <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Permanent</p>
                             <p className="text-2xl font-black text-text-strong">650</p>
                             <p className="text-xs font-bold text-text-muted mt-1">35.5 GB</p>
-                        </div>
-                        <div className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 col-span-1">
-                            <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Transient</p>
+                        </button>
+                        <button 
+                            onClick={() => onNavigate('Tables', { tableType: 'Transient' })}
+                            className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 col-span-1 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
+                        >
+                            <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Transient</p>
                             <p className="text-2xl font-black text-text-strong">120</p>
                             <p className="text-xs font-bold text-text-muted mt-1">23.2 GB</p>
-                        </div>
+                        </button>
                         <div className="grid grid-cols-3 gap-4 col-span-2">
-                            <div className="bg-surface-nested p-4 rounded-2xl border border-border-light/50">
-                                <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Temporary</p>
+                            <button 
+                                onClick={() => onNavigate('Tables', { tableType: 'Temporary' })}
+                                className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
+                            >
+                                <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Temporary</p>
                                 <p className="text-xl font-black text-text-strong">45</p>
                                 <p className="text-xs font-bold text-text-muted mt-1">4.4 GB</p>
-                            </div>
-                            <div className="bg-surface-nested p-4 rounded-2xl border border-border-light/50">
-                                <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Hybrid</p>
+                            </button>
+                            <button 
+                                onClick={() => onNavigate('Tables', { tableType: 'Hybrid' })}
+                                className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
+                            >
+                                <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Hybrid</p>
                                 <p className="text-xl font-black text-text-strong">25</p>
                                 <p className="text-xs font-bold text-text-muted mt-1">5.6 GB</p>
-                            </div>
-                            <div className="bg-surface-nested p-4 rounded-2xl border border-border-light/50">
-                                <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Dynamic</p>
+                            </button>
+                            <button 
+                                onClick={() => onNavigate('Tables', { tableType: 'Dynamic' })}
+                                className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
+                            >
+                                <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Dynamic</p>
                                 <p className="text-xl font-black text-text-strong">10</p>
                                 <p className="text-xs font-bold text-text-muted mt-1">1.2 GB</p>
-                            </div>
+                            </button>
                         </div>
                     </div>
                 </WidgetCard>
