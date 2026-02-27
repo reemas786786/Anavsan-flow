@@ -371,7 +371,11 @@ export const accountNavItems = [
     {
         name: 'Queries',
         icon: IconCode,
-        children: []
+        children: [
+            { name: 'Queries overview', label: 'Overview', icon: IconOverview },
+            { name: 'Repeated queries', icon: IconRefresh },
+            { name: 'Expensive queries', icon: IconTrendingUp }
+        ]
     },
     {
         name: 'Storage',

@@ -9,6 +9,8 @@ import DatabasesView from './DatabasesView';
 import SchemasView from './SchemasView';
 import TablesView from './TablesView';
 import UnusedTablesView from './UnusedTablesView';
+import QueriesOverview from './QueriesOverview';
+import ExpensiveQueriesView from './ExpensiveQueriesView';
 import QueryDetailView from './QueryDetailView';
 import PullRequestsView from './PullRequestsView';
 import PullRequestDetailView from './PullRequestDetailView';
@@ -325,7 +327,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
     }, [account]);
 
     const handleBackFromTool = () => {
-        onPageChange(navigationSource || 'Queries');
+        onPageChange(navigationSource || 'Queries overview');
         onAnalyzeQuery(null, ''); 
     };
 
@@ -339,13 +341,14 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         setSelectedDatabaseId(null);
         setWarehouseHealthFilter(undefined);
         
-        // Reset storage filters when manually changing page from sidebar, 
-        // unless it's a specific navigation with filters (handled separately)
+        // Reset storage filters when manually changing page from sidebar
         setStorageTableTypeFilter(null);
         setStorageDatabaseFilter(null);
         setStorageSchemaFilter(null);
         
-        onPageChange(newPage);
+        // Redirect parent 'Queries' to its overview
+        const targetPage = newPage === 'Queries' ? 'Queries overview' : newPage;
+        onPageChange(targetPage);
     };
 
     const handleStorageNavigation = (page: string, filters?: { tableType?: string; database?: string; schema?: string }) => {
@@ -391,7 +394,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
             case 'Account overview':
                 return <AccountOverviewDashboard 
                     account={account} 
-                    onNavigate={onPageChange} 
+                    onNavigate={handleSidebarPageChange} 
                     onSelectWarehouse={setSelectedWarehouse}
                     onSelectQuery={setSelectedQuery}
                 />;
@@ -423,16 +426,22 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onNavigateToRecommendations={onNavigateToRecommendations} 
                     initialHealthFilter={warehouseHealthFilter}
                 />;
-            case 'Queries':
+            case 'Queries overview':
+                return <QueriesOverview onNavigate={onPageChange} />;
+            case 'Repeated queries':
                 return <QueryListView 
                     onShareQueryClick={onShareQueryClick} 
                     onSelectQuery={setSelectedQuery} 
-                    onAnalyzeQuery={(q) => onAnalyzeQuery(q, 'Queries')} 
-                    onOptimizeQuery={(q) => onOptimizeQuery(q, 'Queries')} 
-                    onSimulateQuery={(q) => onSimulateQuery(q, 'Queries')} 
+                    onAnalyzeQuery={(q) => onAnalyzeQuery(q, 'Repeated queries')} 
+                    onOptimizeQuery={(q) => onOptimizeQuery(q, 'Repeated queries')} 
+                    onSimulateQuery={(q) => onSimulateQuery(q, 'Repeated queries')} 
                     filters={allQueriesFilters} 
                     setFilters={setAllQueriesFilters} 
                     onDrillDownChange={setIsQueryDrillDown}
+                />;
+            case 'Expensive queries':
+                return <ExpensiveQueriesView 
+                    onSelectQuery={setSelectedQuery}
                 />;
             case 'Query analyzer':
                 return <QueryAnalyzerView 
@@ -559,7 +568,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         }
     };
 
-    const isListView = ['Queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator', 'Warehouse', 'Serverless', 'Applications', 'Cortex', 'Storage', 'Storage overview', 'Databases', 'Schemas', 'Tables', 'Unused tables', 'Workloads', 'Services', 'Users', 'Credit trend', 'Compute overview'].includes(activePage);
+    const isListView = ['Queries', 'Queries overview', 'Repeated queries', 'Expensive queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator', 'Warehouse', 'Serverless', 'Applications', 'Cortex', 'Storage', 'Storage overview', 'Databases', 'Schemas', 'Tables', 'Unused tables', 'Workloads', 'Services', 'Users', 'Credit trend', 'Compute overview'].includes(activePage);
 
     return (
         <div className="flex flex-col h-full overflow-hidden bg-background">

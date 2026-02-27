@@ -244,7 +244,7 @@ const App: React.FC = () => {
             }
         } else if (accountViewPage !== 'Account overview') {
             let label = accountViewPage;
-            if (accountViewPage === 'Compute overview' || accountViewPage === 'Storage overview') {
+            if (accountViewPage === 'Compute overview' || accountViewPage === 'Storage overview' || accountViewPage === 'Queries overview') {
                 label = 'Overview';
             }
             items.push({ label });

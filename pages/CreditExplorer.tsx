@@ -92,7 +92,7 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                 'Services': 'Services',
                 'Cortex': 'Cortex',
                 'User': 'Users',
-                'Queries': 'Queries'
+                'Queries': 'Queries overview'
             };
             
             onSelectAccount(account, subPageMap[activeCategory], activeCategory);

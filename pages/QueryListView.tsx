@@ -126,7 +126,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                                             {viewingHighImpactGroup}
                                         </h1>
                                     </div>
-                                    <p className="text-sm text-text-secondary font-medium mt-1">Detailed analysis for this high-impact query group.</p>
+                                    <p className="text-sm text-text-secondary font-medium mt-1">Detailed analysis for this repeated query group.</p>
                                 </div>
                             </div>
 
@@ -297,7 +297,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({
     return (
         <div className="flex flex-col h-full bg-background space-y-3 px-4 pt-4 pb-12">
             <div className="flex-shrink-0 mb-8">
-                <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Queries</h1>
+                <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Repeated queries</h1>
                 <p className="text-sm text-text-secondary font-medium mt-1">View, group, and analyze repeated Snowflake query executions.</p>
             </div>
             
