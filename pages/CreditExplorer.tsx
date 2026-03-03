@@ -270,6 +270,8 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                 case 'Queries':
                     return connectionsData.map(acc => {
                         const highImpactCount = Math.floor(Math.random() * 150) + 50;
+                        const repeatedCount = Math.floor(Math.random() * 80) + 20;
+                        const expensiveCount = Math.floor(Math.random() * 40) + 10;
                         return {
                             id: acc.id,
                             accountName: acc.name,
@@ -278,6 +280,10 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                             queriesCount: acc.queriesCount,
                             highImpactQueriesRaw: highImpactCount,
                             highImpactQueries: highImpactCount.toString(),
+                            repeatedQueriesCountRaw: repeatedCount,
+                            repeatedQueriesCount: repeatedCount.toString(),
+                            expensiveQueriesCountRaw: expensiveCount,
+                            expensiveQueriesCount: expensiveCount.toString(),
                             insights: getInsightCount(acc.name, 'Queries')
                         };
                     });
@@ -311,7 +317,7 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                 case 'Storage': return ['Account name', 'Storage credits', 'Storage size', 'Unused table size', 'Failsafe Size', 'Time Travel Size', 'Insights'];
                 case 'Cortex': return ['Account name', 'Model count', 'Tokens', 'Credits', 'Insights'];
                 case 'User': return ['Account name', 'User count', 'Queries', 'Insights'];
-                case 'Queries': return ['Account name', 'Queries count', 'Queries', 'Insights'];
+                case 'Queries': return ['Account name', 'Queries count', 'Repeated queries', 'Expensive queries', 'Insights'];
                 case 'Workloads': return ['Account name', 'Workloads', 'Service credits', 'Insights'];
                 case 'Services': return ['Account name', 'Service credits', 'Services used', 'Insights'];
                 default: return ['Account name', 'Total credits', 'Insights'];
@@ -523,6 +529,8 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                                             if (h === 'Unit cost') return 'unitCost';
                                             if (h === 'Idle %') return 'idleTime';
                                             if (h === 'Queries count') return 'queriesCount';
+                                            if (h === 'Repeated queries') return 'repeatedQueriesCount';
+                                            if (h === 'Expensive queries') return 'expensiveQueriesCount';
                                             if (h === 'Queries') return 'highImpactQueries';
                                             if (h === 'Avg runtime') return 'avgRuntime';
                                             if (h === 'Services used') return 'count';

@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, A
 import { storageSummaryData, storageGrowthData, databasesData, storageByTypeData, databaseTablesData, unusedTablesData } from '../data/dummyData';
 import { calculateStorageMetrics, formatStorageSize } from '../utils/storageMetrics';
 import InfoTooltip from '../components/InfoTooltip';
-import { BigScreenWidget } from '../types';
+import { BigScreenWidget, TableType } from '../types';
 import { IconDotsVertical, IconList, IconInfo } from '../constants';
 import SidePanel from '../components/SidePanel';
 import TableView from '../components/TableView';
@@ -82,8 +82,23 @@ const StorageSummaryView: React.FC<{
         data: { name: string; cost: number; credits: number; percentage: number }[];
     } | null>(null);
 
-    const metrics = useMemo(() => calculateStorageMetrics(), []);
+    const metrics = useMemo(() => calculateStorageMetrics(databaseTablesData, databasesData, unusedTablesData), []);
     
+    const tableTypeMetrics = useMemo(() => {
+        const types: TableType[] = ['Permanent', 'Transient', 'Temporary', 'Hybrid', 'Dynamic'];
+        const result: Record<string, { count: number, size: number }> = {};
+        types.forEach(t => result[t] = { count: 0, size: 0 });
+        
+        databaseTablesData.forEach(t => {
+            const type = t.tableType || 'Permanent';
+            if (result[type]) {
+                result[type].count += 1;
+                result[type].size += t.totalSizeGB;
+            }
+        });
+        return result;
+    }, []);
+
     const topDatabasesBySize = [...databasesData].sort((a, b) => b.sizeGB - a.sizeGB).slice(0, 8);
     
     const schemasBySize = useMemo(() => {
@@ -229,7 +244,7 @@ const StorageSummaryView: React.FC<{
                     <div className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left shadow-sm w-full">
                         <p className="text-[10px] font-bold text-[#9A9AB2] uppercase tracking-widest">Total credits</p>
                         <div className="mt-auto">
-                            <p className="text-[18px] font-black text-[#161616] tracking-tight leading-none">2.1K</p>
+                            <p className="text-[18px] font-black text-[#161616] tracking-tight leading-none">{(storageSummaryData.totalCredits / 1000).toFixed(1)}K</p>
                             <p className="text-[10px] font-bold text-[#5A5A72] mt-1 tracking-tight">{formatStorageSize(metrics.totalSizeGB)}</p>
                         </div>
                     </div>
@@ -253,10 +268,10 @@ const StorageSummaryView: React.FC<{
                         </div>
                     </button>
                     <button 
-                        onClick={() => onNavigate('Tables')}
+                        onClick={() => onNavigate('Schema objects')}
                         className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
                     >
-                        <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Tables</p>
+                        <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Schema objects</p>
                         <div className="mt-auto">
                             <p className="text-[18px] font-black text-[#161616] tracking-tight leading-none">{metrics.tableCount}</p>
                         </div>
@@ -301,45 +316,45 @@ const StorageSummaryView: React.FC<{
                 <WidgetCard title="Table type">
                     <div className="grid grid-cols-2 gap-4 py-4">
                         <button 
-                            onClick={() => onNavigate('Tables', { tableType: 'Permanent' })}
+                            onClick={() => onNavigate('Schema objects', { tableType: 'Permanent' })}
                             className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 col-span-1 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
                         >
                             <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Permanent</p>
-                            <p className="text-2xl font-black text-text-strong">650</p>
-                            <p className="text-xs font-bold text-text-muted mt-1">35.5 GB</p>
+                            <p className="text-2xl font-black text-text-strong">{tableTypeMetrics['Permanent'].count}</p>
+                            <p className="text-xs font-bold text-text-muted mt-1">{formatStorageSize(tableTypeMetrics['Permanent'].size)}</p>
                         </button>
                         <button 
-                            onClick={() => onNavigate('Tables', { tableType: 'Transient' })}
+                            onClick={() => onNavigate('Schema objects', { tableType: 'Transient' })}
                             className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 col-span-1 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
                         >
                             <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Transient</p>
-                            <p className="text-2xl font-black text-text-strong">120</p>
-                            <p className="text-xs font-bold text-text-muted mt-1">23.2 GB</p>
+                            <p className="text-2xl font-black text-text-strong">{tableTypeMetrics['Transient'].count}</p>
+                            <p className="text-xs font-bold text-text-muted mt-1">{formatStorageSize(tableTypeMetrics['Transient'].size)}</p>
                         </button>
                         <div className="grid grid-cols-3 gap-4 col-span-2">
                             <button 
-                                onClick={() => onNavigate('Tables', { tableType: 'Temporary' })}
+                                onClick={() => onNavigate('Schema objects', { tableType: 'Temporary' })}
                                 className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
                             >
                                 <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Temporary</p>
-                                <p className="text-xl font-black text-text-strong">45</p>
-                                <p className="text-xs font-bold text-text-muted mt-1">4.4 GB</p>
+                                <p className="text-xl font-black text-text-strong">{tableTypeMetrics['Temporary'].count}</p>
+                                <p className="text-xs font-bold text-text-muted mt-1">{formatStorageSize(tableTypeMetrics['Temporary'].size)}</p>
                             </button>
                             <button 
-                                onClick={() => onNavigate('Tables', { tableType: 'Hybrid' })}
+                                onClick={() => onNavigate('Schema objects', { tableType: 'Hybrid' })}
                                 className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
                             >
                                 <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Hybrid</p>
-                                <p className="text-xl font-black text-text-strong">25</p>
-                                <p className="text-xs font-bold text-text-muted mt-1">5.6 GB</p>
+                                <p className="text-xl font-black text-text-strong">{tableTypeMetrics['Hybrid'].count}</p>
+                                <p className="text-xs font-bold text-text-muted mt-1">{formatStorageSize(tableTypeMetrics['Hybrid'].size)}</p>
                             </button>
                             <button 
-                                onClick={() => onNavigate('Tables', { tableType: 'Dynamic' })}
+                                onClick={() => onNavigate('Schema objects', { tableType: 'Dynamic' })}
                                 className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
                             >
                                 <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Dynamic</p>
-                                <p className="text-xl font-black text-text-strong">10</p>
-                                <p className="text-xs font-bold text-text-muted mt-1">1.2 GB</p>
+                                <p className="text-xl font-black text-text-strong">{tableTypeMetrics['Dynamic'].count}</p>
+                                <p className="text-xs font-bold text-text-muted mt-1">{formatStorageSize(tableTypeMetrics['Dynamic'].size)}</p>
                             </button>
                         </div>
                     </div>
@@ -420,7 +435,7 @@ const StorageSummaryView: React.FC<{
                     <div className="h-80 mt-4">
                          <ResponsiveContainer width="100%" height="100%">
                             <BarChart layout="vertical" data={topDatabasesBySize} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} hide />
+                                <XAxis type="number" stroke="#9A9AB2" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val} GB`} />
                                 <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={100} axisLine={false} tickLine={false} />
                                 <Tooltip
                                     cursor={{ fill: '#F3F0FA' }}
@@ -440,7 +455,7 @@ const StorageSummaryView: React.FC<{
                     <div className="h-80 mt-4">
                          <ResponsiveContainer width="100%" height="100%">
                             <BarChart layout="vertical" data={schemasBySize} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} hide />
+                                <XAxis type="number" stroke="#9A9AB2" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val} GB`} />
                                 <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={100} axisLine={false} tickLine={false} />
                                 <Tooltip
                                     cursor={{ fill: '#F3F0FA' }}
@@ -460,7 +475,7 @@ const StorageSummaryView: React.FC<{
                     <div className="h-80 mt-4">
                          <ResponsiveContainer width="100%" height="100%">
                             <BarChart layout="vertical" data={topTablesBySize} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                <XAxis type="number" stroke="#9A9AB2" fontSize={12} hide />
+                                <XAxis type="number" stroke="#9A9AB2" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val} GB`} />
                                 <YAxis dataKey="name" type="category" stroke="#9A9AB2" fontSize={12} width={100} axisLine={false} tickLine={false} />
                                 <Tooltip
                                     cursor={{ fill: '#F3F0FA' }}

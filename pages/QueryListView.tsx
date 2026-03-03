@@ -26,6 +26,13 @@ interface QueryListViewProps {
     onDrillDownChange?: (isDrillingDown: boolean) => void;
 }
 
+const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+    <div className="bg-white px-5 py-2.5 rounded-full border border-border-light shadow-sm flex items-center gap-2 flex-shrink-0 transition-all hover:border-primary/30">
+        <span className="text-[13px] text-text-secondary font-medium whitespace-nowrap">{label}:</span>
+        <span className="text-[13px] font-black text-text-strong whitespace-nowrap">{value}</span>
+    </div>
+);
+
 const QueryListView: React.FC<QueryListViewProps> = ({
     onShareQueryClick,
     onSelectQuery,
@@ -38,10 +45,25 @@ const QueryListView: React.FC<QueryListViewProps> = ({
 }) => {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
-    const [searchVisible, setSearchVisible] = useState(false);
-    const [mode, setMode] = useState<QueryMode>('High-impact');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [dateRange, setDateRange] = useState('Last 7 days');
+    const [warehouseFilter, setWarehouseFilter] = useState('All');
+    const [userFilter, setUserFilter] = useState('All');
     const [viewingHighImpactGroup, setViewingHighImpactGroup] = useState<string | null>(null);
     const [detailTab, setDetailTab] = useState<'Details' | 'Query List'>('Details');
+
+    const warehouses = useMemo(() => Array.from(new Set(initialData.map(q => q.warehouse))), []);
+    const users = useMemo(() => Array.from(new Set(initialData.map(q => q.user))), []);
+
+    const warehouseOptions = useMemo(() => [
+        { value: 'All', label: 'All Warehouses' },
+        ...warehouses.map(w => ({ value: w, label: w }))
+    ], [warehouses]);
+
+    const userOptions = useMemo(() => [
+        { value: 'All', label: 'All Users' },
+        ...users.map(u => ({ value: u, label: u }))
+    ], [users]);
 
     useEffect(() => {
         onDrillDownChange?.(!!viewingHighImpactGroup);
@@ -64,29 +86,44 @@ const QueryListView: React.FC<QueryListViewProps> = ({
     // --- DATA PROCESSING FOR MODES ---
 
     const repeatedQueries = useMemo(() => {
-        const groups: Record<string, { count: number; totalCredits: number; queries: QueryListItem[] }> = {};
+        const groups: Record<string, { count: number; totalCredits: number; queries: QueryListItem[]; users: Set<string> }> = {};
         
         initialData.forEach(q => {
             if (!groups[q.queryText]) {
-                groups[q.queryText] = { count: 0, totalCredits: 0, queries: [] };
+                groups[q.queryText] = { count: 0, totalCredits: 0, queries: [], users: new Set() };
             }
             groups[q.queryText].count++;
             groups[q.queryText].totalCredits += q.costCredits;
             groups[q.queryText].queries.push(q);
+            groups[q.queryText].users.add(q.user);
         });
 
         return Object.entries(groups)
-            .map(([text, data]) => ({
-                id: `grp-${data.queries[0].id}`,
-                queryText: text,
-                count: data.count,
-                totalCredits: data.totalCredits,
-                warehouse: data.queries[0].warehouse,
-                representative: data.queries[0]
-            }))
-            .filter(g => g.count > 1)
+            .map(([text, data]) => {
+                const firstExec = data.queries.reduce((min, q) => q.timestamp < min ? q.timestamp : min, data.queries[0].timestamp);
+                const lastExec = data.queries.reduce((max, q) => q.timestamp > max ? q.timestamp : max, data.queries[0].timestamp);
+                
+                return {
+                    id: `grp-${data.queries[0].id}`,
+                    queryText: text,
+                    count: data.count,
+                    totalCredits: data.totalCredits,
+                    avgCredits: data.totalCredits / data.count,
+                    warehouse: data.queries[0].warehouse,
+                    userCount: data.users.size,
+                    firstExecution: firstExec,
+                    lastExecution: lastExec,
+                    representative: data.queries[0]
+                };
+            })
+            .filter(g => {
+                const matchesSearch = g.queryText.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesWarehouse = warehouseFilter === 'All' || g.warehouse === warehouseFilter;
+                const matchesCount = g.count > 1;
+                return matchesSearch && matchesWarehouse && matchesCount;
+            })
             .sort((a, b) => b.totalCredits - a.totalCredits);
-    }, []);
+    }, [searchTerm, warehouseFilter]);
 
     const paginatedData = useMemo(() => {
         return repeatedQueries.slice((filters.currentPage - 1) * filters.itemsPerPage, filters.currentPage * filters.itemsPerPage);
@@ -295,93 +332,108 @@ const QueryListView: React.FC<QueryListViewProps> = ({
     }
 
     return (
-        <div className="flex flex-col h-full bg-background space-y-3 px-4 pt-4 pb-12">
-            <div className="flex-shrink-0 mb-8">
-                <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Repeated queries</h1>
-                <p className="text-sm text-text-secondary font-medium mt-1">View, group, and analyze repeated Snowflake query executions.</p>
+        <div className="flex flex-col h-full bg-background space-y-4 px-6 pt-6 pb-12 overflow-y-auto no-scrollbar">
+            <div className="flex items-center justify-between flex-shrink-0">
+                <div className="flex flex-col">
+                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Repeated queries</h1>
+                    <p className="text-sm text-text-secondary font-medium mt-1">Feb 17 to Feb 23 2026 (Last 7 days)</p>
+                </div>
+                <DateRangeDropdown 
+                    selectedValue={dateRange} 
+                    onChange={(val) => { setDateRange(val as string); handleFilterChange('currentPage', 1); }} 
+                />
+            </div>
+
+            {/* Pill-style Summary Metrics */}
+            <div className="flex flex-wrap items-center gap-3 overflow-x-auto no-scrollbar flex-shrink-0">
+                <KPILabel label="Query pattern" value={repeatedQueries.length.toString()} />
             </div>
             
-            <div className="bg-surface rounded-2xl flex flex-col flex-grow min-h-0 shadow-sm border border-border-light overflow-hidden">
-                {/* Segmented Control Mode Switcher Removed */}
+            <div className="bg-white rounded-[12px] border border-border-light shadow-sm flex flex-col min-h-0 overflow-hidden">
+                {/* Integrated Filter Bar */}
+                <div className="px-4 py-3 flex flex-wrap items-center gap-6 border-b border-border-light bg-white relative z-20">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[13px] text-text-secondary font-medium">Warehouses:</span>
+                        <select 
+                            value={warehouseFilter}
+                            onChange={(e) => { setWarehouseFilter(e.target.value); handleFilterChange('currentPage', 1); }}
+                            className="appearance-none bg-transparent font-bold text-text-strong cursor-pointer focus:outline-none text-[13px]"
+                        >
+                            {warehouseOptions.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </select>
+                        <IconChevronDown className="w-3 h-3 text-text-muted" />
+                    </div>
 
-                {/* Refined Filter Bar */}
-                <div className="px-4 py-3 flex items-center gap-6 text-[12px] text-text-secondary border-b border-border-light whitespace-nowrap overflow-visible relative z-20 bg-white">
-                    <div className="flex items-center gap-4 ml-auto">
-                        {searchVisible ? (
-                            <input 
-                                autoFocus
-                                type="text" 
-                                placeholder="Search..." 
-                                className="bg-background border-none rounded-full px-3 py-1 text-[11px] focus:ring-1 focus:ring-primary w-32"
-                                onBlur={() => setSearchVisible(false)}
-                            />
-                        ) : (
-                            <button onClick={() => setSearchVisible(true)} className="text-text-muted hover:text-primary transition-colors">
-                                <IconSearch className="w-4 h-4" />
-                            </button>
-                        )}
-                        <ColumnSelector 
-                            columns={allColumns} 
-                            visibleColumns={filters.visibleColumns} 
-                            onVisibleColumnsChange={(cols) => handleFilterChange('visibleColumns', cols)} 
-                            defaultColumns={['queryId']} 
-                        />
+                    <div className="h-4 w-px bg-border-light hidden md:block" />
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-[13px] text-text-secondary font-medium">Users:</span>
+                        <select 
+                            value={userFilter}
+                            onChange={(e) => { setUserFilter(e.target.value); handleFilterChange('currentPage', 1); }}
+                            className="appearance-none bg-transparent font-bold text-text-strong cursor-pointer focus:outline-none text-[13px]"
+                        >
+                            {userOptions.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </select>
+                        <IconChevronDown className="w-3 h-3 text-text-muted" />
+                    </div>
+
+                    <div className="flex-grow"></div>
+
+                    <div className="relative w-64">
+                        <IconSearch className="w-4 h-4 text-text-muted absolute right-0 top-1/2 -translate-y-1/2 cursor-pointer" />
                     </div>
                 </div>
 
                 {/* Table Body */}
-                <div className="overflow-y-auto flex-grow min-h-0 no-scrollbar">
+                <div className="overflow-x-auto no-scrollbar">
                     <table className="w-full text-[13px] border-separate border-spacing-0">
-                        <thead className="text-[11px] text-text-secondary uppercase font-bold sticky top-0 z-10 bg-white border-b border-border-light">
+                        <thead className="text-[11px] text-text-strong uppercase font-bold sticky top-0 z-10 bg-[#F8F9FA] border-b border-border-light">
                             <tr>
-                                <th className="px-6 py-4 text-left border-b border-border-light">SQL text snippet</th>
-                                <th className="px-6 py-4 text-left border-b border-border-light">Count</th>
-                                <th className="px-6 py-4 text-left border-b border-border-light">Total credits</th>
-                                <th className="px-6 py-4 text-right border-b border-border-light">Insights</th>
+                                <th className="px-6 py-4 text-left border-b border-border-light">Query Pattern</th>
+                                <th className="px-6 py-4 text-left border-b border-border-light">Execution Count</th>
+                                <th className="px-6 py-4 text-left border-b border-border-light">User</th>
+                                <th className="px-6 py-4 text-left border-b border-border-light">Total Credits</th>
+                                <th className="px-6 py-4 text-left border-b border-border-light">Avg Credits p...</th>
+                                <th className="px-6 py-4 text-left border-b border-border-light">First Execution</th>
+                                <th className="px-6 py-4 text-left border-b border-border-light">Last Execution</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white">
                             {(paginatedData as any[]).map((group) => (
-                                <tr key={group.id} className="group hover:bg-surface-hover transition-colors">
-                                    <td onClick={() => setViewingHighImpactGroup(group.queryText)} className="px-6 py-4 cursor-pointer relative group/sql">
-                                        <div className="max-w-[200px]">
-                                            <span className="text-link hover:underline font-mono text-[11px] block truncate">
-                                                {group.queryText}
-                                            </span>
-                                        </div>
-                                        
-                                        {/* Hover Preview */}
-                                        <div className="invisible group-hover/sql:visible absolute left-6 top-full z-50 w-[450px] p-4 bg-white border border-border-light shadow-2xl rounded-xl animate-in fade-in slide-in-from-top-2 duration-200 pointer-events-none">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Full SQL Preview</span>
-                                            </div>
-                                            <pre className="text-[11px] font-mono text-text-secondary whitespace-pre-wrap break-all bg-surface-nested p-3 rounded-lg border border-border-light max-h-[250px] overflow-y-auto no-scrollbar">
-                                                {group.queryText}
-                                            </pre>
-                                        </div>
+                                <tr key={group.id} className="group hover:bg-surface-hover transition-colors cursor-pointer border-b border-border-light last:border-0" onClick={() => setViewingHighImpactGroup(group.queryText)}>
+                                    <td className="px-6 py-4">
+                                        <span className="text-link font-medium hover:underline block truncate max-w-[300px]">
+                                            {group.queryText.includes('Prod Analytics') ? 'Prod Analytics' : 
+                                             group.queryText.includes('Database Spend Alert') ? 'Database Spend Alert' :
+                                             group.queryText.includes('Database System') ? 'Database System' :
+                                             group.queryText.includes('Database Query Optimization') ? 'Database Query Optimization' :
+                                             group.queryText.includes('Database Security') ? 'Database Security' :
+                                             group.queryText.includes('Database Insight') ? 'Database Insight' :
+                                             group.queryText}
+                                        </span>
                                     </td>
-                                    <td className="px-6 py-4 font-bold text-text-strong">{group.count}x</td>
-                                    <td className="px-6 py-4 font-black text-primary">{group.totalCredits.toFixed(2)}</td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button 
-                                            onClick={() => setViewingHighImpactGroup(group.queryText)}
-                                            className="inline-flex items-center gap-1 bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10 hover:bg-primary hover:text-white transition-all shadow-sm"
-                                        >
-                                            <span className="text-xs font-black">{(group.queryText.length % 5) + 1}</span>
-                                            <span className="text-[9px] font-bold uppercase tracking-tighter">Insights</span>
-                                        </button>
-                                    </td>
+                                    <td className="px-6 py-4 text-text-secondary font-medium">{group.count}</td>
+                                    <td className="px-6 py-4 text-text-secondary font-medium">{group.userCount}</td>
+                                    <td className="px-6 py-4 text-text-secondary font-medium">{group.totalCredits.toFixed(0)}</td>
+                                    <td className="px-6 py-4 text-text-secondary font-medium">{group.avgCredits.toFixed(1)}</td>
+                                    <td className="px-6 py-4 text-text-secondary font-medium">{new Date(group.firstExecution).toLocaleDateString([], { month: 'short', day: 'numeric' })}</td>
+                                    <td className="px-6 py-4 text-text-secondary font-medium">{new Date(group.lastExecution).toLocaleDateString([], { month: 'short', day: 'numeric' })}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
 
-                {/* Refined Pagination */}
-                <div className="px-4 py-3 flex items-center justify-between bg-white border-t border-border-light text-[11px] font-medium text-text-secondary">
+                {/* Pagination Bar - Matching Reference Image */}
+                <div className="px-4 py-3 flex items-center justify-between bg-white border-t border-border-light text-[13px] text-text-secondary">
                     <div className="flex items-center gap-2">
                         <span>Items per page:</span>
-                        <div className="relative group">
+                        <div className="relative flex items-center gap-1 cursor-pointer hover:text-text-strong">
                             <select 
                                 value={filters.itemsPerPage}
                                 onChange={(e) => handleFilterChange('itemsPerPage', Number(e.target.value))}
@@ -390,26 +442,37 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                                 <option value={10}>10</option>
                                 <option value={20}>20</option>
                                 <option value={50}>50</option>
+                                <option value={100}>100</option>
                             </select>
                             <IconChevronDown className="w-3 h-3 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-10">
-                        <span>Page {filters.currentPage} of {totalPages}</span>
+                    <div className="flex items-center gap-8">
+                        <div className="h-10 w-px bg-border-light" />
+                        <span>1–{Math.min(filters.itemsPerPage, repeatedQueries.length)} of {repeatedQueries.length} items</span>
+                        <div className="h-10 w-px bg-border-light" />
                         
                         <div className="flex items-center gap-2">
+                            <div className="relative flex items-center gap-1 cursor-pointer hover:text-text-strong">
+                                <span className="font-bold">{filters.currentPage}</span>
+                                <IconChevronDown className="w-3 h-3" />
+                            </div>
+                            <span>of {totalPages} pages</span>
+                        </div>
+
+                        <div className="flex items-center border-l border-border-light">
                             <button 
                                 disabled={filters.currentPage === 1}
-                                onClick={() => handleFilterChange('currentPage', filters.currentPage - 1)}
-                                className="p-1 rounded hover:bg-surface-hover disabled:opacity-30 disabled:cursor-not-allowed"
+                                onClick={(e) => { e.stopPropagation(); handleFilterChange('currentPage', filters.currentPage - 1); }}
+                                className="p-3 hover:bg-surface-hover disabled:opacity-30 border-r border-border-light"
                             >
                                 <IconChevronLeft className="w-4 h-4" />
                             </button>
                             <button 
                                 disabled={filters.currentPage === totalPages}
-                                onClick={() => handleFilterChange('currentPage', filters.currentPage + 1)}
-                                className="p-1 rounded hover:bg-surface-hover disabled:opacity-30 disabled:cursor-not-allowed"
+                                onClick={(e) => { e.stopPropagation(); handleFilterChange('currentPage', filters.currentPage + 1); }}
+                                className="p-3 hover:bg-surface-hover disabled:opacity-30"
                             >
                                 <IconChevronRight className="w-4 h-4" />
                             </button>

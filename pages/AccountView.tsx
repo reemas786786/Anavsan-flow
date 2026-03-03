@@ -511,18 +511,18 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                         <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
                             <SchemasView 
                                 initialDatabaseFilter={storageDatabaseFilter}
-                                onNavigateToTables={(db, schema) => handleStorageNavigation('Tables', { database: db, schema: schema })}
+                                onNavigateToTables={(db, schema) => handleStorageNavigation('Schema objects', { database: db, schema: schema })}
                             />
                         </main>
                     </div>
                 );
-            case 'Tables':
+            case 'Schema objects':
                 return (
                     <div className="flex flex-col h-full bg-background">
                         <header className="px-4 pt-6 pb-2 flex flex-col gap-4 flex-shrink-0 bg-transparent mb-0">
                             <div>
-                                <h1 className="text-[32px] font-black text-text-strong tracking-tight">Tables</h1>
-                                <p className="text-sm text-text-secondary font-medium mt-1">Detailed view of all tables, their sizes, and retention policies.</p>
+                                <h1 className="text-[32px] font-black text-text-strong tracking-tight">Schema objects</h1>
+                                <p className="text-sm text-text-secondary font-medium mt-1">Detailed view of tables, materialized views, and tasks.</p>
                             </div>
                         </header>
                         <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
@@ -568,7 +568,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         }
     };
 
-    const isListView = ['Queries', 'Queries overview', 'Repeated queries', 'Expensive queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator', 'Warehouse', 'Serverless', 'Applications', 'Cortex', 'Storage', 'Storage overview', 'Databases', 'Schemas', 'Tables', 'Unused tables', 'Workloads', 'Services', 'Users', 'Credit trend', 'Compute overview'].includes(activePage);
+    const isListView = ['Queries', 'Queries overview', 'Repeated queries', 'Expensive queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator', 'Warehouse', 'Serverless', 'Applications', 'Cortex', 'Storage', 'Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables', 'Workloads', 'Services', 'Users', 'Credit trend', 'Compute overview'].includes(activePage);
 
     return (
         <div className="flex flex-col h-full overflow-hidden bg-background">
@@ -591,7 +591,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                         </div>
                     </div>
                     
-                    <div className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar ${isDeepDrillDown || ['Storage', 'Storage overview', 'Databases', 'Schemas', 'Tables', 'Unused tables', 'Compute overview'].includes(activePage) ? '' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
+                    <div className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar ${isDeepDrillDown || ['Storage', 'Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables', 'Compute overview', 'Queries overview', 'Repeated queries', 'Expensive queries'].includes(activePage) ? '' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
                         <div className="lg:hidden p-4 pb-0">
                              <MobileNav activePage={activePage} onPageChange={handleSidebarPageChange} accountNavItems={accountNavItems} />
                         </div>

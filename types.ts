@@ -212,13 +212,19 @@ export interface QueryListItem {
   status: QueryStatus;
   costUSD: number;
   costTokens: number;
-  costCredits: number;
+  costCredits: number; // Total credits
+  computeCredits?: number;
+  qasCredits?: number;
   duration: string; 
+  durationSeconds?: number;
+  queryType?: 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE' | 'MERGE' | 'CREATE' | 'DROP' | 'OTHER';
   warehouse: string;
   estSavingsUSD: number;
   estSavingsPercent: number;
   queryText: string;
   timestamp: string; 
+  startTime?: string;
+  endTime?: string;
   type: QueryType[];
   user: string;
   bytesScanned: number;

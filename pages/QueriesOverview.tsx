@@ -63,7 +63,15 @@ const QueriesOverview: React.FC<QueriesOverviewProps> = ({ onNavigate }) => {
     }, []);
 
     return (
-        <div className="space-y-6 px-4 pt-4 pb-12">
+        <div className="flex flex-col h-full bg-background">
+            <header className="px-4 pt-4 pb-4 flex flex-col gap-4 flex-shrink-0 mb-0">
+                <div>
+                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Queries overview</h1>
+                    <p className="text-sm text-text-secondary font-medium mt-1">Analyze query performance, credit consumption, and common execution patterns.</p>
+                </div>
+            </header>
+            
+            <div className="flex-1 space-y-6 px-4 pb-12 overflow-y-auto no-scrollbar">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white p-6 rounded-[24px] border border-border-light shadow-sm flex flex-col h-[140px]">
@@ -170,6 +178,7 @@ const QueriesOverview: React.FC<QueriesOverviewProps> = ({ onNavigate }) => {
                         ))}
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     );

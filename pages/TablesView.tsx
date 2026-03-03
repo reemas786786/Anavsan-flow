@@ -1,8 +1,9 @@
 
 import React, { useState, useMemo } from 'react';
-import { databaseTablesData } from '../data/dummyData';
+import { databaseTablesData, materializedViewsData, tasksData } from '../data/dummyData';
 import { formatStorageSize } from '../utils/storageMetrics';
 import { IconSearch, IconChevronDown } from '../constants';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) => (
     <div className="bg-white px-5 py-2.5 rounded-full border border-border-light shadow-sm flex items-center gap-2 flex-shrink-0 transition-all hover:border-primary/30">
@@ -22,6 +23,7 @@ const TablesView: React.FC<TablesViewProps> = ({
     initialDatabaseFilter, 
     initialSchemaFilter 
 }) => {
+    const [activeTab, setActiveTab] = useState<'Tables' | 'Materialized Views' | 'Tasks'>('Tables');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDb, setSelectedDb] = useState(initialDatabaseFilter || 'All databases');
     const [selectedSchema, setSelectedSchema] = useState(initialSchemaFilter || 'All schemas');
@@ -57,23 +59,87 @@ const TablesView: React.FC<TablesViewProps> = ({
         });
     }, [searchQuery, selectedDb, selectedSchema, selectedTableType]);
 
-    const aggregateMetrics = useMemo(() => {
-        const totalSize = filteredTables.reduce((sum, t) => sum + t.totalSizeGB, 0);
-        const totalRows = filteredTables.reduce((sum, t) => sum + t.rows, 0);
+    const filteredMVs = useMemo(() => {
+        return materializedViewsData.filter(mv => {
+            const matchesSearch = !searchQuery || 
+                mv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                mv.schemaName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                mv.databaseName.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesDb = selectedDb === 'All databases' || mv.databaseName === selectedDb;
+            return matchesSearch && matchesDb;
+        });
+    }, [searchQuery, selectedDb]);
 
-        return {
-            totalSize,
-            totalRows,
-            totalTables: filteredTables.length,
-        };
-    }, [filteredTables]);
+    const filteredTasks = useMemo(() => {
+        return tasksData.filter(task => {
+            const matchesSearch = !searchQuery || 
+                task.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                task.schemaName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                task.databaseName.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesDb = selectedDb === 'All databases' || task.databaseName === selectedDb;
+            return matchesSearch && matchesDb;
+        });
+    }, [searchQuery, selectedDb]);
+
+    const aggregateMetrics = useMemo(() => {
+        if (activeTab === 'Tables') {
+            const totalSize = filteredTables.reduce((sum, t) => sum + t.totalSizeGB, 0);
+            const totalRows = filteredTables.reduce((sum, t) => sum + t.rows, 0);
+            return {
+                count: filteredTables.length,
+                size: formatStorageSize(totalSize),
+                extra: `${totalRows.toLocaleString()} rows`
+            };
+        } else if (activeTab === 'Materialized Views') {
+            const totalSize = filteredMVs.reduce((sum, mv) => sum + mv.sizeGB, 0);
+            const totalCredits = filteredMVs.reduce((sum, mv) => sum + mv.credits, 0);
+            return {
+                count: filteredMVs.length,
+                size: formatStorageSize(totalSize),
+                extra: `${totalCredits.toFixed(1)} credits`
+            };
+        } else {
+            const totalCredits = filteredTasks.reduce((sum, task) => sum + task.credits, 0);
+            return {
+                count: filteredTasks.length,
+                size: 'N/A',
+                extra: `${totalCredits.toFixed(1)} credits`
+            };
+        }
+    }, [activeTab, filteredTables, filteredMVs, filteredTasks]);
+
+    const tabs = ['Tables', 'Materialized Views', 'Tasks'] as const;
 
     return (
         <div className="flex flex-col h-full gap-4">
+            {/* Tabs */}
+            <div className="flex items-center gap-1 bg-surface-nested p-1 rounded-xl border border-border-light w-fit">
+                {tabs.map((tab) => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all relative ${
+                            activeTab === tab 
+                                ? 'text-primary' 
+                                : 'text-text-muted hover:text-text-strong'
+                        }`}
+                    >
+                        {activeTab === tab && (
+                            <motion.div
+                                layoutId="activeTab"
+                                className="absolute inset-0 bg-white shadow-sm rounded-lg border border-border-light"
+                                transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                            />
+                        )}
+                        <span className="relative z-10">{tab}</span>
+                    </button>
+                ))}
+            </div>
+
             <div className="flex flex-wrap items-center gap-3 overflow-x-auto no-scrollbar flex-shrink-0">
-                <KPILabel label="Tables" value={aggregateMetrics.totalTables.toString()} />
-                <KPILabel label="Total size" value={formatStorageSize(aggregateMetrics.totalSize)} />
-                <KPILabel label="Total rows" value={aggregateMetrics.totalRows.toLocaleString()} />
+                <KPILabel label={activeTab} value={aggregateMetrics.count.toString()} />
+                {activeTab !== 'Tasks' && <KPILabel label="Total size" value={aggregateMetrics.size} />}
+                <KPILabel label={activeTab === 'Tables' ? 'Total rows' : 'Total credits'} value={aggregateMetrics.extra} />
             </div>
 
             <div className="bg-white rounded-[12px] border border-border-light shadow-sm flex flex-col min-h-0">
@@ -98,41 +164,44 @@ const TablesView: React.FC<TablesViewProps> = ({
                             </div>
                         </div>
 
-                        <div className="h-4 w-[1px] bg-border-light" />
-
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-text-secondary">Schema</span>
-                            <div className="relative">
-                                <select
-                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
-                                    value={selectedSchema}
-                                    onChange={(e) => setSelectedSchema(e.target.value)}
-                                >
-                                    {schemaOptions.map(opt => <option key={opt} value={opt}>{opt === 'All schemas' ? 'All' : opt}</option>)}
-                                </select>
-                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
-                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
+                        {activeTab === 'Tables' && (
+                            <>
+                                <div className="h-4 w-[1px] bg-border-light" />
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-medium text-text-secondary">Schema</span>
+                                    <div className="relative">
+                                        <select
+                                            className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
+                                            value={selectedSchema}
+                                            onChange={(e) => setSelectedSchema(e.target.value)}
+                                        >
+                                            {schemaOptions.map(opt => <option key={opt} value={opt}>{opt === 'All schemas' ? 'All' : opt}</option>)}
+                                        </select>
+                                        <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                                            <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div className="h-4 w-[1px] bg-border-light" />
+                                <div className="h-4 w-[1px] bg-border-light" />
 
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-text-secondary">Type</span>
-                            <div className="relative">
-                                <select
-                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
-                                    value={selectedTableType}
-                                    onChange={(e) => setSelectedTableType(e.target.value)}
-                                >
-                                    {tableTypeOptions.map(opt => <option key={opt} value={opt}>{opt === 'All types' ? 'All' : opt}</option>)}
-                                </select>
-                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
-                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-medium text-text-secondary">Type</span>
+                                    <div className="relative">
+                                        <select
+                                            className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
+                                            value={selectedTableType}
+                                            onChange={(e) => setSelectedTableType(e.target.value)}
+                                        >
+                                            {tableTypeOptions.map(opt => <option key={opt} value={opt}>{opt === 'All types' ? 'All' : opt}</option>)}
+                                        </select>
+                                        <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                                            <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                            </>
+                        )}
                     </div>
 
                     <div className="relative flex-1 ml-4">
@@ -141,55 +210,111 @@ const TablesView: React.FC<TablesViewProps> = ({
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="bg-transparent border-none text-sm font-medium focus:ring-0 outline-none pr-8 placeholder:text-text-muted w-full text-right"
-                            placeholder="Search tables, schemas, or databases..."
+                            placeholder={`Search ${activeTab.toLowerCase()}...`}
                         />
                         <IconSearch className="w-4 h-4 text-text-muted absolute right-0 top-1/2 -translate-y-1/2" />
                     </div>
                 </div>
 
                 <div className="overflow-x-auto overflow-y-auto max-h-[500px] no-scrollbar">
-                    <table className="w-full text-left border-separate border-spacing-0">
-                        <thead className="bg-[#F8F9FA] sticky top-0 z-10">
-                            <tr>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Tables</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Databases</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Schemas</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Table types</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Size (GB)</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Time Travel</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Failsafe</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Retention days</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Rows</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-border-light">
-                            {filteredTables.length > 0 ? (
-                                filteredTables.map((table, idx) => (
-                                    <tr key={idx} className="hover:bg-surface-nested transition-colors group">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-bold text-text-primary group-hover:text-primary transition-colors">
-                                                {table.name}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm font-medium text-text-secondary">{table.databaseName}</td>
-                                        <td className="px-6 py-4 text-sm font-medium text-text-secondary">{table.schemaName}</td>
-                                        <td className="px-6 py-4 text-sm font-medium text-text-secondary">{table.tableType || 'Permanent'}</td>
-                                        <td className="px-6 py-4 text-sm text-right font-black text-primary">{formatStorageSize(table.totalSizeGB)}</td>
-                                        <td className="px-6 py-4 text-sm text-right font-medium text-text-secondary">{formatStorageSize(table.timeTravelSizeGB)}</td>
-                                        <td className="px-6 py-4 text-sm text-right font-medium text-text-secondary">{formatStorageSize(table.failSafeSizeGB)}</td>
-                                        <td className="px-6 py-4 text-sm text-right font-medium text-text-muted">{table.retentionTimeDays}</td>
-                                        <td className="px-6 py-4 text-sm text-right font-medium text-text-muted">{table.rows.toLocaleString()}</td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={9} className="px-6 py-12 text-center text-text-muted italic">
-                                        No tables match your search criteria.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <table className="w-full text-left border-separate border-spacing-0">
+                                <thead className="bg-[#F8F9FA] sticky top-0 z-10">
+                                    {activeTab === 'Tables' && (
+                                        <tr>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Tables</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Databases</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Schemas</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Table types</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Size (GB)</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Credits</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Rows</th>
+                                        </tr>
+                                    )}
+                                    {activeTab === 'Materialized Views' && (
+                                        <tr>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Materialized View</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Database</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Schema</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Size (GB)</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Credits</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Last Refreshed</th>
+                                        </tr>
+                                    )}
+                                    {activeTab === 'Tasks' && (
+                                        <tr>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Task Name</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Database</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Schema</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light">Status</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Credits</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light text-right">Last Run</th>
+                                        </tr>
+                                    )}
+                                </thead>
+                                <tbody className="bg-white divide-y divide-border-light">
+                                    {activeTab === 'Tables' && (
+                                        filteredTables.length > 0 ? (
+                                            filteredTables.map((table, idx) => (
+                                                <tr key={idx} className="hover:bg-surface-nested transition-colors group">
+                                                    <td className="px-6 py-4 whitespace-nowrap font-bold text-text-primary">{table.name}</td>
+                                                    <td className="px-6 py-4 text-sm font-medium text-text-secondary">{table.databaseName}</td>
+                                                    <td className="px-6 py-4 text-sm font-medium text-text-secondary">{table.schemaName}</td>
+                                                    <td className="px-6 py-4 text-sm font-medium text-text-secondary">{table.tableType || 'Permanent'}</td>
+                                                    <td className="px-6 py-4 text-sm text-right font-black text-primary">{formatStorageSize(table.totalSizeGB)}</td>
+                                                    <td className="px-6 py-4 text-sm text-right font-black text-text-strong">{(table.totalSizeGB / 100).toFixed(1)}</td>
+                                                    <td className="px-6 py-4 text-sm text-right font-medium text-text-muted">{table.rows.toLocaleString()}</td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr><td colSpan={6} className="px-6 py-12 text-center text-text-muted italic">No tables found.</td></tr>
+                                        )
+                                    )}
+                                    {activeTab === 'Materialized Views' && (
+                                        filteredMVs.length > 0 ? (
+                                            filteredMVs.map((mv, idx) => (
+                                                <tr key={idx} className="hover:bg-surface-nested transition-colors group">
+                                                    <td className="px-6 py-4 whitespace-nowrap font-bold text-text-primary">{mv.name}</td>
+                                                    <td className="px-6 py-4 text-sm font-medium text-text-secondary">{mv.databaseName}</td>
+                                                    <td className="px-6 py-4 text-sm font-medium text-text-secondary">{mv.schemaName}</td>
+                                                    <td className="px-6 py-4 text-sm text-right font-black text-primary">{formatStorageSize(mv.sizeGB)}</td>
+                                                    <td className="px-6 py-4 text-sm text-right font-black text-text-strong">{mv.credits.toFixed(1)}</td>
+                                                    <td className="px-6 py-4 text-sm text-right font-medium text-text-muted">{new Date(mv.lastRefreshed).toLocaleString()}</td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr><td colSpan={6} className="px-6 py-12 text-center text-text-muted italic">No materialized views found.</td></tr>
+                                        )
+                                    )}
+                                    {activeTab === 'Tasks' && (
+                                        filteredTasks.length > 0 ? (
+                                            filteredTasks.map((task, idx) => (
+                                                <tr key={idx} className="hover:bg-surface-nested transition-colors group">
+                                                    <td className="px-6 py-4 whitespace-nowrap font-bold text-text-primary">{task.name}</td>
+                                                    <td className="px-6 py-4 text-sm font-medium text-text-secondary">{task.databaseName}</td>
+                                                    <td className="px-6 py-4 text-sm font-medium text-text-secondary">{task.schemaName}</td>
+                                                    <td className="px-6 py-4 text-sm">
+                                                        <span className="px-2 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase">{task.status}</span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm text-right font-black text-text-strong">{task.credits.toFixed(1)}</td>
+                                                    <td className="px-6 py-4 text-sm text-right font-medium text-text-muted">{new Date(task.lastRun).toLocaleString()}</td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr><td colSpan={6} className="px-6 py-12 text-center text-text-muted italic">No tasks found.</td></tr>
+                                        )
+                                    )}
+                                </tbody>
+                            </table>
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
             </div>
         </div>

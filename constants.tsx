@@ -384,7 +384,7 @@ export const accountNavItems = [
             { name: 'Storage overview', label: 'Overview', icon: IconOverview },
             { name: 'Databases', icon: IconDatabase },
             { name: 'Schemas', icon: IconList },
-            { name: 'Tables', icon: IconList },
+            { name: 'Schema objects', icon: IconList },
             { name: 'Unused tables', icon: IconList }
         ]
     },
