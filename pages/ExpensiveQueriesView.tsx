@@ -167,6 +167,15 @@ const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQue
                         onChange={(val) => { setUserFilter(val); setCurrentPage(1); }}
                     />
 
+                    <div className="h-4 w-px bg-border-light hidden md:block" />
+
+                    <SingleSelectDropdown 
+                        label="Show"
+                        options={limitOptions}
+                        selectedValue={limit.toString()}
+                        onChange={(val) => { setLimit(parseInt(val)); setCurrentPage(1); }}
+                    />
+
                     <div className="flex-grow"></div>
 
                     <div className="flex items-center gap-4">
