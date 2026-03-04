@@ -47,23 +47,8 @@ const QueryListView: React.FC<QueryListViewProps> = ({
     const menuRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [dateRange, setDateRange] = useState('Last 7 days');
-    const [warehouseFilter, setWarehouseFilter] = useState('All');
-    const [userFilter, setUserFilter] = useState('All');
     const [viewingHighImpactGroup, setViewingHighImpactGroup] = useState<string | null>(null);
     const [detailTab, setDetailTab] = useState<'Details' | 'Query List'>('Details');
-
-    const warehouses = useMemo(() => Array.from(new Set(initialData.map(q => q.warehouse))), []);
-    const users = useMemo(() => Array.from(new Set(initialData.map(q => q.user))), []);
-
-    const warehouseOptions = useMemo(() => [
-        { value: 'All', label: 'All Warehouses' },
-        ...warehouses.map(w => ({ value: w, label: w }))
-    ], [warehouses]);
-
-    const userOptions = useMemo(() => [
-        { value: 'All', label: 'All Users' },
-        ...users.map(u => ({ value: u, label: u }))
-    ], [users]);
 
     useEffect(() => {
         onDrillDownChange?.(!!viewingHighImpactGroup);
@@ -118,12 +103,11 @@ const QueryListView: React.FC<QueryListViewProps> = ({
             })
             .filter(g => {
                 const matchesSearch = g.queryText.toLowerCase().includes(searchTerm.toLowerCase());
-                const matchesWarehouse = warehouseFilter === 'All' || g.warehouse === warehouseFilter;
                 const matchesCount = g.count > 1;
-                return matchesSearch && matchesWarehouse && matchesCount;
+                return matchesSearch && matchesCount;
             })
             .sort((a, b) => b.totalCredits - a.totalCredits);
-    }, [searchTerm, warehouseFilter]);
+    }, [searchTerm]);
 
     const paginatedData = useMemo(() => {
         return repeatedQueries.slice((filters.currentPage - 1) * filters.itemsPerPage, filters.currentPage * filters.itemsPerPage);
@@ -352,39 +336,16 @@ const QueryListView: React.FC<QueryListViewProps> = ({
             <div className="bg-white rounded-[12px] border border-border-light shadow-sm flex flex-col min-h-0 overflow-hidden">
                 {/* Integrated Filter Bar */}
                 <div className="px-4 py-3 flex flex-wrap items-center gap-6 border-b border-border-light bg-white relative z-20">
-                    <div className="flex items-center gap-2">
-                        <span className="text-[13px] text-text-secondary font-medium">Warehouses:</span>
-                        <select 
-                            value={warehouseFilter}
-                            onChange={(e) => { setWarehouseFilter(e.target.value); handleFilterChange('currentPage', 1); }}
-                            className="appearance-none bg-transparent font-bold text-text-strong cursor-pointer focus:outline-none text-[13px]"
-                        >
-                            {warehouseOptions.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select>
-                        <IconChevronDown className="w-3 h-3 text-text-muted" />
-                    </div>
-
-                    <div className="h-4 w-px bg-border-light hidden md:block" />
-
-                    <div className="flex items-center gap-2">
-                        <span className="text-[13px] text-text-secondary font-medium">Users:</span>
-                        <select 
-                            value={userFilter}
-                            onChange={(e) => { setUserFilter(e.target.value); handleFilterChange('currentPage', 1); }}
-                            className="appearance-none bg-transparent font-bold text-text-strong cursor-pointer focus:outline-none text-[13px]"
-                        >
-                            {userOptions.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select>
-                        <IconChevronDown className="w-3 h-3 text-text-muted" />
-                    </div>
-
                     <div className="flex-grow"></div>
 
                     <div className="relative w-64">
+                        <input 
+                            type="text" 
+                            value={searchTerm}
+                            onChange={(e) => { setSearchTerm(e.target.value); handleFilterChange('currentPage', 1); }}
+                            className="bg-transparent border-none text-sm font-medium focus:ring-0 outline-none pr-8 placeholder:text-text-muted w-full text-right"
+                            placeholder="Search queries..."
+                        />
                         <IconSearch className="w-4 h-4 text-text-muted absolute right-0 top-1/2 -translate-y-1/2 cursor-pointer" />
                     </div>
                 </div>
@@ -396,7 +357,6 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                             <tr>
                                 <th className="px-6 py-4 text-left border-b border-border-light">Query Pattern</th>
                                 <th className="px-6 py-4 text-left border-b border-border-light">Execution Count</th>
-                                <th className="px-6 py-4 text-left border-b border-border-light">User</th>
                                 <th className="px-6 py-4 text-left border-b border-border-light">Total Credits</th>
                                 <th className="px-6 py-4 text-left border-b border-border-light">Avg Credits p...</th>
                                 <th className="px-6 py-4 text-left border-b border-border-light">First Execution</th>
@@ -418,7 +378,6 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-text-secondary font-medium">{group.count}</td>
-                                    <td className="px-6 py-4 text-text-secondary font-medium">{group.userCount}</td>
                                     <td className="px-6 py-4 text-text-secondary font-medium">{group.totalCredits.toFixed(0)}</td>
                                     <td className="px-6 py-4 text-text-secondary font-medium">{group.avgCredits.toFixed(1)}</td>
                                     <td className="px-6 py-4 text-text-secondary font-medium">{new Date(group.firstExecution).toLocaleDateString([], { month: 'short', day: 'numeric' })}</td>

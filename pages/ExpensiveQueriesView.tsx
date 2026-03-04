@@ -31,18 +31,29 @@ const KPILabel: React.FC<{ label: string; value: string }> = ({ label, value }) 
     </div>
 );
 
+const durationToSeconds = (duration: string) => {
+    const parts = duration.split(':').map(Number);
+    if (parts.length === 3) {
+        return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+    if (parts.length === 2) {
+        return parts[0] * 60 + parts[1];
+    }
+    return parts[0] || 0;
+};
+
 const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQuery }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [dateRange, setDateRange] = useState('Last 7 days');
     const [warehouseFilter, setWarehouseFilter] = useState('All');
     const [userFilter, setUserFilter] = useState('All');
-    const [visibleColumns, setVisibleColumns] = useState(['queryId', 'warehouse', 'user', 'totalCredits', 'computeCredits', 'qasCredits', 'duration', 'startTime', 'endTime']);
+    const [visibleColumns, setVisibleColumns] = useState(['queryId', 'warehouse', 'user', 'totalCredits', 'computeCredits', 'qasCredits', 'duration']);
     const [minCredits, setMinCredits] = useState(0);
     const [limit, setLimit] = useState(25);
-    const [currentPage, setCurrentPage] = useState(1);
     const [selectedQueryForDrawer, setSelectedQueryForDrawer] = useState<QueryListItem | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const itemsPerPage = 15;
+    const [sortKey, setSortKey] = useState<string>('totalCredits');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
     const warehouses = useMemo(() => Array.from(new Set(queryListData.map(q => q.warehouse))), []);
     const users = useMemo(() => Array.from(new Set(queryListData.map(q => q.user))), []);
@@ -72,8 +83,6 @@ const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQue
         { key: 'computeCredits', label: 'Compute Credits' },
         { key: 'qasCredits', label: 'QAS Credits' },
         { key: 'duration', label: 'Duration' },
-        { key: 'startTime', label: 'Start Time' },
-        { key: 'endTime', label: 'End Time' },
     ];
 
     const filteredData = useMemo(() => {
@@ -88,8 +97,23 @@ const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQue
 
                 return matchesSearch && matchesWarehouse && matchesUser && matchesMinCredits && matchesNonZero;
             })
-            .sort((a, b) => b.costCredits - a.costCredits);
-    }, [searchTerm, warehouseFilter, userFilter, minCredits]);
+            .sort((a, b) => {
+                let valA: any = a[sortKey as keyof QueryListItem];
+                let valB: any = b[sortKey as keyof QueryListItem];
+
+                if (sortKey === 'totalCredits') {
+                    valA = a.costCredits;
+                    valB = b.costCredits;
+                } else if (sortKey === 'duration') {
+                    valA = durationToSeconds(a.duration);
+                    valB = durationToSeconds(b.duration);
+                }
+
+                if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+                if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+    }, [searchTerm, warehouseFilter, userFilter, minCredits, sortKey, sortOrder]);
 
     const topNData = useMemo(() => {
         return filteredData.slice(0, limit);
@@ -109,12 +133,18 @@ const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQue
         };
     }, [filteredData, topNData]);
 
-    const totalPages = Math.ceil(topNData.length / itemsPerPage);
-    const paginatedData = topNData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
     const formatTime = (dateStr?: string) => {
         if (!dateStr) return '-';
         return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    };
+
+    const handleSort = (key: string) => {
+        if (sortKey === key) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortKey(key);
+            setSortOrder('desc');
+        }
     };
 
     const handleRowClick = (query: QueryListItem) => {
@@ -136,45 +166,85 @@ const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQue
                 </div>
                 <DateRangeDropdown 
                     selectedValue={dateRange} 
-                    onChange={(val) => { setDateRange(val as string); setCurrentPage(1); }} 
+                    onChange={(val) => { setDateRange(val as string); }} 
                 />
             </div>
 
             {/* Pill-style Summary Metrics */}
             <div className="flex flex-wrap items-center gap-3 overflow-x-auto no-scrollbar flex-shrink-0">
-                <KPILabel label="Expensive queries" value={metrics.totalQueries.toString()} />
-                <KPILabel label="Total credits" value={`${metrics.topNCredits.toFixed(1)} TB`} />
+                <KPILabel label="Total credits" value={`${metrics.topNCredits.toFixed(1)} Credits`} />
                 <KPILabel label="Query acceleration credits" value={`${(metrics.totalQasCredits / 1000).toFixed(1)}K`} />
             </div>
 
             {/* Integrated Table and Filters */}
             <div className="bg-white rounded-[12px] border border-border-light shadow-sm flex flex-col min-h-0 overflow-hidden">
                 {/* Integrated Filter Bar */}
-                <div className="px-4 py-3 flex flex-wrap items-center gap-6 border-b border-border-light bg-white relative z-20">
-                    <SingleSelectDropdown 
-                        label="Warehouses"
-                        options={warehouseOptions}
-                        selectedValue={warehouseFilter}
-                        onChange={(val) => { setWarehouseFilter(val); setCurrentPage(1); }}
-                    />
+                <div className="px-4 py-3 flex items-center border-b border-border-light bg-white rounded-t-[12px] relative z-20 overflow-visible flex-shrink-0">
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-text-secondary">Warehouses</span>
+                            <div className="relative">
+                                <select
+                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
+                                    value={warehouseFilter}
+                                    onChange={(e) => setWarehouseFilter(e.target.value)}
+                                >
+                                    {warehouseOptions.map(opt => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.value === 'All' ? 'All' : opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                </div>
+                            </div>
+                        </div>
 
-                    <div className="h-4 w-px bg-border-light hidden md:block" />
+                        <div className="h-4 w-px bg-border-light hidden md:block" />
 
-                    <SingleSelectDropdown 
-                        label="Users"
-                        options={userOptions}
-                        selectedValue={userFilter}
-                        onChange={(val) => { setUserFilter(val); setCurrentPage(1); }}
-                    />
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-text-secondary">Users</span>
+                            <div className="relative">
+                                <select
+                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
+                                    value={userFilter}
+                                    onChange={(e) => setUserFilter(e.target.value)}
+                                >
+                                    {userOptions.map(opt => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.value === 'All' ? 'All' : opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                </div>
+                            </div>
+                        </div>
 
-                    <div className="h-4 w-px bg-border-light hidden md:block" />
+                        <div className="h-4 w-px bg-border-light hidden md:block" />
 
-                    <SingleSelectDropdown 
-                        label="Show"
-                        options={limitOptions}
-                        selectedValue={limit.toString()}
-                        onChange={(val) => { setLimit(parseInt(val)); setCurrentPage(1); }}
-                    />
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-text-secondary">Show</span>
+                            <div className="relative">
+                                <select
+                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
+                                    value={limit.toString()}
+                                    onChange={(e) => setLimit(parseInt(e.target.value))}
+                                >
+                                    {limitOptions.map(opt => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label.replace('Top ', '')}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div className="flex-grow"></div>
 
@@ -185,7 +255,7 @@ const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQue
                                 placeholder="Search queries..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-transparent border-none text-[13px] focus:ring-0 placeholder:text-text-muted text-right pr-8"
+                                className="w-full bg-transparent border-none text-[13px] font-medium focus:ring-0 placeholder:text-text-muted text-right pr-8"
                             />
                             <IconSearch className="w-4 h-4 text-text-muted absolute right-0 top-1/2 -translate-y-1/2 cursor-pointer" />
                         </div>
@@ -205,16 +275,38 @@ const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQue
                                 {visibleColumns.includes('queryId') && <th className="px-6 py-4 text-left border-b border-border-light">Query ID</th>}
                                 {visibleColumns.includes('warehouse') && <th className="px-6 py-4 text-left border-b border-border-light">Warehouse</th>}
                                 {visibleColumns.includes('user') && <th className="px-6 py-4 text-left border-b border-border-light">User</th>}
-                                {visibleColumns.includes('totalCredits') && <th className="px-6 py-4 text-left border-b border-border-light">Total Cr...</th>}
+                                {visibleColumns.includes('totalCredits') && (
+                                    <th 
+                                        className="px-6 py-4 text-left border-b border-border-light cursor-pointer hover:bg-surface-hover transition-colors group"
+                                        onClick={() => handleSort('totalCredits')}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Total Cr...
+                                            {sortKey === 'totalCredits' && (
+                                                <IconChevronDown className={`w-3 h-3 transition-transform ${sortOrder === 'asc' ? 'rotate-180' : ''}`} />
+                                            )}
+                                        </div>
+                                    </th>
+                                )}
                                 {visibleColumns.includes('computeCredits') && <th className="px-6 py-4 text-left border-b border-border-light">Compu...</th>}
                                 {visibleColumns.includes('qasCredits') && <th className="px-6 py-4 text-left border-b border-border-light">QAS Cre...</th>}
-                                {visibleColumns.includes('duration') && <th className="px-6 py-4 text-left border-b border-border-light">Duration</th>}
-                                {visibleColumns.includes('startTime') && <th className="px-6 py-4 text-left border-b border-border-light">Start time</th>}
-                                {visibleColumns.includes('endTime') && <th className="px-6 py-4 text-left border-b border-border-light">End time</th>}
+                                {visibleColumns.includes('duration') && (
+                                    <th 
+                                        className="px-6 py-4 text-left border-b border-border-light cursor-pointer hover:bg-surface-hover transition-colors group"
+                                        onClick={() => handleSort('duration')}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Duration
+                                            {sortKey === 'duration' && (
+                                                <IconChevronDown className={`w-3 h-3 transition-transform ${sortOrder === 'asc' ? 'rotate-180' : ''}`} />
+                                            )}
+                                        </div>
+                                    </th>
+                                )}
                             </tr>
                         </thead>
                         <tbody className="bg-white">
-                            {paginatedData.map((query) => (
+                            {topNData.map((query) => (
                                 <tr key={query.id} className="group hover:bg-surface-hover transition-colors cursor-pointer border-b border-border-light last:border-0" onClick={() => handleRowClick(query)}>
                                     {visibleColumns.includes('queryId') && (
                                         <td className="px-6 py-4">
@@ -229,63 +321,10 @@ const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQue
                                     {visibleColumns.includes('computeCredits') && <td className="px-6 py-4 text-text-secondary font-medium">{query.computeCredits.toFixed(0)}</td>}
                                     {visibleColumns.includes('qasCredits') && <td className="px-6 py-4 text-text-secondary font-medium">{query.qasCredits.toFixed(0)}</td>}
                                     {visibleColumns.includes('duration') && <td className="px-6 py-4 text-text-secondary font-medium">{query.duration}</td>}
-                                    {visibleColumns.includes('startTime') && <td className="px-6 py-4 text-text-secondary font-medium">{formatTime(query.startTime)}</td>}
-                                    {visibleColumns.includes('endTime') && <td className="px-6 py-4 text-text-secondary font-medium">{formatTime(query.endTime)}</td>}
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                </div>
-
-                {/* Pagination Bar - Matching Reference Image */}
-                <div className="px-4 py-3 flex items-center justify-between bg-white border-t border-border-light text-[13px] text-text-secondary">
-                    <div className="flex items-center gap-2">
-                        <span>Items per page:</span>
-                        <div className="relative flex items-center gap-1 cursor-pointer hover:text-text-strong">
-                            <select 
-                                value={limit}
-                                onChange={(e) => { setLimit(Number(e.target.value)); setCurrentPage(1); }}
-                                className="appearance-none bg-transparent pr-4 font-bold text-text-strong cursor-pointer focus:outline-none"
-                            >
-                                <option value={10}>10</option>
-                                <option value={25}>25</option>
-                                <option value={50}>50</option>
-                                <option value={100}>100</option>
-                            </select>
-                            <IconChevronDown className="w-3 h-3 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-8">
-                        <div className="h-10 w-px bg-border-light" />
-                        <span>{((currentPage - 1) * itemsPerPage) + 1}–{Math.min(currentPage * itemsPerPage, topNData.length)} of {topNData.length} items</span>
-                        <div className="h-10 w-px bg-border-light" />
-                        
-                        <div className="flex items-center gap-2">
-                            <div className="relative flex items-center gap-1 cursor-pointer hover:text-text-strong">
-                                <span className="font-bold">{currentPage}</span>
-                                <IconChevronDown className="w-3 h-3" />
-                            </div>
-                            <span>of {totalPages} pages</span>
-                        </div>
-
-                        <div className="flex items-center border-l border-border-light">
-                            <button 
-                                disabled={currentPage === 1}
-                                onClick={(e) => { e.stopPropagation(); setCurrentPage(prev => Math.max(1, prev - 1)); }}
-                                className="p-3 hover:bg-surface-hover disabled:opacity-30 border-r border-border-light"
-                            >
-                                <IconChevronLeft className="w-4 h-4" />
-                            </button>
-                            <button 
-                                disabled={currentPage === totalPages}
-                                onClick={(e) => { e.stopPropagation(); setCurrentPage(prev => Math.min(totalPages, prev + 1)); }}
-                                className="p-3 hover:bg-surface-hover disabled:opacity-30"
-                            >
-                                <IconChevronRight className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
 

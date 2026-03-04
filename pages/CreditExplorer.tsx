@@ -317,7 +317,7 @@ const ResourceSummary: React.FC<ResourceSummaryProps> = ({ initialTab, onNavigat
                 case 'Storage': return ['Account name', 'Storage credits', 'Storage size', 'Unused table size', 'Failsafe Size', 'Time Travel Size', 'Insights'];
                 case 'Cortex': return ['Account name', 'Model count', 'Tokens', 'Credits', 'Insights'];
                 case 'User': return ['Account name', 'User count', 'Queries', 'Insights'];
-                case 'Queries': return ['Account name', 'Queries count', 'Repeated queries', 'Expensive queries', 'Insights'];
+                case 'Queries': return ['Account name', 'Queries count', 'Repeated queries', 'Insights'];
                 case 'Workloads': return ['Account name', 'Workloads', 'Service credits', 'Insights'];
                 case 'Services': return ['Account name', 'Service credits', 'Services used', 'Insights'];
                 default: return ['Account name', 'Total credits', 'Insights'];

@@ -73,19 +73,7 @@ const QueriesOverview: React.FC<QueriesOverviewProps> = ({ onNavigate }) => {
             
             <div className="flex-1 space-y-6 px-4 pb-12 overflow-y-auto no-scrollbar">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white p-6 rounded-[24px] border border-border-light shadow-sm flex flex-col h-[140px]">
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                            <IconTrendingUp className="w-4 h-4" />
-                        </div>
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Total Credits</p>
-                    </div>
-                    <div className="mt-auto">
-                        <p className="text-[32px] font-black text-text-strong tracking-tight leading-none">{stats.totalCredits}</p>
-                        <p className="text-[10px] font-bold text-text-secondary mt-2 tracking-tight">Cumulative query cost</p>
-                    </div>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="bg-white p-6 rounded-[24px] border border-border-light shadow-sm flex flex-col h-[140px]">
                     <div className="flex items-center gap-2 mb-2">
                         <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
