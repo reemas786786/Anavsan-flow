@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { queryListData as initialData, warehousesData } from '../data/dummyData';
 import { QueryListItem, QueryListFilters } from '../types';
-import { IconSearch, IconDotsVertical, IconView, IconBeaker, IconWand, IconShare, IconAdjustments, IconChevronDown, IconChevronLeft, IconChevronRight, IconRefresh, IconTrendingUp, IconInfo } from '../constants';
+import { IconSearch, IconDotsVertical, IconView, IconBeaker, IconWand, IconShare, IconAdjustments, IconChevronDown, IconChevronLeft, IconChevronRight, IconRefresh, IconTrendingUp, IconInfo, IconClipboardCopy, IconCheck } from '../constants';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import DateRangeDropdown from '../components/DateRangeDropdown';
 import ColumnSelector from '../components/ColumnSelector';
@@ -21,6 +21,7 @@ interface QueryListViewProps {
     onAnalyzeQuery: (query: QueryListItem) => void;
     onOptimizeQuery: (query: QueryListItem) => void;
     onSimulateQuery: (query: QueryListItem) => void;
+    onNavigateToRecommendations?: (page: any) => void;
     filters: QueryListFilters;
     setFilters: React.Dispatch<React.SetStateAction<QueryListFilters>>;
     onDrillDownChange?: (isDrillingDown: boolean) => void;
@@ -39,6 +40,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({
     onAnalyzeQuery,
     onOptimizeQuery,
     onSimulateQuery,
+    onNavigateToRecommendations,
     filters,
     setFilters,
     onDrillDownChange,
@@ -49,6 +51,20 @@ const QueryListView: React.FC<QueryListViewProps> = ({
     const [dateRange, setDateRange] = useState('Last 7 days');
     const [viewingHighImpactGroup, setViewingHighImpactGroup] = useState<string | null>(null);
     const [detailTab, setDetailTab] = useState<'Details' | 'Query List'>('Details');
+    const [isHashCopied, setIsHashCopied] = useState(false);
+    const [subSearchTerm, setSubSearchTerm] = useState('');
+    const [subWarehouseFilter, setSubWarehouseFilter] = useState('All');
+    const [subUserFilter, setSubUserFilter] = useState('All');
+
+    const generateHash = (str: string) => {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        return Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
+    };
 
     useEffect(() => {
         onDrillDownChange?.(!!viewingHighImpactGroup);
@@ -91,6 +107,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                 return {
                     id: `grp-${data.queries[0].id}`,
                     queryText: text,
+                    parameterizedHash: generateHash(text),
                     count: data.count,
                     totalCredits: data.totalCredits,
                     avgCredits: data.totalCredits / data.count,
@@ -125,6 +142,18 @@ const QueryListView: React.FC<QueryListViewProps> = ({
         return initialData.filter(q => q.queryText === viewingHighImpactGroup);
     }, [viewingHighImpactGroup]);
 
+    const filteredGroupQueries = useMemo(() => {
+        return groupQueries.filter(q => {
+            const matchesSearch = q.id.toLowerCase().includes(subSearchTerm.toLowerCase());
+            const matchesWarehouse = subWarehouseFilter === 'All' || q.warehouse === subWarehouseFilter;
+            const matchesUser = subUserFilter === 'All' || q.user === subUserFilter;
+            return matchesSearch && matchesWarehouse && matchesUser;
+        });
+    }, [groupQueries, subSearchTerm, subWarehouseFilter, subUserFilter]);
+
+    const subWarehouses = useMemo(() => ['All', ...Array.from(new Set(groupQueries.map(q => q.warehouse)))], [groupQueries]);
+    const subUsers = useMemo(() => ['All', ...Array.from(new Set(groupQueries.map(q => q.user)))], [groupQueries]);
+
     if (viewingHighImpactGroup && groupData) {
         return (
             <div className="flex flex-col h-full bg-background overflow-y-auto no-scrollbar px-4 pt-4 pb-12">
@@ -141,14 +170,29 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                                     <IconChevronLeft className="h-6 w-6" />
                                 </button>
                                 
-                                <div className="flex flex-col min-w-0 flex-1">
-                                    <div className="flex items-center gap-3">
-                                        <h1 className="text-[24px] md:text-[28px] font-bold text-text-strong tracking-tight break-words line-clamp-2" title={viewingHighImpactGroup}>
-                                            {viewingHighImpactGroup}
-                                        </h1>
+                                    <div className="flex flex-col min-w-0 flex-1">
+                                        <div className="flex items-center gap-3">
+                                            <h1 className="text-[24px] md:text-[28px] font-bold text-text-strong tracking-tight">
+                                                Repeated query
+                                            </h1>
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <p className="text-sm text-text-secondary font-mono font-medium">
+                                                {groupData.parameterizedHash}
+                                            </p>
+                                            <button 
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(groupData.parameterizedHash);
+                                                    setIsHashCopied(true);
+                                                    setTimeout(() => setIsHashCopied(false), 2000);
+                                                }}
+                                                className="text-text-muted hover:text-primary transition-colors"
+                                                title="Copy Hash ID"
+                                            >
+                                                {isHashCopied ? <IconCheck className="w-3.5 h-3.5 text-status-success" /> : <IconClipboardCopy className="w-3.5 h-3.5" />}
+                                            </button>
+                                        </div>
                                     </div>
-                                    <p className="text-sm text-text-secondary font-medium mt-1">Detailed analysis for this repeated query group.</p>
-                                </div>
                             </div>
 
                             {/* Actionable Notification */}
@@ -163,7 +207,10 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4 ml-4">
-                                    <button className="text-sm font-semibold text-[#0f62fe] hover:underline whitespace-nowrap">
+                                    <button 
+                                        onClick={() => onNavigateToRecommendations?.({ search: 'Scan Optimization', selectedId: 'REC-SPEC-005' })}
+                                        className="text-sm font-semibold text-[#0f62fe] hover:underline whitespace-nowrap"
+                                    >
                                         View optimizations
                                     </button>
                                 </div>
@@ -194,114 +241,153 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                     {/* Content Area */}
                     <main className="animate-in fade-in duration-500">
                         {detailTab === 'Details' ? (
-                            <div className="space-y-8">
-                                {/* Summary Grid */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                                    <div className="bg-white p-6 rounded-[24px] border border-border-light shadow-sm flex flex-col h-[120px]">
-                                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Total Executions</p>
-                                        <div className="mt-auto">
-                                            <p className="text-[32px] font-black text-text-strong tracking-tight leading-none">{groupData.count}</p>
-                                            <p className="text-[10px] font-bold text-text-secondary mt-2 tracking-tight">Across all warehouses</p>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+                                {/* Left Column: Details */}
+                                <div className="bg-white p-6 rounded-3xl border border-border-light shadow-sm h-full">
+                                    <h3 className="text-xs font-bold text-text-strong uppercase tracking-widest mb-6">Details</h3>
+                                    <div className="grid grid-cols-2 gap-y-8">
+                                        <div>
+                                            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Total Executions</p>
+                                            <div className="text-sm font-black text-text-primary mt-1">{groupData.count}</div>
                                         </div>
-                                    </div>
-                                    <div className="bg-white p-6 rounded-[24px] border border-border-light shadow-sm flex flex-col h-[120px]">
-                                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Total Credits</p>
-                                        <div className="mt-auto">
-                                            <p className="text-[32px] font-black text-primary tracking-tight leading-none">{groupData.totalCredits.toFixed(2)}</p>
-                                            <p className="text-[10px] font-bold text-text-secondary mt-2 tracking-tight">Cumulative consumption</p>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Total Credits</p>
+                                            <div className="text-sm font-black text-primary mt-1">{groupData.totalCredits.toFixed(2)}</div>
                                         </div>
-                                    </div>
-                                    <div className="bg-white p-6 rounded-[24px] border border-border-light shadow-sm flex flex-col h-[120px]">
-                                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Avg Credits / Run</p>
-                                        <div className="mt-auto">
-                                            <p className="text-[32px] font-black text-text-strong tracking-tight leading-none">{(groupData.totalCredits / groupData.count).toFixed(2)}</p>
-                                            <p className="text-[10px] font-bold text-text-secondary mt-2 tracking-tight">Per execution average</p>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Avg Credits / Run</p>
+                                            <div className="text-sm font-black text-text-primary mt-1">{(groupData.totalCredits / groupData.count).toFixed(2)}</div>
                                         </div>
-                                    </div>
-                                    <div className="bg-white p-6 rounded-[24px] border border-border-light shadow-sm flex flex-col h-[120px]">
-                                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Warehouse</p>
-                                        <div className="mt-auto">
-                                            <p className="text-[20px] font-black text-text-strong tracking-tight leading-none truncate" title={groupData.warehouse}>{groupData.warehouse}</p>
-                                            <p className="text-[10px] font-bold text-text-secondary mt-2 tracking-tight">Primary compute cluster</p>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Warehouse</p>
+                                            <div className="text-sm font-black text-text-primary mt-1 truncate" title={groupData.warehouse}>{groupData.warehouse}</div>
                                         </div>
-                                    </div>
-                                    <div className="bg-white p-6 rounded-[24px] border border-border-light shadow-sm flex flex-col h-[120px]">
-                                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">User</p>
-                                        <div className="mt-auto">
-                                            <p className="text-[20px] font-black text-text-strong tracking-tight leading-none truncate" title={groupData.representative.user}>{groupData.representative.user}</p>
-                                            <p className="text-[10px] font-bold text-text-secondary mt-2 tracking-tight">Top execution owner</p>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">User</p>
+                                            <div className="text-sm font-black text-text-primary mt-1 truncate" title={groupData.representative.user}>{groupData.representative.user}</div>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Query Type</p>
+                                            <div className="text-sm font-black text-text-primary mt-1">
+                                                {groupData.representative.type.join(', ')}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Avg Bytes Scanned</p>
+                                            <div className="text-sm font-black text-text-primary mt-1">
+                                                {(groupData.representative.bytesScanned / 1024 / 1024).toFixed(2)} MB
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                                    {/* Left Column: Metadata */}
-                                    <div className="lg:col-span-4 space-y-6">
-                                        <div className="bg-white p-8 rounded-[24px] border border-border-light shadow-sm space-y-8">
-                                            <h3 className="text-sm font-black text-text-strong uppercase tracking-[0.2em] border-b border-border-light pb-4">Query Metadata</h3>
-                                            <div className="grid grid-cols-1 gap-y-8">
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Primary Warehouse</p>
-                                                    <div className="text-sm font-black text-text-primary mt-1">{groupData.warehouse}</div>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Top User</p>
-                                                    <div className="text-sm font-black text-text-primary mt-1">{groupData.representative.user}</div>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Query Type</p>
-                                                    <div className="text-sm font-black text-text-primary mt-1">
-                                                        {groupData.representative.type.join(', ')}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Avg Bytes Scanned</p>
-                                                    <div className="text-sm font-black text-text-primary mt-1">
-                                                        {(groupData.representative.bytesScanned / 1024 / 1024).toFixed(2)} MB
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                {/* Right Column: SQL Text */}
+                                <div className="bg-white p-6 rounded-3xl border border-border-light shadow-sm flex flex-col min-h-[400px]">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-xs font-bold text-text-strong uppercase tracking-widest">SQL Text</h3>
+                                        <button 
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(groupData.queryText);
+                                            }} 
+                                            className="text-text-secondary hover:text-primary flex items-center gap-2 text-xs font-bold"
+                                        >
+                                            <IconClipboardCopy className="h-4 w-4" />
+                                            Copy SQL
+                                        </button>
                                     </div>
-
-                                    {/* Right Column: SQL Text */}
-                                    <div className="lg:col-span-8">
-                                        <div className="bg-white p-8 rounded-[24px] border border-border-light shadow-sm space-y-6 h-full">
-                                            <h3 className="text-sm font-black text-text-strong uppercase tracking-[0.2em] border-b border-border-light pb-4">SQL Text</h3>
-                                            <div className="bg-surface-nested p-6 rounded-[20px] border border-border-light">
-                                                <pre className="text-[13px] font-mono whitespace-pre-wrap break-all text-text-secondary leading-relaxed">
-                                                    {groupData.queryText}
-                                                </pre>
-                                            </div>
-                                        </div>
+                                    <div className="flex-grow bg-surface-nested p-4 rounded-xl border border-border-light">
+                                        <pre className="text-[12px] font-mono whitespace-pre-wrap break-all text-text-primary leading-relaxed">
+                                            {groupData.queryText}
+                                        </pre>
                                     </div>
                                 </div>
                             </div>
                         ) : (
                             <div className="bg-white rounded-[12px] border border-border-light shadow-sm overflow-hidden flex flex-col">
+                                {/* Sub-toolbar */}
+                                <div className="px-4 py-3 flex items-center border-b border-border-light bg-white relative z-20 overflow-visible flex-shrink-0">
+                                    <div className="flex items-center gap-6">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-text-secondary">Warehouses</span>
+                                            <div className="relative">
+                                                <select
+                                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
+                                                    value={subWarehouseFilter}
+                                                    onChange={(e) => setSubWarehouseFilter(e.target.value)}
+                                                >
+                                                    {subWarehouses.map(opt => (
+                                                        <option key={opt} value={opt}>{opt}</option>
+                                                    ))}
+                                                </select>
+                                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="h-4 w-px bg-border-light hidden md:block" />
+
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-text-secondary">Users</span>
+                                            <div className="relative">
+                                                <select
+                                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
+                                                    value={subUserFilter}
+                                                    onChange={(e) => setSubUserFilter(e.target.value)}
+                                                >
+                                                    {subUsers.map(opt => (
+                                                        <option key={opt} value={opt}>{opt}</option>
+                                                    ))}
+                                                </select>
+                                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex-grow"></div>
+
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative w-64">
+                                            <input 
+                                                type="text"
+                                                placeholder="Search by Query ID..."
+                                                value={subSearchTerm}
+                                                onChange={(e) => setSubSearchTerm(e.target.value)}
+                                                className="w-full bg-transparent border-none text-[13px] font-medium focus:ring-0 placeholder:text-text-muted text-right pr-8"
+                                            />
+                                            <IconSearch className="w-4 h-4 text-text-muted absolute right-0 top-1/2 -translate-y-1/2 cursor-pointer" />
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-[13px] border-separate border-spacing-0">
                                         <thead className="bg-[#F8F9FA] text-[10px] font-black text-text-muted uppercase tracking-widest">
                                             <tr>
                                                 <th className="px-6 py-4 text-left border-b border-border-light">Query ID</th>
+                                                <th className="px-6 py-4 text-left border-b border-border-light">Warehouse</th>
+                                                <th className="px-6 py-4 text-left border-b border-border-light">User</th>
                                                 <th className="px-6 py-4 text-left border-b border-border-light">Credits</th>
                                                 <th className="px-6 py-4 text-left border-b border-border-light">Duration</th>
-                                                <th className="px-6 py-4 text-right border-b border-border-light"></th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border-light bg-white">
-                                            {groupQueries.map((query) => (
-                                                <tr key={query.id} className="hover:bg-surface-nested group transition-colors">
+                                            {filteredGroupQueries.map((query) => (
+                                                <tr 
+                                                    key={query.id} 
+                                                    className="hover:bg-surface-nested group transition-colors"
+                                                >
                                                     <td className="px-6 py-5">
-                                                        <button onClick={() => onSelectQuery(query)} className="text-link font-bold hover:underline font-mono text-xs">
+                                                        <span className="text-text-strong font-mono text-xs font-medium">
                                                             {query.id}
-                                                        </button>
+                                                        </span>
                                                     </td>
+                                                    <td className="px-6 py-5 text-text-secondary font-medium">{query.warehouse}</td>
+                                                    <td className="px-6 py-5 text-text-secondary font-medium">{query.user}</td>
                                                     <td className="px-6 py-5 font-black text-text-strong">{query.costCredits.toFixed(2)}</td>
                                                     <td className="px-6 py-5 text-text-secondary font-medium">{query.duration}</td>
-                                                    <td className="px-6 py-5 text-right">
-                                                        <button onClick={() => onSelectQuery(query)} className="text-primary hover:underline text-xs font-bold uppercase">Details</button>
-                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -355,7 +441,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                     <table className="w-full text-[13px] border-separate border-spacing-0">
                         <thead className="text-[11px] text-text-strong uppercase font-bold sticky top-0 z-10 bg-[#F8F9FA] border-b border-border-light">
                             <tr>
-                                <th className="px-6 py-4 text-left border-b border-border-light">Query Pattern</th>
+                                <th className="px-6 py-4 text-left border-b border-border-light">Parameterized Hash</th>
                                 <th className="px-6 py-4 text-left border-b border-border-light">Execution Count</th>
                                 <th className="px-6 py-4 text-left border-b border-border-light">Total Credits</th>
                                 <th className="px-6 py-4 text-left border-b border-border-light">Avg Credits p...</th>
@@ -367,14 +453,8 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                             {(paginatedData as any[]).map((group) => (
                                 <tr key={group.id} className="group hover:bg-surface-hover transition-colors cursor-pointer border-b border-border-light last:border-0" onClick={() => setViewingHighImpactGroup(group.queryText)}>
                                     <td className="px-6 py-4">
-                                        <span className="text-link font-medium hover:underline block truncate max-w-[300px]">
-                                            {group.queryText.includes('Prod Analytics') ? 'Prod Analytics' : 
-                                             group.queryText.includes('Database Spend Alert') ? 'Database Spend Alert' :
-                                             group.queryText.includes('Database System') ? 'Database System' :
-                                             group.queryText.includes('Database Query Optimization') ? 'Database Query Optimization' :
-                                             group.queryText.includes('Database Security') ? 'Database Security' :
-                                             group.queryText.includes('Database Insight') ? 'Database Insight' :
-                                             group.queryText}
+                                        <span className="text-link font-mono font-medium hover:underline block truncate max-w-[300px]">
+                                            {group.parameterizedHash}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-text-secondary font-medium">{group.count}</td>

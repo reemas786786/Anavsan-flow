@@ -435,6 +435,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onAnalyzeQuery={(q) => onAnalyzeQuery(q, 'Repeated queries')} 
                     onOptimizeQuery={(q) => onOptimizeQuery(q, 'Repeated queries')} 
                     onSimulateQuery={(q) => onSimulateQuery(q, 'Repeated queries')} 
+                    onNavigateToRecommendations={onNavigateToRecommendations}
                     filters={allQueriesFilters} 
                     setFilters={setAllQueriesFilters} 
                     onDrillDownChange={setIsQueryDrillDown}

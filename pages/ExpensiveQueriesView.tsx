@@ -4,7 +4,6 @@ import { queryListData } from '../data/dummyData';
 import { QueryListItem } from '../types';
 import SingleSelectDropdown from '../components/SingleSelectDropdown';
 import DateRangeDropdown from '../components/DateRangeDropdown';
-import QueryDetailDrawer from '../components/QueryDetailDrawer';
 import ColumnSelector from '../components/ColumnSelector';
 import { 
     IconSearch, 
@@ -50,8 +49,6 @@ const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQue
     const [visibleColumns, setVisibleColumns] = useState(['queryId', 'warehouse', 'user', 'totalCredits', 'computeCredits', 'qasCredits', 'duration']);
     const [minCredits, setMinCredits] = useState(0);
     const [limit, setLimit] = useState(25);
-    const [selectedQueryForDrawer, setSelectedQueryForDrawer] = useState<QueryListItem | null>(null);
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [sortKey, setSortKey] = useState<string>('totalCredits');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
@@ -148,8 +145,7 @@ const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQue
     };
 
     const handleRowClick = (query: QueryListItem) => {
-        setSelectedQueryForDrawer(query);
-        setIsDrawerOpen(true);
+        onSelectQuery(query);
     };
 
     const getQueryName = (query: QueryListItem) => {
@@ -310,8 +306,8 @@ const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQue
                                 <tr key={query.id} className="group hover:bg-surface-hover transition-colors cursor-pointer border-b border-border-light last:border-0" onClick={() => handleRowClick(query)}>
                                     {visibleColumns.includes('queryId') && (
                                         <td className="px-6 py-4">
-                                            <span className="text-link font-medium hover:underline">
-                                                {getQueryName(query)}
+                                            <span className="text-link font-mono text-xs font-medium hover:underline">
+                                                {query.id}
                                             </span>
                                         </td>
                                     )}
@@ -327,12 +323,6 @@ const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQue
                     </table>
                 </div>
             </div>
-
-            <QueryDetailDrawer 
-                query={selectedQueryForDrawer}
-                isOpen={isDrawerOpen}
-                onClose={() => setIsDrawerOpen(false)}
-            />
         </div>
     );
 };

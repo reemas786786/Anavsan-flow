@@ -446,6 +446,50 @@ export const recommendationsData: Recommendation[] = (function() {
         metrics: { creditsBefore: 1800, estimatedSavings: 270, suspensionTime: '600s' }
     });
 
+    recs.push({
+        id: 'REC-SPEC-005',
+        resourceType: 'Query',
+        affectedResource: 'q-9482115',
+        severity: 'High',
+        insightType: 'Scan Optimization',
+        message: 'Query q-9482115 is scanning 1.2TB of data due to lack of pruning on large table.',
+        detailedExplanation: 'The query filters on a non-indexed column, forcing a full scan of the CUSTOMER_ACTIVITY table. Implementing a search optimization service or clustering could reduce scan volume by 80%.',
+        timestamp: new Date(Date.now() - 14400000).toISOString(),
+        accountName: 'Account B',
+        status: 'New',
+        warehouseName: 'ANALYTICS_WH',
+        userName: 'mike_de',
+        suggestion: 'Add a filter on the clustering key or enable Search Optimization Service for the filtered columns.',
+        metrics: { creditsBefore: 12.8, estimatedSavings: 10.2, queryText: 'SELECT * FROM CUSTOMER_ACTIVITY WHERE REGION = "NORTH_AMERICA" AND ACTIVITY_TYPE = "PURCHASE";' }
+    });
+
+    recs.push({
+        id: 'REC-SPEC-006',
+        resourceType: 'Storage',
+        affectedResource: 'LOG_TABLE_OLD',
+        severity: 'Cost Saving',
+        insightType: 'Cleanup',
+        message: 'Table LOG_TABLE_OLD has not been accessed in 180 days but occupies 2.4TB.',
+        timestamp: new Date(Date.now() - 86400000).toISOString(),
+        accountName: 'Finance Prod',
+        status: 'New',
+        suggestion: 'Drop the table or move it to a lower-cost storage tier if the data is no longer needed for active analysis.',
+        metrics: { creditsBefore: 450, estimatedSavings: 450 }
+    });
+
+    recs.push({
+        id: 'REC-SPEC-007',
+        resourceType: 'User',
+        affectedResource: 'STALE_USER_01',
+        severity: 'High',
+        insightType: 'Security',
+        message: 'User STALE_USER_01 has not logged in for 90 days but retains ACCOUNTADMIN privileges.',
+        timestamp: new Date(Date.now() - 172800000).toISOString(),
+        accountName: 'Account C',
+        status: 'New',
+        suggestion: 'Revoke ACCOUNTADMIN privileges or disable the user account to follow the principle of least privilege.',
+    });
+
     // 2. Recommendations for other warehouses to ensure they also have context
     recs.push({
         id: 'REC-SPEC-004',
@@ -478,7 +522,7 @@ export const recommendationsData: Recommendation[] = (function() {
             message: `Identified potential ${insightTypes[i % insightTypes.length].toLowerCase()} for ${type} in ${account}.`,
             timestamp: new Date(Date.now() - i * 3600000).toISOString(),
             accountName: account,
-            status: i % 4 === 0 ? 'Resolved' : 'New',
+            status: i % 5 === 0 ? 'Pending' : i % 4 === 0 ? 'Resolved' : 'New',
             warehouseName: warehouse,
             userName: i % 2 === 0 ? 'jane_doe' : 'mike_de'
         });

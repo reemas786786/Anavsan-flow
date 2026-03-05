@@ -504,7 +504,7 @@ export interface ActivityLog {
 // Fixed: Added 'Account' and 'Application' to ResourceType to match dummy data usage
 export type ResourceType = 'Query' | 'Warehouse' | 'Storage' | 'Database' | 'User' | 'All' | 'Account' | 'Application';
 export type SeverityImpact = 'High' | 'Medium' | 'Low' | 'Cost Saving' | 'Performance Boost' | 'High Cost';
-export type RecommendationStatus = 'New' | 'Read' | 'In Progress' | 'Resolved' | 'Archived';
+export type RecommendationStatus = 'New' | 'Read' | 'In Progress' | 'Pending' | 'Resolved' | 'Archived';
 
 export interface Recommendation {
     id: string;

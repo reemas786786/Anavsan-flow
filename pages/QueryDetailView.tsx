@@ -79,12 +79,20 @@ const QueryDetailView: React.FC<QueryDetailViewProps> = ({
                 <div className="flex items-center gap-3">
                     {/* FinOps specific actions */}
                     {isFinOps && !hasAssignment && (
-                        <button 
-                            onClick={() => onAssignToEngineer(query)}
-                            className="text-sm font-bold text-white bg-primary hover:bg-primary-hover px-6 py-2.5 rounded-full shadow-sm transition-all"
-                        >
-                            Assign to engineer
-                        </button>
+                        <>
+                            <button 
+                                onClick={() => onOptimizeQuery(query, sourcePage)}
+                                className="text-sm font-bold text-text-primary bg-white border border-border-color hover:bg-surface-hover px-6 py-2.5 rounded-full shadow-sm transition-all"
+                            >
+                                Optimize
+                            </button>
+                            <button 
+                                onClick={() => onAssignToEngineer(query)}
+                                className="text-sm font-bold text-white bg-primary hover:bg-primary-hover px-6 py-2.5 rounded-full shadow-sm transition-all"
+                            >
+                                Assign to engineer
+                            </button>
+                        </>
                     )}
 
                     {isFinOps && hasAssignment && assignment.status === 'Optimized' && (
@@ -158,80 +166,58 @@ const QueryDetailView: React.FC<QueryDetailViewProps> = ({
                 </div>
             )}
             
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                <div className="lg:col-span-3 space-y-4">
-                    <div className="bg-white p-6 rounded-3xl border border-border-light shadow-sm">
-                        <h3 className="text-xs font-bold text-text-strong uppercase tracking-widest mb-6">Performance analysis</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-8">
-                            <DetailItem label="Duration" value={query.duration} />
-                            <DetailItem label="Credits" value={query.costCredits.toFixed(3)} />
-                            <DetailItem label="Data Scanned" value={formatBytes(query.bytesScanned)} />
-                            <DetailItem label="Data Written" value={formatBytes(query.bytesWritten)} />
-                            <DetailItem label="Warehouse" value={query.warehouse} />
-                            <DetailItem label="Executed on" value={startTime} />
-                            <DetailItem label="User" value={query.user} />
-                            {/* Updated severity display to handle 'Critical' */}
-                            <DetailItem label="Severity" value={<span className={`text-[11px] font-black uppercase ${query.severity === 'High' || query.severity === 'Critical' ? 'text-status-error' : 'text-status-warning'}`}>{query.severity}</span>} />
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-3xl border border-border-light shadow-sm flex flex-col min-h-[300px]">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xs font-bold text-text-strong uppercase tracking-widest">SQL Source</h3>
-                            <button onClick={handleCopy} className="text-text-secondary hover:text-primary flex items-center gap-2 text-xs font-bold">
-                                {isCopied ? <IconCheck className="h-4 w-4 text-status-success" /> : <IconClipboardCopy className="h-4 w-4" />}
-                                {isCopied ? 'Copied' : 'Copy SQL'}
-                            </button>
-                        </div>
-                        <div className="flex-grow bg-surface-nested p-4 rounded-xl border border-border-light">
-                             <pre className="text-[12px] font-mono text-text-primary leading-relaxed whitespace-pre-wrap">
-                                <code>{query.queryText}</code>
-                            </pre>
-                        </div>
+            <div className={`grid grid-cols-1 ${hasAssignment ? 'lg:grid-cols-5' : 'lg:grid-cols-2'} gap-4 items-start`}>
+                <div className="bg-white p-6 rounded-3xl border border-border-light shadow-sm h-full">
+                    <h3 className="text-xs font-bold text-text-strong uppercase tracking-widest mb-6">Performance analysis</h3>
+                    <div className="grid grid-cols-2 gap-y-8">
+                        <DetailItem label="Duration" value={query.duration} />
+                        <DetailItem label="Credits" value={query.costCredits.toFixed(3)} />
+                        <DetailItem label="Data Scanned" value={formatBytes(query.bytesScanned)} />
+                        <DetailItem label="Data Written" value={formatBytes(query.bytesWritten)} />
+                        <DetailItem label="Warehouse" value={query.warehouse} />
+                        <DetailItem label="Executed on" value={startTime} />
+                        <DetailItem label="User" value={query.user} />
+                        {/* Updated severity display to handle 'Critical' */}
+                        <DetailItem label="Severity" value={<span className={`text-[11px] font-black uppercase ${query.severity === 'High' || query.severity === 'Critical' ? 'text-status-error' : 'text-status-warning'}`}>{query.severity}</span>} />
                     </div>
                 </div>
 
-                <div className="space-y-4">
-                     {hasAssignment && assignment.message && (
-                        <div className="bg-white p-6 rounded-3xl border border-border-light shadow-sm">
-                            <h3 className="text-xs font-bold text-text-strong uppercase tracking-widest mb-4">Instructions</h3>
-                            <p className="text-sm text-text-secondary italic leading-relaxed">
-                                "{assignment.message}"
-                            </p>
-                        </div>
-                    )}
-                    
-                    {hasAssignment && assignment.engineerResponse && (
-                        <div className="bg-white p-6 rounded-3xl border border-border-light shadow-sm">
-                            <h3 className="text-xs font-bold text-text-strong uppercase tracking-widest mb-4">Engineer response</h3>
-                            <p className="text-sm text-text-secondary leading-relaxed">
-                                {assignment.engineerResponse}
-                            </p>
-                        </div>
-                    )}
-
-                    <div className="bg-white p-6 rounded-3xl border border-border-light shadow-sm space-y-4">
-                         <h3 className="text-xs font-bold text-text-strong uppercase tracking-widest mb-2">Tools</h3>
-                         <button onClick={() => onAnalyzeQuery(query, sourcePage)} className="w-full text-left flex items-center gap-3 p-3 rounded-xl hover:bg-surface-nested transition-colors group">
-                            <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
-                                <IconAIAgent className="w-4 h-4" />
-                            </div>
-                            <span className="text-sm font-bold text-text-primary">Analyzer</span>
-                         </button>
-                         <button onClick={() => onOptimizeQuery(query, sourcePage)} className="w-full text-left flex items-center gap-3 p-3 rounded-xl hover:bg-surface-nested transition-colors group">
-                            <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
-                                <IconAIAgent className="w-4 h-4" />
-                            </div>
-                            <span className="text-sm font-bold text-text-primary">Optimizer</span>
-                         </button>
-                         <button onClick={() => onSimulateQuery(query, sourcePage)} className="w-full text-left flex items-center gap-3 p-3 rounded-xl hover:bg-surface-nested transition-colors group">
-                            <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
-                                <IconAIAgent className="w-4 h-4" />
-                            </div>
-                            <span className="text-sm font-bold text-text-primary">Simulator</span>
-                         </button>
+                <div className={`${hasAssignment ? 'lg:col-span-2' : ''} bg-white p-6 rounded-3xl border border-border-light shadow-sm flex flex-col min-h-[400px]`}>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xs font-bold text-text-strong uppercase tracking-widest">SQL Source</h3>
+                        <button onClick={handleCopy} className="text-text-secondary hover:text-primary flex items-center gap-2 text-xs font-bold">
+                            {isCopied ? <IconCheck className="h-4 w-4 text-status-success" /> : <IconClipboardCopy className="h-4 w-4" />}
+                            {isCopied ? 'Copied' : 'Copy SQL'}
+                        </button>
+                    </div>
+                    <div className="flex-grow bg-surface-nested p-4 rounded-xl border border-border-light">
+                         <pre className="text-[12px] font-mono text-text-primary leading-relaxed whitespace-pre-wrap">
+                            <code>{query.queryText}</code>
+                        </pre>
                     </div>
                 </div>
+
+                {hasAssignment && (
+                    <div className={`${hasAssignment ? 'lg:col-span-2' : ''} space-y-4`}>
+                         {assignment.message && (
+                            <div className="bg-white p-6 rounded-3xl border border-border-light shadow-sm">
+                                <h3 className="text-xs font-bold text-text-strong uppercase tracking-widest mb-4">Instructions</h3>
+                                <p className="text-sm text-text-secondary italic leading-relaxed">
+                                    "{assignment.message}"
+                                </p>
+                            </div>
+                        )}
+                        
+                        {assignment.engineerResponse && (
+                            <div className="bg-white p-6 rounded-3xl border border-border-light shadow-sm">
+                                <h3 className="text-xs font-bold text-text-strong uppercase tracking-widest mb-4">Engineer response</h3>
+                                <p className="text-sm text-text-secondary leading-relaxed">
+                                    {assignment.engineerResponse}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

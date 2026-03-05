@@ -30,9 +30,10 @@ const WidgetCard: React.FC<{
     hasMenu?: boolean, 
     infoText?: string, 
     headerActions?: React.ReactNode,
-    onTableView?: () => void
-}> = ({ children, title, hasMenu = true, infoText, headerActions, onTableView }) => (
-    <div className="bg-surface p-4 rounded-[24px] shadow-sm flex flex-col border border-border-light">
+    onTableView?: () => void,
+    className?: string
+}> = ({ children, title, hasMenu = true, infoText, headerActions, onTableView, className = "" }) => (
+    <div className={`bg-surface p-4 rounded-[24px] shadow-sm flex flex-col border border-border-light ${className}`}>
         <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-1.5">
                 <h4 className="text-[14px] font-bold text-text-strong tracking-tight">{title}</h4>
@@ -105,6 +106,54 @@ const RecommendationItem: React.FC<{ rec: Recommendation }> = ({ rec }) => {
             </div>
             <p className="text-[13px] text-text-secondary leading-relaxed">{rec.message}</p>
         </div>
+    );
+};
+
+const RecommendationStatusWidget: React.FC<{ onNavigate: (page: Page, subPage?: string, state?: any) => void; className?: string }> = ({ onNavigate, className = "" }) => {
+    const statusCounts = useMemo(() => {
+        const counts = {
+            'New': 0,
+            'Pending': 0,
+            'Resolved': 0,
+            'In Progress': 0
+        };
+        recommendationsData.forEach(rec => {
+            if (rec.status in counts) {
+                counts[rec.status as keyof typeof counts]++;
+            }
+        });
+        return counts;
+    }, []);
+
+    const statuses = [
+        { label: 'New', count: statusCounts['New'], color: 'bg-blue-500' },
+        { label: 'Pending', count: statusCounts['Pending'], color: 'bg-orange-500' },
+        { label: 'Resolved', count: statusCounts['Resolved'], color: 'bg-emerald-500' },
+        { label: 'In Progress', count: statusCounts['In Progress'], color: 'bg-amber-500' },
+    ];
+
+    return (
+        <WidgetCard title="Recommendation Summary" hasMenu={false} infoText="Summary of optimization opportunities by their current workflow status." className={className}>
+            <div className="grid grid-cols-2 gap-3 h-full">
+                {statuses.map((s) => (
+                    <button
+                        key={s.label}
+                        onClick={() => onNavigate('Recommendations', undefined, { filters: { status: s.label } })}
+                        className="flex flex-col p-4 rounded-2xl bg-surface-nested border border-border-light hover:border-primary/40 hover:bg-surface-hover transition-all group text-left h-full"
+                    >
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className={`w-2 h-2 rounded-full ${s.color}`} />
+                            <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest group-hover:text-primary transition-colors">
+                                {s.label}
+                            </span>
+                        </div>
+                        <span className="text-2xl font-black text-text-strong mt-auto">
+                            {s.count}
+                        </span>
+                    </button>
+                ))}
+            </div>
+        </WidgetCard>
     );
 };
 
@@ -475,14 +524,23 @@ const Overview: React.FC<OverviewProps> = ({ accounts, onSelectAccount, onSelect
                     </div>
                 </div>
 
-                <WidgetCard 
-                    title="Recommendations" 
-                    headerActions={<button onClick={() => onNavigate('Recommendations')} className="text-[11px] font-bold text-link hover:underline">View all</button>}
-                >
-                    <div className="flex flex-col gap-4">
-                        {recommendationsData.slice(0, 3).map(rec => <RecommendationItem key={rec.id} rec={rec} />)}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                    <div className="lg:col-span-8">
+                        <WidgetCard 
+                            title="Recent Recommendations" 
+                            headerActions={<button onClick={() => onNavigate('Recommendations')} className="text-[11px] font-bold text-link hover:underline">View all</button>}
+                            className="h-full"
+                        >
+                            <div className="flex flex-col gap-4">
+                                {recommendationsData.slice(0, 3).map(rec => <RecommendationItem key={rec.id} rec={rec} />)}
+                            </div>
+                        </WidgetCard>
                     </div>
-                </WidgetCard>
+
+                    <div className="lg:col-span-4">
+                        <RecommendationStatusWidget onNavigate={onNavigate} className="h-full" />
+                    </div>
+                </div>
 
                 <WidgetCard 
                     title="Top accounts by credits" 

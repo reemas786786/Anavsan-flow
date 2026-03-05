@@ -28,6 +28,7 @@ const StatusBadge: React.FC<{ status: RecommendationStatus }> = ({ status }) => 
         'New': 'bg-blue-50 text-blue-700 border-blue-200',
         'Read': 'bg-slate-50 text-slate-600 border-slate-200',
         'In Progress': 'bg-amber-50 text-amber-800 border-amber-200',
+        'Pending': 'bg-orange-50 text-orange-700 border-orange-200',
         'Resolved': 'bg-emerald-50 text-emerald-700 border-emerald-300',
         'Archived': 'bg-purple-50 text-purple-700 border-purple-200',
     };
@@ -235,7 +236,7 @@ const RecommendationDetailView: React.FC<RecommendationDetailViewProps> = ({
 const Recommendations: React.FC<{ 
     accounts: Account[];
     currentUser: User | null;
-    initialFilters?: { search?: string; account?: string };
+    initialFilters?: { search?: string; account?: string; status?: string; selectedId?: string };
     onNavigateToQuery: (query: Partial<QueryListItem>) => void;
     onNavigateToWarehouse: (warehouse: Partial<Warehouse>) => void;
     onAssignTask?: (recommendation: Recommendation) => void;
@@ -259,14 +260,24 @@ const Recommendations: React.FC<{
     const [sortConfig, setSortConfig] = useState<{ key: keyof Recommendation; direction: 'ascending' | 'descending' } | null>({ key: 'timestamp', direction: 'descending' });
 
     useEffect(() => {
-        if (initialFilters?.search || initialFilters?.account) {
-            if (initialFilters.search) setSearch(initialFilters.search);
-            if (initialFilters.account) setAccountFilter([initialFilters.account]);
-            
-            setIsContextual(true);
-            setCurrentPage(1); 
+        if (initialFilters) {
+            if (initialFilters.search || initialFilters.account || initialFilters.status) {
+                if (initialFilters.search) setSearch(initialFilters.search);
+                if (initialFilters.account) setAccountFilter([initialFilters.account]);
+                if (initialFilters.status) setStatusFilter([initialFilters.status]);
+                
+                setIsContextual(true);
+                setCurrentPage(1); 
+            }
+
+            if (initialFilters.selectedId) {
+                const rec = initialData.find(r => r.id === initialFilters.selectedId);
+                if (rec) {
+                    onSelectRecommendation(rec);
+                }
+            }
         }
-    }, [initialFilters]);
+    }, [initialFilters, onSelectRecommendation]);
 
     const handleClearContext = () => {
         setSearch('');
@@ -336,6 +347,7 @@ const Recommendations: React.FC<{
 
     const contextTagLabel = useMemo(() => {
         if (!isContextual) return null;
+        if (initialFilters?.status) return `Status: ${initialFilters.status}`;
         if (initialFilters?.account) return initialFilters.account;
         if (initialFilters?.search) return initialFilters.search;
         return "Applied Filters";
@@ -421,7 +433,7 @@ const Recommendations: React.FC<{
                         <div className="w-px h-4 bg-border-color"></div>
                         <MultiSelectDropdown 
                             label="Status" 
-                            options={['New', 'Read', 'In Progress', 'Resolved', 'Archived']} 
+                            options={['New', 'Read', 'In Progress', 'Pending', 'Resolved', 'Archived']} 
                             selectedOptions={statusFilter} 
                             onChange={setStatusFilter} 
                             selectionMode="single" 
