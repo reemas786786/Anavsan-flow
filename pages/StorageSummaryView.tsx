@@ -241,13 +241,16 @@ const StorageSummaryView: React.FC<{
                 }
             >
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left shadow-sm w-full">
-                        <p className="text-[10px] font-bold text-[#9A9AB2] uppercase tracking-widest">Total credits</p>
+                    <button 
+                        onClick={() => onNavigate('Databases')}
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                    >
+                        <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Total credits</p>
                         <div className="mt-auto">
                             <p className="text-[18px] font-black text-[#161616] tracking-tight leading-none">{(storageSummaryData.totalCredits / 1000).toFixed(1)}K</p>
                             <p className="text-[10px] font-bold text-[#5A5A72] mt-1 tracking-tight">{formatStorageSize(metrics.totalSizeGB)}</p>
                         </div>
-                    </div>
+                    </button>
                     
                     <button 
                         onClick={() => onNavigate('Databases')}

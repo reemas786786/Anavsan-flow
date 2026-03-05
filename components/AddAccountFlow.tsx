@@ -44,6 +44,7 @@ const AddAccountFlow: React.FC<AddAccountFlowProps> = ({ onCancel, onAddAccount 
         identifier: '',
         username: '',
         anavsanUsername: 'anavsan_user',
+        authMethod: 'password',
         password: '',
         role: 'anavsan_role',
         warehouse: 'anavsan_wh'
@@ -92,7 +93,7 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
             {/* Main Content Area */}
             <div className="flex-grow flex flex-col min-w-0">
                 {/* Fixed Header */}
-                <div className="px-10 pt-10 pb-6 bg-white flex-shrink-0 border-b border-border-light">
+                <div className="px-8 pt-6 pb-2 bg-white flex-shrink-0">
                     <div className="flex justify-between items-center">
                         <div className="text-left">
                             <h1 className="text-[32px] font-black text-text-strong tracking-tight leading-tight">Connect your Snowflake account</h1>
@@ -110,126 +111,147 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
                     </div>
                 </div>
 
-                {/* Unified Form area - Updated to Horizontal Layout for major components */}
+                {/* Unified Form area - Updated to Vertical Layout for better flow and reduced space */}
                 <div className="flex-grow overflow-y-auto bg-[#F8F9FB] no-scrollbar">
-                    <div className="px-10 py-10 space-y-12 text-left max-w-[1600px] mx-auto">
+                    <div className="px-8 py-6 space-y-6 text-left max-w-3xl">
                         
-                        <div className="flex flex-col xl:flex-row gap-12 items-start">
+                        <div className="space-y-8">
                             
-                            {/* Left Side: Forms Column */}
-                            <div className="w-full xl:w-[420px] space-y-12 flex-shrink-0">
-                                
-                                {/* Column 1: Account Identification */}
-                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div className="flex items-center gap-3 mb-8">
-                                        <div className="w-8 h-8 rounded-lg bg-status-success/10 flex items-center justify-center text-status-success">
-                                            <IconCheck className="w-4 h-4" />
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <h3 className="text-sm font-black text-text-strong uppercase tracking-widest">Account information</h3>
-                                            <p className="text-[10px] text-text-muted font-bold uppercase mt-0.5 tracking-tight">Validate information for mapping</p>
-                                        </div>
+                            {/* Section 1: Account Information */}
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="flex flex-col">
+                                        <h3 className="text-sm font-black text-text-strong uppercase tracking-widest">Account information</h3>
+                                        <p className="text-[10px] text-text-muted font-bold uppercase mt-0.5 tracking-tight">Validate information for mapping</p>
                                     </div>
-                                    <div className="grid grid-cols-1 gap-y-6">
-                                        <div className="space-y-2">
-                                            <label className="block text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Account display name <span className="text-status-error">*</span></label>
-                                            <input 
-                                                type="text" 
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                                className="w-full bg-white border border-border-light rounded-[20px] px-6 py-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all font-medium"
-                                                placeholder="e.g. Production Data"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="block text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Snowflake account identifier <span className="text-status-error">*</span></label>
-                                            <input 
-                                                type="text" 
-                                                value={formData.identifier}
-                                                onChange={(e) => setFormData({...formData, identifier: e.target.value})}
-                                                className="w-full bg-white border border-border-light rounded-[20px] px-6 py-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all font-mono"
-                                                placeholder="e.g. XY12345.us-east-1"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="block text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Admin Snowflake username <span className="text-status-error">*</span></label>
-                                            <input 
-                                                type="text" 
-                                                value={formData.username}
-                                                onChange={(e) => setFormData({...formData, username: e.target.value})}
-                                                className="w-full bg-white border border-border-light rounded-[20px] px-6 py-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all font-medium"
-                                                placeholder="e.g. jdoe"
-                                            />
-                                        </div>
+                                </div>
+                                <div className="grid grid-cols-1 gap-y-8">
+                                    <div className="space-y-2">
+                                        <label className="block text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Account display name <span className="text-status-error">*</span></label>
+                                        <input 
+                                            type="text" 
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                            className="w-full max-w-sm bg-white border border-border-light rounded-[20px] px-6 py-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all font-medium"
+                                            placeholder="E.g. Marketing team"
+                                        />
+                                        <p className="text-[11px] text-text-muted font-medium ml-1">A label to identify this account inside Anavsan.</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Snowflake account identifier <span className="text-status-error">*</span></label>
+                                        <input 
+                                            type="text" 
+                                            value={formData.identifier}
+                                            onChange={(e) => setFormData({...formData, identifier: e.target.value})}
+                                            className="w-full max-w-sm bg-white border border-border-light rounded-[20px] px-6 py-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all font-mono"
+                                            placeholder="E.g. PSYOLHN-NM24806"
+                                        />
+                                        <p className="text-[11px] text-text-muted font-medium ml-1">Your Snowflake account’s unique locator.</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Snowflake username <span className="text-status-error">*</span></label>
+                                        <input 
+                                            type="text" 
+                                            value={formData.username}
+                                            onChange={(e) => setFormData({...formData, username: e.target.value})}
+                                            className="w-full max-w-sm bg-white border border-border-light rounded-[20px] px-6 py-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm transition-all font-medium"
+                                            placeholder="E.g. John.doe"
+                                        />
+                                        <p className="text-[11px] text-text-muted font-medium ml-1">The login username for your Snowflake account.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section 2: Create Anavsan User */}
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="flex flex-col">
+                                        <h3 className="text-sm font-black text-text-strong uppercase tracking-widest">Create Anavsan user</h3>
+                                        <p className="text-[10px] text-text-muted font-bold uppercase mt-0.5 tracking-tight">Securely connect to your data platform</p>
                                     </div>
                                 </div>
 
-                                <div className="h-px bg-border-light w-full"></div>
+                                <div className="space-y-8">
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Anavsan username</label>
+                                        <input 
+                                            type="text" 
+                                            value={formData.anavsanUsername}
+                                            readOnly
+                                            className="w-full max-w-sm bg-surface-nested border border-border-light rounded-[16px] px-5 py-3.5 text-sm font-bold text-text-muted outline-none"
+                                        />
+                                        <p className="text-[11px] text-text-muted font-medium ml-1">The dedicated Snowflake user created for Anavsan (anavsan_user)</p>
+                                    </div>
 
-                                {/* Column 2: Create Anavsan User (Stacked vertically) */}
-                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
-                                    <div className="flex items-center gap-3 mb-8">
-                                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-black text-xs">2</div>
-                                        <div className="flex flex-col">
-                                            <h3 className="text-sm font-black text-text-strong uppercase tracking-widest">Create Anavsan user</h3>
-                                            <p className="text-[10px] text-text-muted font-bold uppercase mt-0.5 tracking-tight">Securely connect to your data platform</p>
+                                    <div className="space-y-3">
+                                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Authentication method</label>
+                                        <div className="flex gap-3">
+                                            <button 
+                                                onClick={() => setFormData({...formData, authMethod: 'password'})}
+                                                className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all border ${formData.authMethod === 'password' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white text-text-secondary border-border-light hover:bg-surface-hover'}`}
+                                            >
+                                                Password
+                                            </button>
+                                            <button 
+                                                onClick={() => setFormData({...formData, authMethod: 'keypair'})}
+                                                className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all border ${formData.authMethod === 'keypair' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white text-text-secondary border-border-light hover:bg-surface-hover'}`}
+                                            >
+                                                Key Pair
+                                            </button>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-6">
-                                        <div className="space-y-2">
-                                            <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Assigned Username</label>
-                                            <input 
-                                                type="text" 
-                                                value={formData.anavsanUsername}
-                                                readOnly
-                                                className="w-full bg-surface-nested border border-border-light rounded-[16px] px-5 py-3.5 text-sm font-bold text-text-muted outline-none"
-                                            />
-                                        </div>
-
+                                    {formData.authMethod === 'password' && (
                                         <div className="space-y-2">
                                             <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Password <span className="text-status-error">*</span></label>
                                             <input 
                                                 type="password" 
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({...formData, password: e.target.value})}
-                                                className="w-full bg-white border border-border-light rounded-[16px] px-5 py-3.5 text-sm focus:ring-1 focus:ring-primary outline-none shadow-sm font-medium"
-                                                placeholder="Enter password used in script"
+                                                className="w-full max-w-sm bg-white border border-border-light rounded-[16px] px-5 py-3.5 text-sm focus:ring-1 focus:ring-primary outline-none shadow-sm font-medium"
+                                                placeholder="••••••••••••••"
                                             />
+                                            <p className="text-[11px] text-text-muted font-medium ml-1">The password created for the dedicated Anavsan Snowflake user.</p>
                                         </div>
+                                    )}
 
-                                        <div className="space-y-2">
-                                            <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Role Name</label>
-                                            <input 
-                                                type="text" 
-                                                value={formData.role}
-                                                onChange={(e) => setFormData({...formData, role: e.target.value})}
-                                                className="w-full bg-white border border-border-light rounded-[16px] px-5 py-3.5 text-sm focus:ring-1 focus:ring-primary outline-none shadow-sm font-mono"
-                                            />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Warehouse Name</label>
-                                            <input 
-                                                type="text" 
-                                                value={formData.warehouse}
-                                                onChange={(e) => setFormData({...formData, warehouse: e.target.value})}
-                                                className="w-full bg-white border border-border-light rounded-[16px] px-5 py-3.5 text-sm focus:ring-1 focus:ring-primary outline-none shadow-sm font-mono"
-                                            />
-                                        </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Role</label>
+                                        <input 
+                                            type="text" 
+                                            value={formData.role}
+                                            onChange={(e) => setFormData({...formData, role: e.target.value})}
+                                            className="w-full max-w-sm bg-white border border-border-light rounded-[16px] px-5 py-3.5 text-sm focus:ring-1 focus:ring-primary outline-none shadow-sm font-mono"
+                                            placeholder="anavsan_role"
+                                        />
+                                        <p className="text-[11px] text-text-muted font-medium ml-1">Snowflake role assigned to the Anavsan user (anavsan_role).</p>
                                     </div>
-                                    
-                                    <div className="mt-6 p-4 bg-primary/5 rounded-2xl border border-primary/10 flex gap-3">
-                                        <IconInfo className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                                        <p className="text-[11px] text-text-secondary font-medium leading-relaxed">
-                                            Handshake verification typically takes 10-15 seconds.
-                                        </p>
+
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Warehouse name</label>
+                                        <input 
+                                            type="text" 
+                                            value={formData.warehouse}
+                                            onChange={(e) => setFormData({...formData, warehouse: e.target.value})}
+                                            className="w-full max-w-sm bg-white border border-border-light rounded-[16px] px-5 py-3.5 text-sm focus:ring-1 focus:ring-primary outline-none shadow-sm font-mono"
+                                            placeholder="anavsan_wh"
+                                        />
+                                        <p className="text-[11px] text-text-muted font-medium ml-1">Warehouse used by Anavsan for metadata and insights</p>
                                     </div>
                                 </div>
+                                
+                                <div className="mt-6 p-4 bg-primary/5 rounded-2xl border border-primary/10 flex gap-3">
+                                    <IconInfo className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                                    <p className="text-[11px] text-text-secondary font-medium leading-relaxed">
+                                        Handshake verification typically takes 10-15 seconds.
+                                    </p>
+                                </div>
                             </div>
+                        </div>
 
-                            {/* Column 3: Consolidated Setup Script Area (PLACED HORIZONTALLY) */}
-                            <div className="flex-grow space-y-6 w-full xl:w-auto h-full">
+                        {/* Section 3: Consolidated Setup Script Area */}
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 space-y-6">
+                            <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-2xl bg-sidebar-topbar text-white flex items-center justify-center">
                                         <IconAdjustments className="w-5 h-5" />
@@ -239,21 +261,30 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
                                         <p className="text-sm text-text-secondary font-medium">Run this script as <span className="font-bold text-text-strong underline decoration-primary/30 underline-offset-2">ACCOUNTADMIN</span> in Snowflake.</p>
                                     </div>
                                 </div>
-                                
-                                <div className="h-[640px]">
-                                    <CodeBlock code={setupScript} />
-                                </div>
+                                <a 
+                                    href="https://app.snowflake.com" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 px-4 py-2 bg-white border border-border-light rounded-xl text-xs font-bold text-text-strong hover:bg-surface-hover transition-all shadow-sm"
+                                >
+                                    <IconDatabase className="w-4 h-4 text-primary" />
+                                    Go to Snowflake
+                                </a>
+                            </div>
+                            
+                            <div className="h-[400px]">
+                                <CodeBlock code={setupScript} />
+                            </div>
 
-                                <div className="flex items-center gap-4 bg-white p-6 rounded-[24px] border border-border-light shadow-sm">
-                                    <div className="w-12 h-12 rounded-full bg-status-success-light flex items-center justify-center flex-shrink-0">
-                                        <IconCheckCircle className="w-6 h-6 text-status-success-dark" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h4 className="text-sm font-bold text-text-strong">Secure hand-shake</h4>
-                                        <p className="text-xs text-text-secondary leading-relaxed font-medium">
-                                            Anavsan performs a metadata-only audit. No production table data is accessed or stored.
-                                        </p>
-                                    </div>
+                            <div className="flex items-center gap-4 bg-white p-6 rounded-[24px] border border-border-light shadow-sm">
+                                <div className="w-12 h-12 rounded-full bg-status-success-light flex items-center justify-center flex-shrink-0">
+                                    <IconCheckCircle className="w-6 h-6 text-status-success-dark" />
+                                </div>
+                                <div className="space-y-1">
+                                    <h4 className="text-sm font-bold text-text-strong">Secure hand-shake</h4>
+                                    <p className="text-xs text-text-secondary leading-relaxed font-medium">
+                                        Anavsan performs a metadata-only audit. No production table data is accessed or stored.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -261,7 +292,7 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
                 </div>
 
                 {/* Footer Actions */}
-                <div className="px-10 py-8 bg-white flex items-center justify-center flex-shrink-0 border-t border-border-light z-30">
+                <div className="px-8 py-6 bg-white flex items-center justify-center flex-shrink-0 border-t border-border-light z-30">
                     <div className="flex items-center gap-6 w-full max-w-7xl">
                         <button 
                             onClick={onCancel} 
@@ -294,7 +325,7 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
             {/* Quick Guide Sidebar */}
             {isGuideOpen && (
                 <aside className="hidden xl:flex w-[380px] border-l border-border-light h-full bg-white flex-col flex-shrink-0 shadow-[-4px_0_24px_rgba(0,0,0,0.02)] z-10 overflow-hidden">
-                    <div className="p-8 border-b border-border-light flex justify-between items-center bg-surface-nested/50">
+                    <div className="px-8 py-3 flex justify-between items-center bg-surface-nested/50">
                         <div className="flex items-center gap-3">
                             <IconSparkles className="w-5 h-5 text-primary" />
                             <h3 className="text-sm font-black text-text-strong uppercase tracking-[0.15em]">Setup guide</h3>
