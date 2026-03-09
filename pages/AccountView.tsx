@@ -267,6 +267,7 @@ const CortexListView: React.FC<{
 const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAccount, onBackToAccounts, backLabel, sqlFiles, onSaveQueryClick, onSetBigScreenWidget, activePage, onPageChange, onShareQueryClick, onPreviewQuery, selectedQuery, setSelectedQuery, analyzingQuery, onAnalyzeQuery, onOptimizeQuery, onSimulateQuery, pullRequests, selectedPullRequest, setSelectedPullRequest, users, navigationSource, selectedWarehouse, setSelectedWarehouse, warehouses, assignment, currentUser, onUpdateAssignmentStatus, onAssignToEngineer, onResolveAssignment, selectedApplicationId, setSelectedApplicationId, breadcrumbItems, onNavigateToRecommendations }) => {
     const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
     const [isQueryDrillDown, setIsQueryDrillDown] = useState(false);
+    const [selectedRepeatedQueryHash, setSelectedRepeatedQueryHash] = useState<string | null>(null);
     const [warehouseHealthFilter, setWarehouseHealthFilter] = useState<string[] | undefined>(undefined);
     
     // Storage Filters
@@ -339,6 +340,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         setSelectedQuery(null);
         setSelectedPullRequest(null);
         setSelectedDatabaseId(null);
+        setSelectedRepeatedQueryHash(null);
         setWarehouseHealthFilter(undefined);
         
         // Reset storage filters when manually changing page from sidebar
@@ -427,7 +429,14 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     initialHealthFilter={warehouseHealthFilter}
                 />;
             case 'Queries overview':
-                return <QueriesOverview onNavigate={onPageChange} />;
+                return <QueriesOverview 
+                    onNavigate={onPageChange} 
+                    onSelectQuery={setSelectedQuery} 
+                    onSelectRepeatedPattern={(hash) => {
+                        setSelectedRepeatedQueryHash(hash);
+                        onPageChange('Repeated queries');
+                    }}
+                />;
             case 'Repeated queries':
                 return <QueryListView 
                     onShareQueryClick={onShareQueryClick} 
@@ -439,6 +448,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     filters={allQueriesFilters} 
                     setFilters={setAllQueriesFilters} 
                     onDrillDownChange={setIsQueryDrillDown}
+                    initialGroupId={selectedRepeatedQueryHash}
                 />;
             case 'Expensive queries':
                 return <ExpensiveQueriesView 
