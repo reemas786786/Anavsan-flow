@@ -194,7 +194,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin, onBook
                                 <FeatureItem text="Query history insights" />
                                 <FeatureItem text="Customizable dashboards" />
                                 <FeatureItem text="Storage savings insights" />
-                                <FeatureItem text="Notifications" />
+                                <FeatureItem text="Alerts" />
                                 <FeatureItem text="Priority support" />
                             </div>
                         </div>

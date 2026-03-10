@@ -122,9 +122,9 @@ const DateRangeDropdown: React.FC<DateRangeDropdownProps> = ({ selectedValue, on
 
     return (
         <div className="relative" ref={wrapperRef}>
-             <button
+            <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 text-[13px] focus:outline-none bg-white px-4 py-2 rounded-full border border-border-light shadow-sm hover:border-primary/30 transition-all"
+                className="flex items-center gap-2 text-[13px] focus:outline-none bg-white px-4 py-2 rounded-full shadow-sm hover:bg-surface-hover transition-all"
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
             >

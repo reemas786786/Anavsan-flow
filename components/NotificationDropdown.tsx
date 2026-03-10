@@ -96,7 +96,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     return (
         <div className="origin-top-right absolute right-0 top-full mt-2 w-96 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-50 flex flex-col max-h-[calc(100vh-80px)]">
             <header className="p-4 flex items-center justify-between border-b border-border-color flex-shrink-0">
-                <h3 className="text-lg font-semibold text-text-strong">Notifications</h3>
+                <h3 className="text-lg font-semibold text-text-strong">Alerts</h3>
                 <div className="flex items-center gap-4">
                     <button onClick={onMarkAllAsRead} className="text-sm font-medium text-link hover:underline">
                         Mark all as read
@@ -114,14 +114,14 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                     </ul>
                 ) : (
                     <div className="p-8 text-center text-text-secondary">
-                        <p>No new notifications</p>
+                        <p>No new alerts</p>
                     </div>
                 )}
             </div>
             
             <footer className="p-4 border-t border-border-color flex-shrink-0">
                 <button onClick={onViewAll} className="w-full bg-button-secondary-bg text-primary font-semibold py-2.5 px-4 rounded-lg hover:bg-button-secondary-bg-hover transition-colors">
-                    View all notifications
+                    View all alerts
                 </button>
             </footer>
         </div>

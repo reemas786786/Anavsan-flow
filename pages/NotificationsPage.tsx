@@ -210,7 +210,7 @@ const NotificationsPage: React.FC<NotificationsPageProps> = (props) => {
             <header className="flex justify-between items-end mb-8 flex-shrink-0">
                 <div>
                     <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Alerts</h1>
-                    <p className="text-sm text-text-secondary font-medium mt-1">AI-detected anomalies and system-wide notifications.</p>
+                    <p className="text-sm text-text-secondary font-medium mt-1">AI-detected anomalies and system-wide alerts.</p>
                 </div>
                 <button 
                     onClick={props.onMarkAllAsRead} 
@@ -252,6 +252,7 @@ const NotificationsPage: React.FC<NotificationsPageProps> = (props) => {
                             <tr>
                                 <th className="px-6 py-4 text-left border-b border-border-light w-[180px]">Type</th>
                                 <th className="px-6 py-4 text-left border-b border-border-light">Message</th>
+                                <th className="px-6 py-4 text-left border-b border-border-light w-[120px]">Status</th>
                                 <th className="px-6 py-4 text-left border-b border-border-light w-[140px]">Date</th>
                                 <th className="px-6 py-4 text-right border-b border-border-light w-[80px]"></th>
                             </tr>
@@ -273,6 +274,13 @@ const NotificationsPage: React.FC<NotificationsPageProps> = (props) => {
                                         <div className={`line-clamp-1 leading-snug ${!n.isRead ? 'font-bold text-text-strong' : 'font-medium text-text-secondary'}`}>
                                             {n.message}
                                         </div>
+                                    </td>
+                                    <td className="px-6 py-5 whitespace-nowrap">
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                            !n.isRead ? 'bg-primary/10 text-primary' : 'bg-surface-nested text-text-muted'
+                                        }`}>
+                                            {n.isRead ? 'Read' : 'Unread'}
+                                        </span>
                                     </td>
                                     <td className="px-6 py-5 whitespace-nowrap text-xs font-bold text-text-muted">
                                         {formatTimestamp(n.timestamp)}

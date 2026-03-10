@@ -18,7 +18,7 @@ export type Page =
   | 'Query logs'
   | 'Integrations'
   | 'User management'
-  | 'Notifications'
+  | 'Alerts'
   | 'Book a demo'
   | 'Docs'
   | 'Settings' 

@@ -245,7 +245,7 @@ const WarehouseDetailView: React.FC<WarehouseDetailViewProps> = ({ warehouse, on
                                     <button 
                                         onClick={() => setIsNotificationVisible(false)}
                                         className="p-1 text-[#161616] hover:bg-black/5 rounded transition-colors"
-                                        aria-label="Close notification"
+                                        aria-label="Close alert"
                                     >
                                         <IconClose className="w-4 h-4" />
                                     </button>

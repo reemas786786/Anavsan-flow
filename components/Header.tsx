@@ -118,7 +118,7 @@ const Header: React.FC<HeaderProps> = ({
                 notifications={notifications}
                 onMarkAllAsRead={onMarkAllNotificationsAsRead}
                 onViewAll={() => {
-                    onNavigate('Notifications');
+                    onNavigate('Alerts');
                     setIsNotificationsOpen(false);
                 }}
             />

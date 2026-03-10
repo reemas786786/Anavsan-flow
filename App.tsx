@@ -603,7 +603,7 @@ const App: React.FC = () => {
             if (activeSubPage === 'Billing history') return <BillingHistory onNavigate={handleSetActivePage} onDownloadInvoice={() => {}} />;
             return <ChangePlan users={users} currentUser={currentUser} onSubscriptionSuccess={handleSubscriptionSuccess} currentPlan={subscription.plan} subscription={subscription} />;
         case 'Activity logs':
-        case 'Notifications': 
+        case 'Alerts': 
             return <NotificationsPage 
                 notifications={notifications} 
                 assignedQueries={assignedQueries} 
