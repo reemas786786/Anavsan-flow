@@ -305,8 +305,7 @@ const StorageOptimizationView: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-text-primary">Storage Optimization</h1>
+            <div className="flex justify-end items-center">
                 <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

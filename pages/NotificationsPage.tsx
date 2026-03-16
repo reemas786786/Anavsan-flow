@@ -252,8 +252,8 @@ const NotificationsPage: React.FC<NotificationsPageProps> = (props) => {
                             <tr>
                                 <th className="px-6 py-4 text-left border-b border-border-light w-[180px]">Type</th>
                                 <th className="px-6 py-4 text-left border-b border-border-light">Message</th>
-                                <th className="px-6 py-4 text-left border-b border-border-light w-[120px]">Status</th>
                                 <th className="px-6 py-4 text-left border-b border-border-light w-[140px]">Date</th>
+                                <th className="px-6 py-4 text-left border-b border-border-light w-[120px]">Status</th>
                                 <th className="px-6 py-4 text-right border-b border-border-light w-[80px]"></th>
                             </tr>
                         </thead>
@@ -262,28 +262,27 @@ const NotificationsPage: React.FC<NotificationsPageProps> = (props) => {
                                 <tr 
                                     key={n.id} 
                                     onClick={() => handleOpenInsight(n)}
-                                    className={`hover:bg-surface-nested transition-colors group cursor-pointer relative ${!n.isRead ? 'bg-primary/[0.02]' : ''}`}
+                                    className="hover:bg-surface-nested transition-colors group cursor-pointer relative"
                                 >
                                     <td className="px-6 py-5 relative">
-                                        {!n.isRead && <div className="absolute left-0 top-3 bottom-3 w-1 bg-primary rounded-r-full shadow-sm shadow-primary/20" />}
-                                        <span className={`text-[11px] font-black uppercase tracking-tighter ${!n.isRead ? 'text-primary' : 'text-text-muted'}`}>
+                                        <span className="text-[11px] font-black uppercase tracking-tighter text-text-muted">
                                             {n.insightTopic.replace(/_/g, ' ')}
                                         </span>
                                     </td>
                                     <td className="px-6 py-5">
-                                        <div className={`line-clamp-1 leading-snug ${!n.isRead ? 'font-bold text-text-strong' : 'font-medium text-text-secondary'}`}>
+                                        <div className="line-clamp-1 leading-snug font-medium text-text-secondary">
                                             {n.message}
                                         </div>
                                     </td>
+                                    <td className="px-6 py-5 whitespace-nowrap text-xs font-bold text-text-muted">
+                                        {formatTimestamp(n.timestamp)}
+                                    </td>
                                     <td className="px-6 py-5 whitespace-nowrap">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                                            !n.isRead ? 'bg-primary/10 text-primary' : 'bg-surface-nested text-text-muted'
+                                            !n.isRead ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-gray-100 text-gray-400 border border-gray-200 opacity-60'
                                         }`}>
                                             {n.isRead ? 'Read' : 'Unread'}
                                         </span>
-                                    </td>
-                                    <td className="px-6 py-5 whitespace-nowrap text-xs font-bold text-text-muted">
-                                        {formatTimestamp(n.timestamp)}
                                     </td>
                                     <td className="px-6 py-5 text-right">
                                         <button className="p-2 text-text-muted group-hover:text-primary transition-all">

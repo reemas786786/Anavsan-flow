@@ -144,8 +144,10 @@ const App: React.FC = () => {
   const [accountViewPage, setAccountViewPage] = useState('Account overview');
   
   const handleSetActivePage = (page: Page, subPage?: string, additionalState?: any) => {
+    const isContextualRecommendations = selectedAccount && page === 'Recommendations';
+    
     // Save context if we are moving from an account detail view to recommendations
-    if (selectedAccount && page === 'Recommendations') {
+    if (isContextualRecommendations) {
         setReturnContext({ 
             account: selectedAccount, 
             page: accountViewPage,
@@ -160,7 +162,9 @@ const App: React.FC = () => {
     setActiveSubPage(subPage);
     setSelectedAccount(null);
     setSelectedUser(null);
+    
     setSidebarOpen(sidebarPreference);
+
     setIsViewingDashboard(false);
     setEditingDashboard(null);
     setSelectedDashboard(null);
@@ -188,6 +192,7 @@ const App: React.FC = () => {
         setAccountViewPage(returnContext.page);
         setSelectedWarehouse(returnContext.warehouse || null);
         setActivePage('Accounts');
+        setSidebarOpen(false);
         setReturnContext(null);
     } else {
         handleSetActivePage('AI data cloud overview');
@@ -564,7 +569,7 @@ const App: React.FC = () => {
         case 'Resource summary': return <ResourceSummary initialTab={resourceSummaryTab} onSelectAccount={handleSelectAccount} onSelectApplication={handleSelectApplication} onNavigateToRecommendations={(filters) => handleSetActivePage('Recommendations', undefined, { filters })} />;
         case 'Accounts': return <Connections accounts={accounts} onSelectAccount={handleSelectAccount} onAddAccountClick={() => setSidePanel({ type: 'addAccount' })} onDeleteAccount={(id) => setAccounts(a => a.filter(x => x.id !== id))} />;
         case 'AI agent': return <AIAgent />;
-        case 'Recommendations': return <Recommendations accounts={accounts} currentUser={currentUser} initialFilters={recommendationFilters} onNavigateToQuery={(q) => {setSelectedAccount(accounts[0]); setSelectedQuery(q as QueryListItem);}} onNavigateToWarehouse={(wh) => {setSelectedAccount(accounts[0]); setSelectedWarehouse(wh as Warehouse);}} onAssignTask={handleAssignQueryTask} onOptimizeRecommendation={handleOptimizeRecommendation} selectedRecommendation={selectedRecommendation} onSelectRecommendation={setSelectedRecommendation} onBackToSource={handleBackToSource} returnContext={returnContext} />;
+        case 'Recommendations': return <Recommendations accounts={accounts} currentUser={currentUser} initialFilters={recommendationFilters} onNavigateToQuery={(q) => {setSelectedAccount(accounts[0]); setSelectedQuery(q as QueryListItem);}} onNavigateToWarehouse={(wh) => {setSelectedAccount(accounts[0]); setSelectedWarehouse(wh as Warehouse);}} onAssignTask={handleAssignQueryTask} onOptimizeRecommendation={handleOptimizeRecommendation} selectedRecommendation={selectedRecommendation} onSelectRecommendation={setSelectedRecommendation} onPreviewQuery={(q) => setSidePanel({ type: 'queryPreview', data: q })} onBackToSource={handleBackToSource} returnContext={returnContext} />;
         case 'Reports': return <Reports />;
         case 'Workspace':
             if (activeSubPage === 'Assigned tasks') {

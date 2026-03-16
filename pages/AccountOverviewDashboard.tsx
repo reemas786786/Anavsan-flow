@@ -194,13 +194,6 @@ const AccountOverviewDashboard: React.FC<AccountOverviewDashboardProps> = ({ acc
 
     return (
         <div className="space-y-8 pb-16">
-            <div className="flex justify-between items-end mb-4">
-                <div>
-                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">{account.name}</h1>
-                    <p className="text-sm text-text-secondary font-medium mt-1">Snapshot of this account's Snowflake resource consumption.</p>
-                </div>
-            </div>
-
             {/* AI Data Cloud Style Resource Summary Grid */}
             <div className="bg-white rounded-[24px] border border-border-light shadow-sm p-6 flex flex-col gap-6">
                 <div className="flex justify-between items-center px-1">

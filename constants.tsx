@@ -382,9 +382,7 @@ export const accountNavItems = [
         icon: IconDatabase,
         children: [
             { name: 'Storage overview', label: 'Overview', icon: IconOverview },
-            { name: 'Databases', icon: IconDatabase },
-            { name: 'Schemas', icon: IconList },
-            { name: 'Schema objects', icon: IconList },
+            { name: 'Explorer', icon: IconSearch },
             { name: 'Unused tables', icon: IconList }
         ]
     },

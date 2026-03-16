@@ -177,15 +177,13 @@ const QueryAnalyzerView: React.FC<{
     
     return (
         <div className="p-4 space-y-4 h-full flex flex-col">
-            <header className="flex-shrink-0 mb-8">
-                {query && (
-                    <button onClick={onBack} className="flex items-center gap-1 text-sm font-semibold text-link hover:underline mb-2">
+            {query && (
+                <div className="flex-shrink-0 mb-4">
+                    <button onClick={onBack} className="flex items-center gap-1 text-sm font-semibold text-link hover:underline">
                         <IconChevronLeft className="h-4 w-4" /> Back to All Queries
                     </button>
-                )}
-                <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Query Analyzer</h1>
-                <p className="text-sm text-text-secondary font-medium mt-1">Get detailed performance insights and recommendations for a specific query.</p>
-            </header>
+                </div>
+            )}
 
             <main className="flex-grow flex flex-col md:flex-row gap-6 overflow-hidden">
                 {/* Editor Panel */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { IconClose, IconClipboardCopy, IconCheck, IconHelpCircle, IconAdd, IconSparkles, IconUser, IconAdjustments, IconDatabase, IconRefresh, IconInfo, IconChevronRight, IconLockClosed, IconCheckCircle, IconXCircle } from '../constants';
 import Toast from './Toast';
 
@@ -52,6 +52,8 @@ const AddAccountFlow: React.FC<AddAccountFlowProps> = ({ onCancel, onAddAccount 
         anavsanUsername: 'anavsan_user',
         authMethod: 'password',
         password: '',
+        privateKey: '',
+        passphrase: '',
         role: 'anavsan_role',
         warehouse: 'anavsan_wh'
     });
@@ -71,6 +73,13 @@ const AddAccountFlow: React.FC<AddAccountFlowProps> = ({ onCancel, onAddAccount 
                 setStatus('error');
                 setToast({ 
                     message: "Connection failed: Handshake timeout. Please wait a moment before trying again.", 
+                    type: 'error' 
+                });
+            } else if (formData.authMethod === 'keypair' && formData.privateKey.length < 100) {
+                // Simulate a specific error for invalid key format
+                setStatus('error');
+                setToast({ 
+                    message: "Connection failed: Invalid Private Key format. Please ensure you've pasted the complete block.", 
                     type: 'error' 
                 });
             } else {
@@ -94,7 +103,40 @@ const AddAccountFlow: React.FC<AddAccountFlowProps> = ({ onCancel, onAddAccount 
         setToast(null);
     };
 
-    const setupScript = `-- Consolidated Setup Script for Anavsan
+    const setupScript = useMemo(() => {
+        if (formData.authMethod === 'keypair') {
+            return `-- Consolidated Setup Script for Anavsan (Key Pair Auth)
+-- Run this in a Snowflake worksheet as ACCOUNTADMIN
+
+-- 1. Create dedicated user with Public Key
+CREATE OR REPLACE USER anavsan_user
+  RSA_PUBLIC_KEY = '<PASTE_YOUR_PUBLIC_KEY_HERE>'
+  DEFAULT_ROLE = 'anavsan_role'
+  DEFAULT_WAREHOUSE = 'anavsan_wh'
+  MUST_CHANGE_PASSWORD = FALSE;
+
+-- 2. Create optimized role
+CREATE OR REPLACE ROLE anavsan_role;
+GRANT ROLE anavsan_role TO USER anavsan_user;
+
+-- 3. Grant metadata access
+GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE 
+  TO ROLE anavsan_role;
+GRANT MONITOR USAGE ON ACCOUNT TO ROLE anavsan_role;
+
+-- 4. Create resource-efficient warehouse
+CREATE OR REPLACE WAREHOUSE anavsan_wh
+  WAREHOUSE_SIZE = XSMALL
+  AUTO_SUSPEND = 60
+  AUTO_RESUME = TRUE
+  INITIALLY_SUSPENDED = TRUE;
+
+GRANT USAGE ON WAREHOUSE anavsan_wh TO ROLE anavsan_role;
+ALTER USER anavsan_user SET DEFAULT_WAREHOUSE = anavsan_wh;
+ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
+        }
+
+        return `-- Consolidated Setup Script for Anavsan
 -- Run this in a Snowflake worksheet as ACCOUNTADMIN
 
 -- 1. Create dedicated user
@@ -121,8 +163,16 @@ CREATE OR REPLACE WAREHOUSE anavsan_wh
 GRANT USAGE ON WAREHOUSE anavsan_wh TO ROLE anavsan_role;
 ALTER USER anavsan_user SET DEFAULT_WAREHOUSE = anavsan_wh;
 ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
+    }, [formData.authMethod]);
 
-    const isFormValid = formData.name && formData.identifier && formData.username && formData.password;
+    const isFormValid = useMemo(() => {
+        const basicFields = formData.name && formData.identifier && formData.username;
+        if (formData.authMethod === 'password') {
+            return basicFields && formData.password;
+        } else {
+            return basicFields && formData.privateKey.trim().startsWith('-----BEGIN RSA PRIVATE KEY-----');
+        }
+    }, [formData]);
 
     return (
         <div className="flex h-full bg-white relative">
@@ -280,61 +330,92 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
                                         </div>
                                     </div>
 
-                                    {formData.authMethod === 'password' && (
-                                        <>
+                                    {formData.authMethod === 'password' ? (
+                                        <div className="space-y-2">
+                                            <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Password <span className="text-status-error">*</span></label>
+                                            <input 
+                                                type="password" 
+                                                value={formData.password}
+                                                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                                className="w-full max-w-sm bg-white border border-border-light rounded-[16px] px-5 py-3.5 text-sm focus:ring-1 focus:ring-primary outline-none shadow-sm font-medium"
+                                                placeholder="••••••••••••••"
+                                            />
+                                            <p className="text-[11px] text-text-muted font-medium ml-1">The password created for the dedicated Anavsan Snowflake user.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-6">
                                             <div className="space-y-2">
-                                                <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Password <span className="text-status-error">*</span></label>
+                                                <div className="flex items-center gap-2 ml-1">
+                                                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Private key <span className="text-status-error">*</span></label>
+                                                    <div className="group relative">
+                                                        <IconLockClosed className="w-3 h-3 text-primary cursor-help" />
+                                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-xl">
+                                                            Your private key is encrypted at rest and never shared. 🔒
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <textarea 
+                                                    value={formData.privateKey}
+                                                    onChange={(e) => setFormData({...formData, privateKey: e.target.value})}
+                                                    className="w-full max-w-xl bg-white border border-border-light rounded-[16px] px-5 py-4 text-xs focus:ring-1 focus:ring-primary outline-none shadow-sm font-mono h-32 resize-none"
+                                                    placeholder="-----BEGIN RSA PRIVATE KEY-----&#10;...&#10;-----END RSA PRIVATE KEY-----"
+                                                />
+                                                <p className="text-[11px] text-text-muted font-medium ml-1">Paste your private key here. Anavsan uses this to securely sign requests to Snowflake.</p>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Private key passphrase (Optional)</label>
                                                 <input 
                                                     type="password" 
-                                                    value={formData.password}
-                                                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                                    value={formData.passphrase}
+                                                    onChange={(e) => setFormData({...formData, passphrase: e.target.value})}
                                                     className="w-full max-w-sm bg-white border border-border-light rounded-[16px] px-5 py-3.5 text-sm focus:ring-1 focus:ring-primary outline-none shadow-sm font-medium"
-                                                    placeholder="••••••••••••••"
+                                                    placeholder="Enter passphrase"
                                                 />
-                                                <p className="text-[11px] text-text-muted font-medium ml-1">The password created for the dedicated Anavsan Snowflake user.</p>
+                                                <p className="text-[11px] text-text-muted font-medium ml-1">Only required if your private key is encrypted.</p>
                                             </div>
-
-                                            {/* Consolidated Setup Script Area moved here */}
-                                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 space-y-6 pt-4">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-2xl bg-sidebar-topbar text-white flex items-center justify-center">
-                                                            <IconAdjustments className="w-5 h-5" />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-lg font-black text-text-strong tracking-tight">Consolidated Setup Script</h3>
-                                                            <p className="text-sm text-text-secondary font-medium">Run this script as <span className="font-bold text-text-strong underline decoration-primary/30 underline-offset-2">ACCOUNTADMIN</span> in Snowflake.</p>
-                                                        </div>
-                                                    </div>
-                                                    <a 
-                                                        href="https://app.snowflake.com" 
-                                                        target="_blank" 
-                                                        rel="noopener noreferrer"
-                                                        className="flex items-center gap-2 px-4 py-2 bg-white border border-border-light rounded-xl text-xs font-bold text-text-strong hover:bg-surface-hover transition-all shadow-sm"
-                                                    >
-                                                        <IconDatabase className="w-4 h-4 text-primary" />
-                                                        Go to Snowflake
-                                                    </a>
-                                                </div>
-                                                
-                                                <div className="h-[400px]">
-                                                    <CodeBlock code={setupScript} />
-                                                </div>
-
-                                                <div className="flex items-center gap-4 bg-white p-6 rounded-[24px] border border-border-light shadow-sm">
-                                                    <div className="w-12 h-12 rounded-full bg-status-success-light flex items-center justify-center flex-shrink-0">
-                                                        <IconCheckCircle className="w-6 h-6 text-status-success-dark" />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <h4 className="text-sm font-bold text-text-strong">Secure hand-shake</h4>
-                                                        <p className="text-xs text-text-secondary leading-relaxed font-medium">
-                                                            Anavsan performs a metadata-only audit. No production table data is accessed or stored.
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </>
+                                        </div>
                                     )}
+
+                                    {/* Consolidated Setup Script Area moved here */}
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 space-y-6 pt-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-2xl bg-sidebar-topbar text-white flex items-center justify-center">
+                                                    <IconAdjustments className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg font-black text-text-strong tracking-tight">Consolidated Setup Script</h3>
+                                                    <p className="text-sm text-text-secondary font-medium">Run this script as <span className="font-bold text-text-strong underline decoration-primary/30 underline-offset-2">ACCOUNTADMIN</span> in Snowflake.</p>
+                                                </div>
+                                            </div>
+                                            <a 
+                                                href="https://app.snowflake.com" 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 px-4 py-2 bg-white border border-border-light rounded-xl text-xs font-bold text-text-strong hover:bg-surface-hover transition-all shadow-sm"
+                                            >
+                                                <IconDatabase className="w-4 h-4 text-primary" />
+                                                Go to Snowflake
+                                            </a>
+                                        </div>
+                                        
+                                        <div className="h-[400px]">
+                                            <CodeBlock code={setupScript} />
+                                        </div>
+
+                                        <div className="flex items-center gap-4 bg-white p-6 rounded-[24px] border border-border-light shadow-sm">
+                                            <div className="w-12 h-12 rounded-full bg-status-success-light flex items-center justify-center flex-shrink-0">
+                                                <IconCheckCircle className="w-6 h-6 text-status-success-dark" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <h4 className="text-sm font-bold text-text-strong">Secure hand-shake</h4>
+                                                <p className="text-xs text-text-secondary leading-relaxed font-medium">
+                                                    Anavsan performs a metadata-only audit. No production table data is accessed or stored.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <div className="space-y-2">
                                         <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Anavsan username</label>
@@ -455,16 +536,35 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
                                 <h4>Configuration steps</h4>
                             </div>
                             <div className="space-y-8">
+                                {formData.authMethod === 'password' ? (
+                                    <>
+                                        <div className="space-y-2">
+                                            <h5 className="text-[13px] font-bold text-text-strong">1. Run Setup Script</h5>
+                                            <p className="text-xs text-text-secondary leading-relaxed font-medium">Run the SQL on the right in your Snowflake console as ACCOUNTADMIN to create a secure monitor account.</p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h5 className="text-[13px] font-bold text-text-strong">2. Enter Credentials</h5>
+                                            <p className="text-xs text-text-secondary leading-relaxed font-medium">Provide the password you set in the script. Anavsan will use these to log in and query metadata.</p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="space-y-2">
+                                            <h5 className="text-[13px] font-bold text-text-strong">1. Generate Keys</h5>
+                                            <p className="text-xs text-text-secondary leading-relaxed font-medium">Use OpenSSL to generate a private and public key pair for secure authentication.</p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h5 className="text-[13px] font-bold text-text-strong">2. Update Snowflake User</h5>
+                                            <p className="text-xs text-text-secondary leading-relaxed font-medium">Run the SQL script on the left. Ensure you paste your Public Key into the script before running it in Snowflake.</p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h5 className="text-[13px] font-bold text-text-strong">3. Provide Private Key</h5>
+                                            <p className="text-xs text-text-secondary leading-relaxed font-medium">Paste your Private Key into Anavsan so the agent can authenticate securely.</p>
+                                        </div>
+                                    </>
+                                )}
                                 <div className="space-y-2">
-                                    <h5 className="text-[13px] font-bold text-text-strong">1. Run Setup Script</h5>
-                                    <p className="text-xs text-text-secondary leading-relaxed font-medium">Run the SQL on the right in your Snowflake console as ACCOUNTADMIN to create a secure monitor account.</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <h5 className="text-[13px] font-bold text-text-strong">2. Enter Credentials</h5>
-                                    <p className="text-xs text-text-secondary leading-relaxed font-medium">Provide the password you set in the script. Anavsan will use these to log in and query metadata.</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <h5 className="text-[13px] font-bold text-text-strong">3. Connect & Analyze</h5>
+                                    <h5 className="text-[13px] font-bold text-text-strong">{formData.authMethod === 'password' ? '3' : '4'}. Connect & Analyze</h5>
                                     <p className="text-xs text-text-secondary leading-relaxed font-medium">Once verified, we begin analyzing your last 30 days of metadata to generate initial cost-saving reports.</p>
                                 </div>
                             </div>

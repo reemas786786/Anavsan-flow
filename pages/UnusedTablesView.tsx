@@ -160,7 +160,7 @@ const UnusedTablesView: React.FC<UnusedTablesViewProps> = ({
             <div className="bg-[#f0f7ff] border border-[#d1e9ff] border-l-4 border-l-[#0066ff] p-4 flex items-center gap-3 shadow-sm mb-2">
                 <IconInfo className="w-5 h-5 text-[#0066ff] flex-shrink-0" />
                 <p className="text-[13px] font-medium text-[#1e1e1e]">
-                    Anavsan has identified tables inactive for over {unusedDaysFilter === 'custom' ? (customMinDays || '0') : unusedDaysFilter} days. Optimizing or deleting them can help reduce your storage usage and costs.
+                    Anavsan found tables that haven’t been accessed in over 30 days. Deleting, archiving, or moving them to cheaper storage can reduce unnecessary storage spend.
                 </p>
             </div>
 

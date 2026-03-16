@@ -16,14 +16,23 @@ interface TablesViewProps {
     initialTableTypeFilter?: string | null;
     initialDatabaseFilter?: string | null;
     initialSchemaFilter?: string | null;
+    forceTab?: 'Tables' | 'Materialized Views' | 'Tasks';
 }
 
 const TablesView: React.FC<TablesViewProps> = ({ 
     initialTableTypeFilter, 
     initialDatabaseFilter, 
-    initialSchemaFilter 
+    initialSchemaFilter,
+    forceTab
 }) => {
-    const [activeTab, setActiveTab] = useState<'Tables' | 'Materialized Views' | 'Tasks'>('Tables');
+    const [activeTab, setActiveTab] = useState<'Tables' | 'Materialized Views' | 'Tasks'>(forceTab || 'Tables');
+
+    // Update activeTab if forceTab changes
+    React.useEffect(() => {
+        if (forceTab) {
+            setActiveTab(forceTab);
+        }
+    }, [forceTab]);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDb, setSelectedDb] = useState(initialDatabaseFilter || 'All databases');
     const [selectedSchema, setSelectedSchema] = useState(initialSchemaFilter || 'All schemas');
@@ -112,29 +121,31 @@ const TablesView: React.FC<TablesViewProps> = ({
 
     return (
         <div className="flex flex-col h-full gap-4">
-            {/* Tabs */}
-            <div className="flex items-center gap-1 bg-surface-nested p-1 rounded-xl border border-border-light w-fit">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all relative ${
-                            activeTab === tab 
-                                ? 'text-primary' 
-                                : 'text-text-muted hover:text-text-strong'
-                        }`}
-                    >
-                        {activeTab === tab && (
-                            <motion.div
-                                layoutId="activeTab"
-                                className="absolute inset-0 bg-white shadow-sm rounded-lg border border-border-light"
-                                transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                            />
-                        )}
-                        <span className="relative z-10">{tab}</span>
-                    </button>
-                ))}
-            </div>
+            {/* Tabs - only show if not forced */}
+            {!forceTab && (
+                <div className="flex items-center gap-1 bg-surface-nested p-1 rounded-xl border border-border-light w-fit">
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all relative ${
+                                activeTab === tab 
+                                    ? 'text-primary' 
+                                    : 'text-text-muted hover:text-text-strong'
+                            }`}
+                        >
+                            {activeTab === tab && (
+                                <motion.div
+                                    layoutId="activeTab"
+                                    className="absolute inset-0 bg-white shadow-sm rounded-lg border border-border-light"
+                                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                                />
+                            )}
+                            <span className="relative z-10">{tab}</span>
+                        </button>
+                    ))}
+                </div>
+            )}
 
             <div className="flex flex-wrap items-center gap-3 overflow-x-auto no-scrollbar flex-shrink-0">
                 <KPILabel label={activeTab} value={aggregateMetrics.count.toString()} />

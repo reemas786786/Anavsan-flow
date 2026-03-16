@@ -42,62 +42,26 @@ const ContextualNavItem: React.FC<{
     const isSubMenuOpen = openSubMenus[item.name];
     const isSomeChildActive = !isDeepDrillDown && hasChildren && item.children.some(c => c.name === activePage);
 
-    const isItemActuallyActive = !isDeepDrillDown && (activePage === item.name) && !(item.name === 'Applications' && selectedApplicationId);
+    const isItemActuallyActive = !isDeepDrillDown && (activePage === item.name || (item.name === 'Compute' && ['Compute overview', 'Warehouse', 'Serverless', 'Cortex'].includes(activePage)) || (item.name === 'Queries' && ['Queries overview', 'Repeated queries', 'Expensive queries'].includes(activePage)) || (item.name === 'Storage' && ['Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables'].includes(activePage)) || (item.name === 'Optimization' && ['Query analyzer', 'Query optimizer', 'Query simulator'].includes(activePage))) && !(item.name === 'Applications' && selectedApplicationId);
 
     if (isSidebarExpanded) {
-        if (!hasChildren) {
-            return (
-                <li>
-                    <button
-                        onClick={() => onPageChange(item.name)}
-                        className={`w-full flex items-center gap-3 text-left p-2 rounded-lg text-sm transition-colors ${
-                            isItemActuallyActive
-                            ? 'bg-primary/5 text-primary font-bold'
-                            : 'text-text-strong font-medium hover:bg-surface-hover'
-                        }`}
-                    >
-                        <item.icon className={`h-5 w-5 shrink-0 ${isItemActuallyActive ? 'text-primary' : 'text-text-strong'}`} />
-                        <span>{item.label || item.name}</span>
-                    </button>
-                </li>
-            );
-        }
-
         return (
             <li>
                 <button
-                    onClick={() => handleSubMenuToggle(item.name)}
-                    className={`w-full flex items-center justify-between text-left p-2 rounded-lg hover:bg-surface-hover`}
+                    onClick={() => onPageChange(item.name)}
+                    className={`w-full flex items-center gap-3 text-left p-2 rounded-lg text-sm transition-colors ${
+                        isItemActuallyActive
+                        ? 'bg-primary/5 text-primary font-bold'
+                        : 'text-text-strong font-medium hover:bg-surface-hover'
+                    }`}
                 >
-                    <div className="flex items-center gap-3">
-                        <item.icon className={`h-5 w-5 shrink-0 ${isSomeChildActive ? 'text-primary' : 'text-text-strong'}`} />
-                        <span className={`text-sm font-bold ${isSomeChildActive ? 'text-primary' : 'text-text-strong'}`}>{item.label || item.name}</span>
-                    </div>
-                    {isSubMenuOpen ? <ChevronUpIcon className="h-4 w-4 text-text-secondary" /> : <ChevronDownIcon className="h-4 w-4 text-text-secondary" />}
+                    <item.icon className={`h-5 w-5 shrink-0 ${isItemActuallyActive ? 'text-primary' : 'text-text-strong'}`} />
+                    <span>{item.label || item.name}</span>
                 </button>
-                {isSubMenuOpen && (
-                    <ul className="pl-5 mt-1 space-y-0.5 border-l border-border-light ml-4">
-                        {item.children.map(child => (
-                            <li key={child.name}>
-                                <button
-                                    onClick={() => onPageChange(child.name)}
-                                    className={`w-full text-left flex items-center gap-3 py-1.5 px-3 rounded-lg text-sm transition-colors ${
-                                        !isDeepDrillDown && activePage === child.name 
-                                        ? 'text-primary font-bold bg-primary/5' 
-                                        : 'text-text-secondary hover:text-text-primary'
-                                    }`}
-                                >
-                                    <child.icon className="h-4 w-4 shrink-0" />
-                                    <span>{child.label || child.name}</span>
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                )}
             </li>
         );
     } else {
-        const isActive = isItemActuallyActive || isSomeChildActive;
+        const isActive = isItemActuallyActive;
         return (
             <li
                 onMouseEnter={handleFlyoutEnter}
@@ -105,7 +69,7 @@ const ContextualNavItem: React.FC<{
                 className="relative"
             >
                 <button
-                    onClick={() => onPageChange(hasChildren ? item.children[0].name : item.name)}
+                    onClick={() => onPageChange(item.name)}
                     className={`w-full group relative flex items-center justify-center p-2 rounded-lg text-sm transition-colors ${
                         isActive
                         ? 'bg-primary/5 text-primary'
@@ -122,24 +86,6 @@ const ContextualNavItem: React.FC<{
                         onMouseLeave={handleFlyoutLeave}
                     >
                         <div className="px-3 py-2 text-sm font-semibold text-text-strong">{item.label || item.name}</div>
-                        {hasChildren ? (
-                             <ul className="space-y-0.5">
-                                {item.children.map(child => (
-                                    <li key={child.name}>
-                                        <button
-                                            onClick={() => onPageChange(child.name)}
-                                            className={`w-full text-left py-1.5 px-3 rounded-md text-sm transition-colors ${
-                                                !isDeepDrillDown && activePage === child.name 
-                                                ? 'text-primary font-medium' 
-                                                : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
-                                            }`}
-                                        >
-                                            <span>{child.label || child.name}</span>
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : null}
                     </div>
                 )}
             </li>

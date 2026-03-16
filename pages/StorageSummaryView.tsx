@@ -242,8 +242,8 @@ const StorageSummaryView: React.FC<{
             >
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     <button 
-                        onClick={() => onNavigate('Databases')}
-                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                        onClick={() => onNavigate('Explorer')}
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm hover:shadow-md w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Total credits</p>
                         <div className="mt-auto">
@@ -253,8 +253,8 @@ const StorageSummaryView: React.FC<{
                     </button>
                     
                     <button 
-                        onClick={() => onNavigate('Databases')}
-                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                        onClick={() => onNavigate('Explorer')}
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm hover:shadow-md w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Databases</p>
                         <div className="mt-auto">
@@ -262,8 +262,8 @@ const StorageSummaryView: React.FC<{
                         </div>
                     </button>
                     <button 
-                        onClick={() => onNavigate('Schemas')}
-                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                        onClick={() => onNavigate('Explorer')}
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm hover:shadow-md w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Schemas</p>
                         <div className="mt-auto">
@@ -271,8 +271,8 @@ const StorageSummaryView: React.FC<{
                         </div>
                     </button>
                     <button 
-                        onClick={() => onNavigate('Schema objects')}
-                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                        onClick={() => onNavigate('Explorer')}
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm hover:shadow-md w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Schema objects</p>
                         <div className="mt-auto">
@@ -284,7 +284,7 @@ const StorageSummaryView: React.FC<{
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
                     <button 
                         onClick={() => onNavigate('Unused tables')}
-                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm hover:shadow-md w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Unused tables</p>
                         <div className="mt-auto">
@@ -294,8 +294,8 @@ const StorageSummaryView: React.FC<{
                     </button>
 
                     <button 
-                        onClick={() => onNavigate('Databases')}
-                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                        onClick={() => onNavigate('Explorer')}
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm hover:shadow-md w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Failsafe</p>
                         <div className="mt-auto">
@@ -303,7 +303,7 @@ const StorageSummaryView: React.FC<{
                         </div>
                     </button>
                     <button 
-                        onClick={() => onNavigate('Databases')}
+                        onClick={() => onNavigate('Explorer')}
                         className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Time travel</p>
@@ -319,7 +319,7 @@ const StorageSummaryView: React.FC<{
                 <WidgetCard title="Table type">
                     <div className="grid grid-cols-2 gap-4 py-4">
                         <button 
-                            onClick={() => onNavigate('Schema objects', { tableType: 'Permanent' })}
+                            onClick={() => onNavigate('Explorer', { tableType: 'Permanent' })}
                             className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 col-span-1 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
                         >
                             <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Permanent</p>
@@ -327,7 +327,7 @@ const StorageSummaryView: React.FC<{
                             <p className="text-xs font-bold text-text-muted mt-1">{formatStorageSize(tableTypeMetrics['Permanent'].size)}</p>
                         </button>
                         <button 
-                            onClick={() => onNavigate('Schema objects', { tableType: 'Transient' })}
+                            onClick={() => onNavigate('Explorer', { tableType: 'Transient' })}
                             className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 col-span-1 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
                         >
                             <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Transient</p>
@@ -336,7 +336,7 @@ const StorageSummaryView: React.FC<{
                         </button>
                         <div className="grid grid-cols-3 gap-4 col-span-2">
                             <button 
-                                onClick={() => onNavigate('Schema objects', { tableType: 'Temporary' })}
+                                onClick={() => onNavigate('Explorer', { tableType: 'Temporary' })}
                                 className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
                             >
                                 <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Temporary</p>
@@ -344,7 +344,7 @@ const StorageSummaryView: React.FC<{
                                 <p className="text-xs font-bold text-text-muted mt-1">{formatStorageSize(tableTypeMetrics['Temporary'].size)}</p>
                             </button>
                             <button 
-                                onClick={() => onNavigate('Schema objects', { tableType: 'Hybrid' })}
+                                onClick={() => onNavigate('Explorer', { tableType: 'Hybrid' })}
                                 className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
                             >
                                 <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Hybrid</p>
@@ -352,7 +352,7 @@ const StorageSummaryView: React.FC<{
                                 <p className="text-xs font-bold text-text-muted mt-1">{formatStorageSize(tableTypeMetrics['Hybrid'].size)}</p>
                             </button>
                             <button 
-                                onClick={() => onNavigate('Schema objects', { tableType: 'Dynamic' })}
+                                onClick={() => onNavigate('Explorer', { tableType: 'Dynamic' })}
                                 className="bg-surface-nested p-4 rounded-2xl border border-border-light/50 text-left hover:border-primary/40 hover:bg-surface-hover transition-all group"
                             >
                                 <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-2 group-hover:text-primary transition-colors">Dynamic</p>
@@ -433,7 +433,7 @@ const StorageSummaryView: React.FC<{
                 {/* Top Database by Size */}
                 <WidgetCard 
                     title="Top database by size"
-                    actions={<button onClick={() => onNavigate('Databases')} className="text-xs font-bold text-primary hover:underline">View all</button>}
+                    actions={<button onClick={() => onNavigate('Explorer')} className="text-xs font-bold text-primary hover:underline">View all</button>}
                 >
                     <div className="h-80 mt-4">
                          <ResponsiveContainer width="100%" height="100%">
@@ -453,7 +453,7 @@ const StorageSummaryView: React.FC<{
                 {/* Top Schema by Size */}
                 <WidgetCard 
                     title="Top schema by size"
-                    actions={<button onClick={() => onNavigate('Databases')} className="text-xs font-bold text-primary hover:underline">View all</button>}
+                    actions={<button onClick={() => onNavigate('Explorer')} className="text-xs font-bold text-primary hover:underline">View all</button>}
                 >
                     <div className="h-80 mt-4">
                          <ResponsiveContainer width="100%" height="100%">
@@ -473,7 +473,7 @@ const StorageSummaryView: React.FC<{
                 {/* Top Table by Size */}
                 <WidgetCard 
                     title="Top table by size"
-                    actions={<button onClick={() => onNavigate('Databases')} className="text-xs font-bold text-primary hover:underline">View all</button>}
+                    actions={<button onClick={() => onNavigate('Explorer')} className="text-xs font-bold text-primary hover:underline">View all</button>}
                 >
                     <div className="h-80 mt-4">
                          <ResponsiveContainer width="100%" height="100%">

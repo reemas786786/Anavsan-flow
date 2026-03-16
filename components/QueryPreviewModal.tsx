@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { QueryListItem } from '../types';
-import { IconBeaker, IconWand, IconSearch } from '../constants';
+import { IconBeaker, IconWand, IconSearch, IconClipboardCopy, IconCheck } from '../constants';
 
 interface QueryPreviewContentProps {
   query: QueryListItem;
@@ -240,9 +240,34 @@ const QueryPreviewContent: React.FC<QueryPreviewContentProps> = ({ query, onAnal
                     </div>
                 )}
                 {activeTab === 'Full Query' && (
-                    <pre className="bg-input-bg p-4 rounded-lg border border-border-color text-xs text-text-primary overflow-auto max-h-[50vh]">
-                        <code>{longQueryText}</code>
-                    </pre>
+                    <div className="relative group">
+                        <button 
+                            onClick={() => {
+                                navigator.clipboard.writeText(query.queryText || longQueryText);
+                                const btn = document.getElementById('copy-btn-preview');
+                                if (btn) btn.innerText = 'Copied!';
+                                setTimeout(() => { if (btn) btn.innerText = 'Copy'; }, 2000);
+                            }}
+                            id="copy-btn-preview"
+                            className="absolute top-4 right-4 px-3 py-1.5 bg-white border border-border-color rounded-lg text-xs font-bold text-text-secondary hover:text-primary transition-all shadow-sm z-10"
+                        >
+                            Copy
+                        </button>
+                        <div className="bg-input-bg rounded-lg border border-border-color overflow-hidden flex">
+                            <div className="bg-slate-50 border-r border-border-color px-3 py-4 text-right select-none min-w-[40px]">
+                                {(query.queryText || longQueryText).split('\n').map((_, i) => (
+                                    <div key={i} className="text-[11px] font-mono text-text-muted leading-5">
+                                        {i + 1}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="p-4 overflow-auto max-h-[60vh] flex-grow">
+                                <pre className="text-[13px] font-mono text-text-primary leading-5 whitespace-pre">
+                                    <code>{query.queryText || longQueryText}</code>
+                                </pre>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
 

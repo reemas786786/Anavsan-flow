@@ -39,6 +39,48 @@ const StatusBadge: React.FC<{ status: RecommendationStatus }> = ({ status }) => 
     );
 };
 
+const QueryCodeBlock: React.FC<{ code: string }> = ({ code }) => {
+    const lines = code.split('\n');
+    const [isCopied, setIsCopied] = useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(code);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+    };
+
+    return (
+        <div className="bg-white p-6 rounded-[24px] border border-border-light shadow-sm">
+            <div className="flex justify-between items-center mb-4">
+                <h4 className="text-sm font-bold text-text-strong">Query text</h4>
+            </div>
+            <div className="bg-[#F8F9FB] rounded-2xl border border-border-light overflow-hidden relative group">
+                <button 
+                    onClick={handleCopy}
+                    className="absolute top-4 right-4 px-3 py-1.5 bg-white border border-border-light rounded-lg text-xs font-bold text-text-secondary hover:text-primary transition-all shadow-sm z-20"
+                    title="Copy to clipboard"
+                >
+                    {isCopied ? 'Copied!' : 'Copy'}
+                </button>
+                <div className="flex">
+                    <div className="bg-slate-50/50 border-r border-border-light px-4 py-6 text-right select-none min-w-[50px]">
+                        {lines.map((_, i) => (
+                            <div key={i} className="text-[12px] font-mono text-text-muted leading-6">
+                                {i + 1}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="p-6 overflow-x-auto flex-grow max-h-[600px]">
+                        <pre className="text-[14px] font-mono text-text-primary leading-relaxed whitespace-pre">
+                            <code>{code}</code>
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // --- NEW FULL SCREEN DETAIL VIEW ---
 
 interface RecommendationDetailViewProps {
@@ -50,6 +92,8 @@ interface RecommendationDetailViewProps {
     onNavigateToQuery: (query: Partial<QueryListItem>) => void;
     onNavigateToWarehouse: (warehouse: Partial<Warehouse>) => void;
     currentUser: User | null;
+    onBackToSource?: () => void;
+    returnContext?: any;
 }
 
 const RecommendationDetailView: React.FC<RecommendationDetailViewProps> = ({ 
@@ -60,7 +104,9 @@ const RecommendationDetailView: React.FC<RecommendationDetailViewProps> = ({
     onOptimize,
     onNavigateToQuery,
     onNavigateToWarehouse,
-    currentUser
+    currentUser,
+    onBackToSource,
+    returnContext
 }) => {
     const [isCopiedOriginal, setIsCopiedOriginal] = useState(false);
 
@@ -115,7 +161,18 @@ const RecommendationDetailView: React.FC<RecommendationDetailViewProps> = ({
                             <IconChevronLeft className="h-6 w-6" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-bold text-text-strong tracking-tight">Recommendation Details</h1>
+                            <div className="flex items-center gap-4">
+                                <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Recommendations</h1>
+                                {returnContext && onBackToSource && (
+                                    <button 
+                                        onClick={onBackToSource}
+                                        className="flex items-center gap-1.5 px-3 py-1 bg-white border border-border-light rounded-lg text-xs font-bold text-primary hover:bg-surface-hover transition-all shadow-sm"
+                                    >
+                                        <IconChevronLeft className="w-3.5 h-3.5" />
+                                        Back to {returnContext.warehouse?.name || returnContext.page}
+                                    </button>
+                                )}
+                            </div>
                             <p className="text-sm text-text-secondary mt-0.5">Ref: {recommendation.id}</p>
                         </div>
                     </div>
@@ -191,25 +248,7 @@ const RecommendationDetailView: React.FC<RecommendationDetailViewProps> = ({
                     </div>
 
                     {recommendation.metrics?.queryText && (
-                        <div className="bg-white p-4 rounded-[24px] border border-border-light shadow-sm space-y-4">
-                            <div className="flex justify-between items-center border-b border-border-light pb-4">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-lg bg-surface-nested flex items-center justify-center text-text-muted">
-                                        <IconSearch className="w-4 h-4" />
-                                    </div>
-                                    <h4 className="text-sm font-black text-text-strong uppercase tracking-[0.2em]">Analyzed Query</h4>
-                                </div>
-                                <button onClick={handleCopyOriginal} className="text-[10px] font-black text-text-muted flex items-center gap-1 hover:text-primary transition-colors">
-                                    {isCopiedOriginal ? <IconCheck className="w-3 h-3 text-status-success" /> : <IconClipboardCopy className="w-3 h-3" />}
-                                    {isCopiedOriginal ? 'COPIED' : 'COPY ORIGINAL SQL'}
-                                </button>
-                            </div>
-                            <div className="bg-[#0D1117] p-6 rounded-[24px] border border-white/5 shadow-2xl max-h-[500px] overflow-y-auto custom-scrollbar">
-                                <pre className="text-[14px] font-mono text-gray-300 leading-relaxed whitespace-pre">
-                                    <code>{recommendation.metrics.queryText}</code>
-                                </pre>
-                            </div>
-                        </div>
+                        <QueryCodeBlock code={recommendation.metrics.queryText} />
                     )}
                 </div>
 
@@ -243,9 +282,10 @@ const Recommendations: React.FC<{
     onOptimizeRecommendation?: (recommendation: Recommendation) => void;
     selectedRecommendation: Recommendation | null;
     onSelectRecommendation: (rec: Recommendation | null) => void;
+    onPreviewQuery?: (query: Partial<QueryListItem>) => void;
     onBackToSource?: () => void;
     returnContext?: { account: Account; page: string; warehouse?: Warehouse | null } | null;
-}> = ({ accounts, currentUser, initialFilters, onNavigateToQuery, onNavigateToWarehouse, onAssignTask, onOptimizeRecommendation, selectedRecommendation, onSelectRecommendation, onBackToSource, returnContext }) => {
+}> = ({ accounts, currentUser, initialFilters, onNavigateToQuery, onNavigateToWarehouse, onAssignTask, onOptimizeRecommendation, selectedRecommendation, onSelectRecommendation, onPreviewQuery, onBackToSource, returnContext }) => {
     const [data, setData] = useState<Recommendation[]>(initialData);
     const [search, setSearch] = useState('');
     const [isContextual, setIsContextual] = useState(false);
@@ -365,6 +405,8 @@ const Recommendations: React.FC<{
                     onNavigateToQuery={onNavigateToQuery}
                     onNavigateToWarehouse={onNavigateToWarehouse}
                     currentUser={currentUser}
+                    onBackToSource={onBackToSource}
+                    returnContext={returnContext}
                 />
             </div>
         );
@@ -491,9 +533,36 @@ const Recommendations: React.FC<{
                                         <StatusBadge status={rec.status} />
                                     </td>
                                     <td className="px-6 py-5 text-right">
-                                        <button className="p-2 text-text-muted hover:text-primary transition-colors">
-                                            <IconInfo className="h-5 w-5" />
-                                        </button>
+                                        <div className="flex items-center justify-end gap-2">
+                                            {rec.resourceType === 'Query' && rec.metrics?.queryText && onPreviewQuery && (
+                                                <button 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onPreviewQuery({
+                                                            id: rec.affectedResource,
+                                                            queryText: rec.metrics?.queryText,
+                                                            warehouse: rec.warehouseName || 'SYSTEM',
+                                                            timestamp: rec.timestamp,
+                                                            severity: (rec.severity === 'High' || rec.severity === 'High Cost') ? 'High' : rec.severity === 'Medium' ? 'Medium' : 'Low',
+                                                            user: rec.userName || 'System',
+                                                            duration: rec.metrics?.executionTime || '0s',
+                                                            bytesScanned: 0,
+                                                            bytesWritten: 0,
+                                                            status: 'Success',
+                                                            costCredits: rec.metrics?.creditsBefore || 0,
+                                                            estSavingsUSD: rec.metrics?.estimatedSavings || 0
+                                                        } as any);
+                                                    }}
+                                                    className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors"
+                                                    title="Preview Query"
+                                                >
+                                                    <IconSearch className="h-5 w-5" />
+                                                </button>
+                                            )}
+                                            <button className="p-2 text-text-muted hover:text-primary transition-colors">
+                                                <IconInfo className="h-5 w-5" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             )) : (

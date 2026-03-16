@@ -232,9 +232,6 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                                 </button>
                                 
                                 <div className="flex flex-col min-w-0 flex-1">
-                                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">
-                                        Repeated query
-                                    </h1>
                                     <div className="flex items-center gap-2 mt-1">
                                         <p className="text-sm text-text-secondary font-medium">
                                             Parameterized hash: <span className="font-mono">{groupData.parameterizedHash}</span>
@@ -549,11 +546,7 @@ const QueryListView: React.FC<QueryListViewProps> = ({
 
     return (
         <div className="flex flex-col h-full bg-background space-y-4 px-6 pt-6 pb-12 overflow-y-auto no-scrollbar">
-            <div className="flex items-center justify-between flex-shrink-0">
-                <div className="flex flex-col">
-                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Repeated queries</h1>
-                    <p className="text-sm text-text-secondary font-medium mt-1">Feb 17 to Feb 23 2026 (Last 7 days)</p>
-                </div>
+            <div className="flex items-center justify-end flex-shrink-0">
                 <DateRangeDropdown 
                     selectedValue={dateRange} 
                     onChange={(val) => { setDateRange(val as string); handleFilterChange('currentPage', 1); }} 

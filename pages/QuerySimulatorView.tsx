@@ -97,11 +97,6 @@ const QuerySimulatorView: React.FC<{
 
     return (
         <div className="p-4 space-y-4 h-full flex flex-col">
-            <header className="flex-shrink-0 mb-8">
-                <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Query Simulator</h1>
-                <p className="text-sm text-text-secondary font-medium mt-1">Simulate your query with different parameters to estimate performance and cost.</p>
-            </header>
-
             <main className="flex-grow flex flex-col lg:flex-row gap-4 overflow-hidden">
                 {/* Left Column: Parameters */}
                 <div className="w-full lg:w-1/3 xl:w-1/4 flex flex-col bg-surface p-4 rounded-xl border border-border-color space-y-6">

@@ -26,9 +26,17 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ dashboard, onViewClick, o
     }, []);
 
     return (
-        <button
+        <div
             onClick={onViewClick}
-            className="bg-surface p-4 rounded-[24px] border border-border-light shadow-sm flex flex-col h-full text-left hover:ring-2 hover:ring-primary focus:outline-none focus:ring-2 focus:ring-primary transition-all group"
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onViewClick();
+                }
+            }}
+            tabIndex={0}
+            role="button"
+            className="bg-surface p-4 rounded-[24px] border border-border-light shadow-sm flex flex-col h-full text-left hover:ring-2 hover:ring-primary focus:outline-none focus:ring-2 focus:ring-primary transition-all group cursor-pointer"
         >
             <div className="flex justify-between items-start mb-2 w-full">
                 <h3 className="text-base font-bold text-text-strong pr-4 group-hover:text-primary transition-colors">{dashboard.title}</h3>
@@ -62,7 +70,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ dashboard, onViewClick, o
             </div>
             {dashboard.description && <p className="text-sm text-text-secondary mt-2 flex-grow leading-relaxed">{dashboard.description}</p>}
             <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-6">{dashboard.createdOn}</p>
-        </button>
+        </div>
     );
 };
 

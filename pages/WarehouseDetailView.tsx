@@ -210,10 +210,6 @@ const WarehouseDetailView: React.FC<WarehouseDetailViewProps> = ({ warehouse, on
                             </button>
                             
                             <div className="flex flex-col">
-                                <div className="flex items-center gap-3">
-                                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">{warehouse.name}</h1>
-                                </div>
-                                <p className="text-sm text-text-secondary font-medium mt-1">Detailed performance metrics and configuration for this compute cluster.</p>
                             </div>
                         </div>
 

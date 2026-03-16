@@ -167,17 +167,13 @@ const QueryOptimizerView: React.FC<{
     
     return (
         <div className="p-4 space-y-4 h-full flex flex-col">
-             <header className="flex-shrink-0 mb-8">
-                {query && (
-                    <button onClick={onBack} className="flex items-center gap-1 text-sm font-semibold text-link hover:underline mb-2">
+             {query && (
+                <div className="flex-shrink-0 mb-4">
+                    <button onClick={onBack} className="flex items-center gap-1 text-sm font-semibold text-link hover:underline">
                         <IconChevronLeft className="h-4 w-4" /> Back to All Queries
                     </button>
-                )}
-                <div>
-                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Query Optimizer</h1>
-                    <p className="text-sm text-text-secondary font-medium mt-1">Use AI to automatically rewrite your query for better performance and cost-efficiency.</p>
                 </div>
-            </header>
+            )}
 
             <main className="flex-grow grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
                 {/* Left Panel: Original Query */}

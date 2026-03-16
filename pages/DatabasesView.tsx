@@ -64,7 +64,6 @@ const DatabaseDetailView: React.FC<{ database: Database, onBack: () => void }> =
                 >
                     <IconChevronLeft className="h-6 w-6" />
                 </button>
-                <h1 className="text-[28px] font-bold text-text-strong tracking-tight">{database.name}</h1>
             </div>
 
             {/* Pill Section for Database Level Metrics */}

@@ -71,7 +71,7 @@ const SummaryMetricCard: React.FC<{
 }> = ({ label, value, subValue, onClick }) => (
     <button 
         onClick={onClick}
-        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm hover:shadow-md w-full"
     >
         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">{label}</p>
         <div className="mt-auto">
@@ -88,7 +88,7 @@ const DATE_RANGES = [
     { label: 'Last 90 days', value: 90 },
 ];
 
-const RecommendationItem: React.FC<{ rec: Recommendation }> = ({ rec }) => {
+const RecommendationItem: React.FC<{ rec: Recommendation; onClick?: () => void }> = ({ rec, onClick }) => {
     const getTagStyles = (tag: string) => {
         switch(tag.toLowerCase()) {
             case 'warehouse': return 'bg-violet-100 text-violet-600';
@@ -99,7 +99,10 @@ const RecommendationItem: React.FC<{ rec: Recommendation }> = ({ rec }) => {
     };
     
     return (
-        <div className="p-4 rounded-xl bg-surface-nested border border-border-light/50 space-y-2">
+        <div 
+            onClick={onClick}
+            className={`p-4 rounded-xl bg-surface-nested border border-border-light/50 space-y-2 transition-all duration-200 ${onClick ? 'cursor-pointer hover:border-primary/40 hover:bg-surface-hover shadow-sm hover:shadow-md active:scale-[0.99]' : ''}`}
+        >
             <div className="flex items-center gap-2">
                 <span className="text-[13px] font-bold text-text-strong font-mono">{rec.insightType}</span>
                 <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${getTagStyles(rec.resourceType)}`}>{rec.resourceType}</span>
@@ -139,7 +142,7 @@ const RecommendationStatusWidget: React.FC<{ onNavigate: (page: Page, subPage?: 
                     <button
                         key={s.label}
                         onClick={() => onNavigate('Recommendations', undefined, { filters: { status: s.label } })}
-                        className="flex flex-col p-4 rounded-2xl bg-surface-nested border border-border-light hover:border-primary/40 hover:bg-surface-hover transition-all group text-left h-full"
+                        className="flex flex-col p-4 rounded-2xl bg-surface-nested border border-border-light hover:border-primary/40 hover:bg-surface-hover shadow-sm hover:shadow-md transition-all group text-left h-full"
                     >
                         <div className="flex items-center gap-2 mb-2">
                             <div className={`w-2 h-2 rounded-full ${s.color}`} />
@@ -532,7 +535,13 @@ const Overview: React.FC<OverviewProps> = ({ accounts, onSelectAccount, onSelect
                             className="h-full"
                         >
                             <div className="flex flex-col gap-4">
-                                {recommendationsData.slice(0, 3).map(rec => <RecommendationItem key={rec.id} rec={rec} />)}
+                                {recommendationsData.slice(0, 3).map(rec => (
+                                    <RecommendationItem 
+                                        key={rec.id} 
+                                        rec={rec} 
+                                        onClick={() => onNavigate('Recommendations', undefined, { filters: { selectedId: rec.id } })}
+                                    />
+                                ))}
                             </div>
                         </WidgetCard>
                     </div>

@@ -110,15 +110,8 @@ const ComputeOverview: React.FC<ComputeOverviewProps> = ({ account, warehouses, 
     ];
 
     return (
-        <div className="flex flex-col h-full bg-background">
-            <header className="px-4 pt-4 pb-4 flex flex-col gap-4 flex-shrink-0 mb-6">
-                <div>
-                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Compute overview</h1>
-                    <p className="text-sm text-text-secondary font-medium mt-1">Monitor and optimize virtual warehouse performance and Cortex AI usage.</p>
-                </div>
-            </header>
-            
-            <div className="flex-1 px-4 pb-12 overflow-y-auto no-scrollbar space-y-6 animate-in fade-in duration-500">
+        <div className="flex flex-col h-full bg-background p-4 pb-12 gap-6">
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 animate-in fade-in duration-500">
                 {/* Summary Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <SummaryMetricCard 

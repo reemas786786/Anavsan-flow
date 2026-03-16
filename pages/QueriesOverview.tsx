@@ -89,14 +89,8 @@ const QueriesOverview: React.FC<QueriesOverviewProps> = ({ onNavigate, onSelectQ
     }, []);
 
     return (
-        <div className="flex flex-col h-full bg-background">
-            <header className="px-4 pt-4 pb-4 flex flex-col gap-6 flex-shrink-0 mb-0">
-                <div>
-                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Queries overview</h1>
-                    <p className="text-sm text-text-secondary font-medium mt-1">Analyze query performance, credit consumption, and common execution patterns.</p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col h-full bg-background p-4 pb-12 gap-6">
+            <div className="flex flex-wrap items-center gap-3">
                     <StatPill 
                         icon={<IconInfo className="w-4 h-4" />} 
                         label="Total Queries" 
@@ -115,10 +109,9 @@ const QueriesOverview: React.FC<QueriesOverviewProps> = ({ onNavigate, onSelectQ
                         value={stats.avgDuration} 
                         colorClass="bg-emerald-500/10 text-emerald-500" 
                     />
-                </div>
-            </header>
+            </div>
             
-            <div className="flex-1 space-y-6 px-4 pb-12 overflow-y-auto no-scrollbar">
+            <div className="flex-1 space-y-6 pb-12 overflow-y-auto no-scrollbar">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Repeated Queries Preview - Moved to first column */}
                 <div className="bg-white p-6 rounded-[24px] border border-border-light shadow-sm flex flex-col">
