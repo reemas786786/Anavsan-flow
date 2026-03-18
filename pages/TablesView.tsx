@@ -44,12 +44,17 @@ const TablesView: React.FC<TablesViewProps> = ({
     }, []);
 
     const schemaOptions = useMemo(() => {
+        let sourceData: any[] = [];
+        if (activeTab === 'Tables') sourceData = databaseTablesData;
+        else if (activeTab === 'Materialized Views') sourceData = materializedViewsData;
+        else sourceData = tasksData;
+
         const filteredByDb = selectedDb === 'All databases' 
-            ? databaseTablesData 
-            : databaseTablesData.filter(t => t.databaseName === selectedDb);
-        const schemas = Array.from(new Set(filteredByDb.map(t => t.schemaName)));
+            ? sourceData 
+            : sourceData.filter((t: any) => t.databaseName === selectedDb);
+        const schemas = Array.from(new Set(filteredByDb.map((t: any) => t.schemaName)));
         return ['All schemas', ...schemas.sort()];
-    }, [selectedDb]);
+    }, [selectedDb, activeTab]);
 
     const tableTypeOptions = ['All types', 'Permanent', 'Transient', 'Temporary', 'Hybrid', 'Dynamic'];
 
@@ -75,9 +80,10 @@ const TablesView: React.FC<TablesViewProps> = ({
                 mv.schemaName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 mv.databaseName.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesDb = selectedDb === 'All databases' || mv.databaseName === selectedDb;
-            return matchesSearch && matchesDb;
+            const matchesSchema = selectedSchema === 'All schemas' || mv.schemaName === selectedSchema;
+            return matchesSearch && matchesDb && matchesSchema;
         });
-    }, [searchQuery, selectedDb]);
+    }, [searchQuery, selectedDb, selectedSchema]);
 
     const filteredTasks = useMemo(() => {
         return tasksData.filter(task => {
@@ -175,7 +181,7 @@ const TablesView: React.FC<TablesViewProps> = ({
                             </div>
                         </div>
 
-                        {activeTab === 'Tables' && (
+                        {(activeTab === 'Tables' || activeTab === 'Materialized Views') && (
                             <>
                                 <div className="h-4 w-[1px] bg-border-light" />
                                 <div className="flex items-center gap-2">
@@ -194,23 +200,26 @@ const TablesView: React.FC<TablesViewProps> = ({
                                     </div>
                                 </div>
 
-                                <div className="h-4 w-[1px] bg-border-light" />
-
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-medium text-text-secondary">Type</span>
-                                    <div className="relative">
-                                        <select
-                                            className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
-                                            value={selectedTableType}
-                                            onChange={(e) => setSelectedTableType(e.target.value)}
-                                        >
-                                            {tableTypeOptions.map(opt => <option key={opt} value={opt}>{opt === 'All types' ? 'All' : opt}</option>)}
-                                        </select>
-                                        <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
-                                            <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                {activeTab === 'Tables' && (
+                                    <>
+                                        <div className="h-4 w-[1px] bg-border-light" />
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-text-secondary">Type</span>
+                                            <div className="relative">
+                                                <select
+                                                    className="appearance-none pl-0 pr-6 py-1 bg-transparent text-xs font-bold text-text-strong focus:outline-none cursor-pointer"
+                                                    value={selectedTableType}
+                                                    onChange={(e) => setSelectedTableType(e.target.value)}
+                                                >
+                                                    {tableTypeOptions.map(opt => <option key={opt} value={opt}>{opt === 'All types' ? 'All' : opt}</option>)}
+                                                </select>
+                                                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none">
+                                                    <IconChevronDown className="h-3 w-3 text-text-muted" />
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
+                                    </>
+                                )}
                             </>
                         )}
                     </div>
