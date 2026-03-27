@@ -117,11 +117,11 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onShowLogin }) => {
         <div className="h-screen flex bg-white font-sans text-text-strong overflow-hidden selection:bg-primary/20">
             {/* LEFT PANEL */}
             <div className="w-full lg:w-[42%] flex flex-col h-full relative z-10 bg-white p-8 md:p-12">
-                <div className="flex-shrink-0">
-                    <AnavsanLogo />
-                </div>
-
                 <div className="flex-grow flex flex-col justify-center max-w-[440px] mx-auto w-full">
+                    <div className="mb-8">
+                        <AnavsanLogo />
+                    </div>
+                    
                     <div className="animate-in fade-in slide-in-from-bottom-6 duration-1000">
                         <header className="mb-6 text-left">
                             <h2 className="text-[36px] font-black text-[#161616] tracking-tight leading-tight">Start your 14-day free trial</h2>
@@ -158,7 +158,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onShowLogin }) => {
                             </div>
 
                             <div className="pt-2">
-                                <button type="submit" className="w-full py-4.5 bg-[#6932D5] text-white font-black rounded-full hover:bg-[#5A28BE] active:scale-[0.98] transition-all shadow-xl shadow-[#6A38EB]/30 text-base flex items-center justify-center gap-3 group h-[56px]">
+                                <button type="submit" className="w-full py-4.5 bg-[#6932D5] text-white font-black rounded-full hover:bg-[#5A28BE] transition-all text-base flex items-center justify-center gap-3 group h-[56px]">
                                     <span className="tracking-tight">Sign up</span>
                                     <IconArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" />
                                 </button>

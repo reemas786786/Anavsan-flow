@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { Account, SQLFile, BigScreenWidget, QueryListItem, PullRequest, User, QueryListFilters, SlowQueryFilters, BreadcrumbItem, Warehouse, AssignedQuery, CortexModel, AssignmentStatus } from '../types';
 import AccountOverviewDashboard from './AccountOverviewDashboard';
 import { accountNavItems, IconChevronRight, IconChevronDown, IconList, IconSearch, IconSparkles, IconClock, IconChevronLeft, IconTrendingUp } from '../constants';
@@ -8,7 +9,6 @@ import StorageSummaryView from './StorageSummaryView';
 import DatabasesView from './DatabasesView';
 import SchemasView from './SchemasView';
 import TablesView from './TablesView';
-import ExplorerView from './ExplorerView';
 import UnusedTablesView from './UnusedTablesView';
 import QueriesOverview from './QueriesOverview';
 import ExpensiveQueriesView from './ExpensiveQueriesView';
@@ -298,12 +298,6 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         severityFilter: ['Medium', 'High'],
     });
 
-    const pageFilters = useMemo(() => ({
-        tableType: storageTableTypeFilter,
-        database: storageDatabaseFilter,
-        schema: storageSchemaFilter
-    }), [storageTableTypeFilter, storageDatabaseFilter, storageSchemaFilter]);
-
     // Generate account-specific warehouses
     const generatedAccountWarehouses = useMemo(() => {
         const count = account.warehousesCount;
@@ -355,8 +349,14 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
         setStorageDatabaseFilter(null);
         setStorageSchemaFilter(null);
         
-        // Redirect parent 'Queries' to its overview
-        const targetPage = newPage === 'Queries' ? 'Queries overview' : newPage;
+        // Redirect parent categories to their respective overview pages
+        let targetPage = newPage;
+        if (newPage === 'Compute') targetPage = 'Compute overview';
+        else if (newPage === 'Queries') targetPage = 'Queries overview';
+        else if (newPage === 'Storage') targetPage = 'Storage overview';
+        else if (newPage === 'Optimization') targetPage = 'Query analyzer';
+        else if (newPage === 'Analysis') targetPage = 'Query list';
+        
         onPageChange(targetPage);
     };
 
@@ -370,6 +370,67 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
     const isDatabaseDetailView = !!selectedDatabaseId;
     const isDeepDrillDown = !!selectedWarehouse || !!selectedQuery || !!selectedPullRequest || isDatabaseDetailView || isQueryDrillDown;
     
+    const computeTabs = [
+        { name: 'Compute overview', label: 'Overview' },
+        { name: 'Warehouse', label: 'Warehouse' },
+        { name: 'Serverless', label: 'Serverless' },
+        { name: 'Cortex', label: 'Cortex' }
+    ];
+
+    const analysisTabs = [
+        { name: 'Query list', label: 'All queries' },
+        { name: 'Repeated queries', label: 'Repeated query hash' },
+        { name: 'Expensive queries', label: 'Repeated expensive queries' }
+    ];
+
+    const storageTabs = [
+        { name: 'Storage overview', label: 'Overview' },
+        { name: 'Databases', label: 'Databases' },
+        { name: 'Schemas', label: 'Schemas' },
+        { name: 'Schema objects', label: 'Schema objects' },
+        { name: 'Unused tables', label: 'Unused tables' }
+    ];
+
+    const optimizationTabs = [
+        { name: 'Query analyzer', label: 'Overview' },
+        { name: 'Query optimizer', label: 'Optimizer' },
+        { name: 'Query simulator', label: 'Simulator' }
+    ];
+
+    const getActiveTabs = () => {
+        if (['Compute', 'Compute overview', 'Warehouse', 'Serverless', 'Cortex'].includes(activePage)) return computeTabs;
+        if (['Analysis', 'Query list', 'Repeated queries', 'Expensive queries'].includes(activePage)) return analysisTabs;
+        if (['Storage', 'Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables'].includes(activePage)) return storageTabs;
+        if (['Optimization', 'Query analyzer', 'Query optimizer', 'Query simulator'].includes(activePage)) return optimizationTabs;
+        return null;
+    };
+
+    const activeTabs = getActiveTabs();
+
+    const pageInfo: Record<string, { title: string; description: string }> = {
+        'Compute': { title: 'Compute overview', description: 'Overview of compute resources and credit consumption.' },
+        'Compute overview': { title: 'Compute overview', description: 'Overview of compute resources and credit consumption.' },
+        'Warehouse': { title: 'Warehouses', description: 'Manage and monitor your virtual warehouses.' },
+        'Serverless': { title: 'Serverless', description: 'Overview of serverless compute resources.' },
+        'Queries': { title: 'Queries overview', description: 'Overview of query performance and execution patterns.' },
+        'Queries overview': { title: 'Queries overview', description: 'Overview of query performance and execution patterns.' },
+        'Analysis': { title: 'Query analysis', description: 'Detailed analysis of query performance and execution patterns.' },
+        'Query list': { title: 'Query list', description: 'List of all queries executed in the account.' },
+        'Repeated queries': { title: 'Repeated queries', description: 'Analyze frequently executed query patterns.' },
+        'Expensive queries': { title: 'Expensive queries', description: 'Identify and analyze queries with high resource consumption.' },
+        'Query analyzer': { title: 'Query analyzer', description: 'Get detailed performance insights and recommendations for a specific query.' },
+        'Query optimizer': { title: 'Query optimizer', description: 'Use AI to automatically rewrite your query for better performance.' },
+        'Query simulator': { title: 'Query simulator', description: 'Simulate your query with different parameters to estimate performance.' },
+        'Storage': { title: 'Storage overview', description: 'Overview of storage metrics, database sizes, and growth trends.' },
+        'Storage overview': { title: 'Storage overview', description: 'Overview of storage metrics, database sizes, and growth trends.' },
+        'Databases': { title: 'Databases', description: 'Manage and monitor your account\'s databases.' },
+        'Schemas': { title: 'Schemas', description: 'Manage and monitor your schemas.' },
+        'Schema objects': { title: 'Schema objects', description: 'Detailed view of tables, materialized views, and tasks.' },
+        'Unused tables': { title: 'Unused tables', description: 'Identify and manage tables that are not being used.' },
+        'Optimization': { title: 'Optimization', description: 'Overview of optimization opportunities and recommendations.' },
+        'Cortex': { title: 'Cortex', description: 'Overview of Cortex AI services and consumption.' },
+    };
+
     const renderContent = () => {
         if (selectedWarehouse) {
             return <WarehouseDetailView 
@@ -399,7 +460,59 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
             />;
         }
 
-        switch (activePage) {
+        const info = pageInfo[activePage];
+
+        return (
+            <div className="flex flex-col h-full overflow-hidden">
+                {/* Screen Name for Pages with Tabs */}
+                {['Analysis', 'Query list', 'Repeated queries', 'Expensive queries', 'Queries overview', 'Compute overview', 'Warehouse', 'Serverless', 'Cortex'].includes(activePage) && (
+                    <div className="px-6 pt-6 pb-2 bg-background flex justify-between items-start">
+                        <div>
+                            <h1 className="text-[32px] font-black text-text-strong tracking-tight">
+                                {['Query list', 'Repeated queries', 'Expensive queries'].includes(activePage) ? 'Analysis' : info.title}
+                            </h1>
+                            <p className="text-sm text-text-secondary font-medium mt-1">Feb 17 to Feb 23 2026 (Last 7 days)</p>
+                        </div>
+                        <div className="bg-white px-4 py-2 rounded-xl border border-border-light shadow-sm flex items-center gap-2 cursor-pointer hover:bg-surface-nested transition-colors">
+                            <span className="text-sm font-bold text-text-strong">Last 7 days</span>
+                            <IconChevronDown className="w-4 h-4 text-text-muted" />
+                        </div>
+                    </div>
+                )}
+
+                {/* Tabs */}
+                {activeTabs && !isDeepDrillDown && (
+                    <div className={`flex items-center gap-8 border-b border-border-light px-6 sticky top-0 z-30 ${
+                        ['Analysis', 'Query list', 'Repeated queries', 'Expensive queries', 'Queries overview', 'Compute overview', 'Warehouse', 'Serverless', 'Cortex'].includes(activePage) ? 'bg-background' : 'bg-white'
+                    }`}>
+                        {activeTabs.map((tab) => {
+                            const isActive = activePage === tab.name || (activePage === tab.name.split(' ')[0] && tab.label === 'Overview');
+                            return (
+                                <button
+                                    key={tab.name}
+                                    onClick={() => onPageChange(tab.name)}
+                                    className={`py-4 text-sm font-bold transition-all relative whitespace-nowrap ${
+                                        isActive ? 'text-primary' : 'text-text-muted hover:text-text-strong'
+                                    }`}
+                                >
+                                    {tab.label}
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="activeTab"
+                                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                                            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                        />
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Page Content */}
+                <div className={`flex-grow overflow-y-auto no-scrollbar ${['Storage', 'Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables', 'Compute overview', 'Queries overview', 'Analysis', 'Query list', 'Repeated queries', 'Expensive queries', 'Slow queries', 'Warehouse', 'Serverless', 'Workloads', 'Services', 'Users'].includes(activePage) ? '' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
+                    {(() => {
+                        switch (activePage) {
             case 'Account overview':
                 return <AccountOverviewDashboard 
                     account={account} 
@@ -415,6 +528,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onSelectApp={setSelectedApplicationId} 
                     onNavigateToRecommendations={onNavigateToRecommendations} 
                 />;
+            case 'Compute':
             case 'Compute overview':
                 return <ComputeOverview 
                     account={account} 
@@ -435,6 +549,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onNavigateToRecommendations={onNavigateToRecommendations} 
                     initialHealthFilter={warehouseHealthFilter}
                 />;
+            case 'Queries':
             case 'Queries overview':
                 return <QueriesOverview 
                     onNavigate={onPageChange} 
@@ -443,6 +558,20 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                         setSelectedRepeatedQueryHash(hash);
                         onPageChange('Repeated queries');
                     }}
+                />;
+            case 'Analysis':
+            case 'Query list':
+                return <QueryListView 
+                    onShareQueryClick={onShareQueryClick} 
+                    onSelectQuery={setSelectedQuery} 
+                    onAnalyzeQuery={(q) => onAnalyzeQuery(q, 'Query list')} 
+                    onOptimizeQuery={(q) => onOptimizeQuery(q, 'Query list')} 
+                    onSimulateQuery={(q) => onSimulateQuery(q, 'Query list')} 
+                    onNavigateToRecommendations={onNavigateToRecommendations}
+                    filters={allQueriesFilters} 
+                    setFilters={setAllQueriesFilters} 
+                    onDrillDownChange={setIsQueryDrillDown}
+                    mode="all"
                 />;
             case 'Repeated queries':
                 return <QueryListView 
@@ -456,6 +585,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     setFilters={setAllQueriesFilters} 
                     onDrillDownChange={setIsQueryDrillDown}
                     initialGroupId={selectedRepeatedQueryHash}
+                    mode="repeated"
                 />;
             case 'Expensive queries':
                 return <ExpensiveQueriesView 
@@ -484,62 +614,46 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                 />;
             case 'Storage':
             case 'Storage overview':
-                return (
-                    <div className="flex flex-col h-full bg-background">
-                        <header className="px-4 pt-4 pb-4 flex flex-col gap-4 flex-shrink-0 mb-0">
-                            <div>
-                                <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Storage Overview</h1>
-                                <p className="text-sm text-text-secondary font-medium mt-1">Explore and manage storage costs, table health, and database efficiency.</p>
-                            </div>
-                        </header>
-                        <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
-                            <StorageSummaryView 
-                                onSelectDatabase={(id) => { handleSidebarPageChange('Databases'); setSelectedDatabaseId(id === '__view_all__' ? null : id); }} 
-                                onSetBigScreenWidget={onSetBigScreenWidget} 
-                                onNavigate={(page, filters) => handleStorageNavigation(page, filters)}
-                            />
-                        </main>
-                    </div>
-                );
-            case 'Explorer':
-                return (
-                    <div className="flex flex-col h-full bg-background">
-                        <header className="px-4 pt-6 pb-2 flex flex-col gap-4 flex-shrink-0 bg-transparent mb-0">
-                            <div>
-                                <h1 className="text-[32px] font-black text-text-strong tracking-tight">Explorer</h1>
-                                <p className="text-sm text-text-secondary font-medium mt-1">Browse and manage all storage objects in one place.</p>
-                            </div>
-                        </header>
-                        <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
-                            <ExplorerView 
-                                onNavigate={handleStorageNavigation}
-                                filters={pageFilters}
-                            />
-                        </main>
-                    </div>
-                );
+                return <StorageSummaryView 
+                    onSelectDatabase={(id) => { handleSidebarPageChange('Databases'); setSelectedDatabaseId(id === '__view_all__' ? null : id); }} 
+                    onSetBigScreenWidget={onSetBigScreenWidget} 
+                    onNavigate={(page, filters) => handleStorageNavigation(page, filters)}
+                />;
+            case 'Databases':
+                return <DatabasesView 
+                    onNavigateToSchemas={(db) => handleStorageNavigation('Schemas', { database: db })}
+                />;
+            case 'Schemas':
+                return <SchemasView 
+                    initialDatabaseFilter={storageDatabaseFilter}
+                    onNavigateToTables={(db, schema) => handleStorageNavigation('Schema objects', { database: db, schema: schema })}
+                />;
+            case 'Schema objects':
+                return <TablesView 
+                    initialTableTypeFilter={storageTableTypeFilter}
+                    initialDatabaseFilter={storageDatabaseFilter}
+                    initialSchemaFilter={storageSchemaFilter}
+                />;
             case 'Unused tables':
-                return (
-                    <div className="flex flex-col h-full bg-background">
-                        <header className="px-4 pt-6 pb-2 flex flex-col gap-4 flex-shrink-0 bg-transparent mb-0">
-                            <div>
-                                <h1 className="text-[32px] font-black text-text-strong tracking-tight">Unused tables</h1>
-                            </div>
-                        </header>
-                        <main className="flex-1 p-4 pb-12 overflow-y-auto no-scrollbar">
-                            <UnusedTablesView 
-                                onNavigateToRecommendations={onNavigateToRecommendations} 
-                                initialTableTypeFilter={storageTableTypeFilter}
-                            />
-                        </main>
-                    </div>
-                );
+                return <UnusedTablesView 
+                    onNavigateToRecommendations={onNavigateToRecommendations} 
+                    initialTableTypeFilter={storageTableTypeFilter}
+                />;
             case 'Workloads':
                 return <WorkloadsListView accountName={account.name} onNavigateToRecommendations={onNavigateToRecommendations} />;
             case 'Services':
                 return <AccountServicesView accountName={account.name} onNavigateToRecommendations={onNavigateToRecommendations} />;
             case 'Users':
                 return <AccountUsersListView accountName={account.name} onNavigateToRecommendations={onNavigateToRecommendations} />;
+            case 'Optimization':
+            case 'Query analyzer':
+                return <QueryAnalyzerView 
+                    query={analyzingQuery} 
+                    onBack={handleBackFromTool} 
+                    onSaveClick={onSaveQueryClick} 
+                    onBrowseQueries={() => handleSidebarPageChange('Queries')} 
+                    onOptimizeQuery={(q) => onOptimizeQuery(q, activePage)} 
+                />;
             case 'Cortex':
                 return <CortexListView onNavigateToRecommendations={onNavigateToRecommendations} />;
             default:
@@ -549,10 +663,14 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                     onSelectWarehouse={setSelectedWarehouse}
                     onSelectQuery={setSelectedQuery}
                 />;
-        }
+                        }
+                    })()}
+                </div>
+            </div>
+        );
     };
 
-    const isListView = ['Queries', 'Queries overview', 'Repeated queries', 'Expensive queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator', 'Warehouse', 'Serverless', 'Applications', 'Cortex', 'Storage', 'Storage overview', 'Explorer', 'Unused tables', 'Workloads', 'Services', 'Users', 'Credit trend', 'Compute overview'].includes(activePage);
+    const isListView = ['Queries', 'Queries overview', 'Repeated queries', 'Expensive queries', 'Slow queries', 'Similar query patterns', 'Query analyzer', 'Query optimizer', 'Query simulator', 'Warehouse', 'Serverless', 'Applications', 'Cortex', 'Storage', 'Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables', 'Workloads', 'Services', 'Users', 'Credit trend', 'Compute overview'].includes(activePage);
 
     return (
         <div className="flex flex-col h-full overflow-hidden bg-background">
@@ -575,7 +693,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                         </div>
                     </div>
                     
-                    <div className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar ${isDeepDrillDown || ['Storage', 'Storage overview', 'Explorer', 'Unused tables', 'Compute overview', 'Queries overview', 'Repeated queries', 'Expensive queries'].includes(activePage) ? '' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
+                    <div className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar ${isDeepDrillDown || ['Storage', 'Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables', 'Compute overview', 'Queries overview', 'Repeated queries', 'Expensive queries'].includes(activePage) ? '' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
                         <div className="lg:hidden p-4 pb-0">
                              <MobileNav activePage={activePage} onPageChange={handleSidebarPageChange} accountNavItems={accountNavItems} />
                         </div>

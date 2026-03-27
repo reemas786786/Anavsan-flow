@@ -42,13 +42,19 @@ const ContextualNavItem: React.FC<{
     const isSubMenuOpen = openSubMenus[item.name];
     const isSomeChildActive = !isDeepDrillDown && hasChildren && item.children.some(c => c.name === activePage);
 
-    const isItemActuallyActive = !isDeepDrillDown && (activePage === item.name || (item.name === 'Compute' && ['Compute overview', 'Warehouse', 'Serverless', 'Cortex'].includes(activePage)) || (item.name === 'Queries' && ['Queries overview', 'Repeated queries', 'Expensive queries'].includes(activePage)) || (item.name === 'Storage' && ['Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables'].includes(activePage)) || (item.name === 'Optimization' && ['Query analyzer', 'Query optimizer', 'Query simulator'].includes(activePage))) && !(item.name === 'Applications' && selectedApplicationId);
+    const isItemActuallyActive = !isDeepDrillDown && (activePage === item.name || (item.name === 'Compute' && ['Compute overview', 'Warehouse', 'Serverless', 'Cortex', 'Overview'].includes(activePage)) || (item.name === 'Queries' && ['Queries overview', 'Repeated queries', 'Expensive queries', 'Overview', 'Analysis'].includes(activePage)) || (item.name === 'Storage' && ['Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables', 'Overview'].includes(activePage)) || (item.name === 'Optimization' && ['Query analyzer', 'Query optimizer', 'Query simulator', 'Overview'].includes(activePage))) && !(item.name === 'Applications' && selectedApplicationId);
 
     if (isSidebarExpanded) {
         return (
             <li>
                 <button
-                    onClick={() => onPageChange(item.name)}
+                    onClick={() => {
+                        if (hasChildren) {
+                            handleSubMenuToggle(item.name);
+                        } else {
+                            onPageChange(item.name);
+                        }
+                    }}
                     className={`w-full flex items-center gap-3 text-left p-2 rounded-lg text-sm transition-colors ${
                         isItemActuallyActive
                         ? 'bg-primary/5 text-primary font-bold'
@@ -56,8 +62,33 @@ const ContextualNavItem: React.FC<{
                     }`}
                 >
                     <item.icon className={`h-5 w-5 shrink-0 ${isItemActuallyActive ? 'text-primary' : 'text-text-strong'}`} />
-                    <span>{item.label || item.name}</span>
+                    <span className="flex-1">{item.label || item.name}</span>
+                    {hasChildren && (
+                        <IconChevronDown className={`h-4 w-4 transition-transform ${isSubMenuOpen ? 'rotate-180' : ''}`} />
+                    )}
                 </button>
+                {hasChildren && isSubMenuOpen && (
+                    <ul className="mt-1 space-y-1 ml-8">
+                        {item.children.map(child => {
+                            const isChildActive = activePage === child.name || 
+                                (item.name === 'Queries' && ['Query list', 'Repeated queries', 'Expensive queries'].includes(activePage) && child.name === 'Analysis');
+                            return (
+                                <li key={child.name}>
+                                    <button
+                                        onClick={() => onPageChange(child.name)}
+                                        className={`w-full text-left p-2 rounded-lg text-sm transition-colors ${
+                                            isChildActive
+                                            ? 'bg-primary/5 text-primary font-bold'
+                                            : 'text-text-secondary hover:bg-surface-hover hover:text-text-strong'
+                                        }`}
+                                    >
+                                        {child.label || child.name}
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
             </li>
         );
     } else {
@@ -126,7 +157,15 @@ const ContextualSidebar: React.FC<ContextualSidebarProps> = ({ account, accounts
     useEffect(() => {
         // Find the parent menu that contains the current active page
         const parentToOpen = accountNavItems.find(item => 
-            item.children.some(child => child.name === activePage)
+            item.children.some(child => {
+                const isChildActive = activePage === child.name || 
+                    (item.name === 'Queries' && activePage === 'Queries overview' && child.name === 'Queries overview') || 
+                    (item.name === 'Queries' && ['Query list', 'Repeated queries', 'Expensive queries'].includes(activePage) && child.name === 'Analysis') ||
+                    (item.name === 'Compute' && activePage === 'Compute overview' && child.name === 'Compute overview') || 
+                    (item.name === 'Storage' && activePage === 'Storage overview' && child.name === 'Storage overview') || 
+                    (item.name === 'Optimization' && activePage === 'Query analyzer' && child.name === 'Query analyzer');
+                return isChildActive;
+            })
         )?.name;
         
         if (parentToOpen) {

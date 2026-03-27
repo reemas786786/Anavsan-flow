@@ -18,12 +18,13 @@ export type Page =
   | 'Query logs'
   | 'Integrations'
   | 'User management'
+  | 'Budgets & alerts'
   | 'Alerts'
   | 'Book a demo'
   | 'Docs'
   | 'Settings' 
   | 'Support'
-  | 'Profile settings'
+  | 'Profile'
   | 'Billing'
   | 'Your plan'
   | 'Change plan'
@@ -33,6 +34,7 @@ export type Page =
 
 export interface NavSubItem {
     name: string;
+    label?: string;
 }
 
 export interface NavItem {

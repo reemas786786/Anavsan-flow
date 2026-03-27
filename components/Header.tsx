@@ -9,7 +9,7 @@ interface HeaderProps {
     onLogoClick: () => void;
     isSidebarOpen: boolean;
     brandLogo: string | null;
-    onOpenProfileSettings: () => void;
+    onOpenProfile: () => void;
     onLogout: () => void;
     hasNewAssignment?: boolean;
     notifications: Notification[];
@@ -44,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({
     onLogoClick, 
     isSidebarOpen, 
     brandLogo, 
-    onOpenProfileSettings, 
+    onOpenProfile, 
     onLogout, 
     hasNewAssignment, 
     notifications,
@@ -138,7 +138,7 @@ const Header: React.FC<HeaderProps> = ({
             {isUserMenuOpen && (
                 <div className="origin-top-right absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1" role="menu" aria-orientation="vertical">
-                        <button onClick={() => { onOpenProfileSettings(); setIsUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Profile Settings</button>
+                        <button onClick={() => { onOpenProfile(); setIsUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-text-secondary hover:bg-surface-hover" role="menuitem">Profile</button>
                         <button onClick={() => { onLogout(); setIsUserMenuOpen(false); }} className="w-full text-left block px-4 py-2 text-sm text-status-error hover:bg-status-error/10" role="menuitem">Logout</button>
                     </div>
                 </div>

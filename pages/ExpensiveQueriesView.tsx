@@ -155,17 +155,6 @@ const ExpensiveQueriesView: React.FC<ExpensiveQueriesViewProps> = ({ onSelectQue
 
     return (
         <div className="flex flex-col h-full bg-background space-y-4 px-6 pt-6 pb-12 overflow-y-auto no-scrollbar">
-            <div className="flex items-center justify-between flex-shrink-0">
-                <div className="flex flex-col">
-                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Expensive queries</h1>
-                    <p className="text-sm text-text-secondary font-medium mt-1">Feb 17 to Feb 23 2026 (Last 7 days)</p>
-                </div>
-                <DateRangeDropdown 
-                    selectedValue={dateRange} 
-                    onChange={(val) => { setDateRange(val as string); }} 
-                />
-            </div>
-
             {/* Pill-style Summary Metrics */}
             <div className="flex flex-wrap items-center gap-3 overflow-x-auto no-scrollbar flex-shrink-0">
                 <KPILabel label="Total credits" value={`${metrics.topNCredits.toFixed(1)} Credits`} />

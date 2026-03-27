@@ -362,28 +362,22 @@ export const accountNavItems = [
         name: 'Compute',
         icon: IconDatabase,
         children: [
-            { name: 'Compute overview', label: 'Overview', icon: IconOverview },
-            { name: 'Warehouse', icon: IconDatabase },
-            { name: 'Serverless', icon: IconBolt },
-            { name: 'Cortex', icon: IconSparkles }
+            { name: 'Compute overview', label: 'Overview' }
         ]
     },
     {
         name: 'Queries',
         icon: IconCode,
         children: [
-            { name: 'Queries overview', label: 'Overview', icon: IconOverview },
-            { name: 'Repeated queries', icon: IconRefresh },
-            { name: 'Expensive queries', icon: IconTrendingUp }
+            { name: 'Queries overview', label: 'Overview' },
+            { name: 'Analysis' }
         ]
     },
     {
         name: 'Storage',
         icon: IconDatabase,
         children: [
-            { name: 'Storage overview', label: 'Overview', icon: IconOverview },
-            { name: 'Explorer', icon: IconSearch },
-            { name: 'Unused tables', icon: IconList }
+            { name: 'Storage overview', label: 'Overview' }
         ]
     },
     {
@@ -405,9 +399,7 @@ export const accountNavItems = [
         name: 'Optimization',
         icon: IconWand,
         children: [
-            { name: 'Query analyzer', icon: IconSearch },
-            { name: 'Query optimizer', icon: IconSparkles },
-            { name: 'Query simulator', icon: IconBeaker }
+            { name: 'Query analyzer', label: 'Overview' }
         ]
     }
 ];
@@ -416,7 +408,11 @@ export const NAV_ITEMS_TOP: NavItem[] = [
     { name: 'AI data cloud overview', icon: IconCloudOverview },
     { name: 'Dashboards', icon: IconDashboard },
     { name: 'Resource summary', icon: IconAdjustments },
+    { name: 'Recommendations', icon: IconLightbulb },
+    { name: 'Budgets & alerts', icon: IconCreditCard },
     { name: 'Accounts', icon: IconConnections },
+    { name: 'Reports', icon: IconReports },
+    { name: 'AI agent', icon: IconAIAgent },
     { 
         name: 'Workspace', 
         icon: IconCode,
@@ -425,9 +421,6 @@ export const NAV_ITEMS_TOP: NavItem[] = [
             { name: 'Query vault' }
         ]
     },
-    { name: 'Recommendations', icon: IconLightbulb },
-    { name: 'Reports', icon: IconReports },
-    { name: 'AI agent', icon: IconAIAgent },
 ];
 
 export const NAV_ITEMS_BOTTOM: NavItem[] = [

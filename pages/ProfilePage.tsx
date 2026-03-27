@@ -64,8 +64,7 @@ const UserInformationSection: React.FC<{ user: User }> = ({ user }) => {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="bg-surface p-8 rounded-[24px] border border-border-light shadow-sm">
-                <div className="flex justify-between items-start mb-8">
-                    <h2 className="text-xl font-black text-text-strong uppercase tracking-widest">Personal Information</h2>
+                <div className="flex justify-end items-start mb-8">
                     {!isEditing && (
                         <button 
                             onClick={() => setIsEditing(true)}
@@ -178,7 +177,6 @@ const BillingInformationSection: React.FC = () => {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="bg-surface p-8 rounded-[24px] border border-border-light shadow-sm">
-                <h2 className="text-xl font-black text-text-strong uppercase tracking-widest mb-2">Billing details</h2>
                 <p className="text-sm text-text-secondary mb-8">These details will be used for all future invoices and tax compliance.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <div className="col-span-2">
@@ -246,7 +244,6 @@ const ChangePasswordSection: React.FC = () => {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="bg-surface p-8 rounded-[24px] border border-border-light shadow-sm">
-                <h2 className="text-xl font-black text-text-strong uppercase tracking-widest mb-8">Security & Access</h2>
                 <div className="max-w-md space-y-6">
                     <PasswordInput
                         id="current-password"
@@ -324,7 +321,6 @@ const BrandSettingsSection: React.FC = () => {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="bg-surface p-8 rounded-[24px] border border-border-light shadow-sm">
-                <h2 className="text-xl font-black text-text-strong uppercase tracking-widest mb-8">Custom Branding</h2>
                 <div className="space-y-12">
                     {/* Logo Section */}
                     <div>
@@ -409,7 +405,7 @@ const BrandSettingsSection: React.FC = () => {
     );
 };
 
-interface ProfileSettingsPageProps {
+interface ProfilePageProps {
     user: User;
     onBack: () => void;
     theme: string;
@@ -418,7 +414,7 @@ interface ProfileSettingsPageProps {
 }
 
 
-const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, initialSection }) => {
+const ProfilePage: React.FC<ProfilePageProps> = ({ user, initialSection }) => {
     const [activeSection, setActiveSection] = useState(initialSection || 'User information');
 
     const navItems = [
@@ -443,7 +439,7 @@ const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, initial
             <div className="max-w-6xl mx-auto w-full space-y-8">
                 {/* Unified Header */}
                 <header className="flex-shrink-0">
-                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Profile settings</h1>
+                    <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Profile</h1>
                     <p className="text-sm text-text-secondary font-medium mt-1">Manage your identity, billing preferences, and workspace branding.</p>
                 </header>
 
@@ -479,4 +475,4 @@ const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ user, initial
     );
 };
 
-export default ProfileSettingsPage;
+export default ProfilePage;

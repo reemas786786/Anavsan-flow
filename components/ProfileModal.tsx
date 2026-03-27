@@ -3,7 +3,7 @@ import { User } from '../types';
 import { IconEdit } from '../constants';
 import Modal from './Modal';
 
-interface ProfileSettingsModalProps {
+interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: User;
@@ -18,7 +18,7 @@ const ProfileCard: React.FC<{ title: string; children: React.ReactNode }> = ({ t
     </div>
 );
 
-const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOpen, onClose, user, onSave, onLogout }) => {
+const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, onSave, onLogout }) => {
     const [isEditingInfo, setIsEditingInfo] = useState(false);
     const [userInfo, setUserInfo] = useState({ name: user.name, email: user.email, roleTitle: user.roleTitle || '' });
     const [passwords, setPasswords] = useState({ old: '', new: '', confirm: '' });
@@ -81,7 +81,7 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOpen, onC
     );
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Profile Settings">
+        <Modal isOpen={isOpen} onClose={onClose} title="Profile">
             <div className="p-8 space-y-6 bg-surface">
                 <ProfileCard title="User Info">
                     <div className="space-y-4">
@@ -145,4 +145,4 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOpen, onC
     );
 };
 
-export default ProfileSettingsModal;
+export default ProfileModal;

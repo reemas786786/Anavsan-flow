@@ -61,11 +61,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSSOLogin, onShowSignup
         <div className="h-screen flex bg-white font-sans text-text-strong overflow-hidden selection:bg-primary/20">
             {/* Left Panel - Form */}
             <div className="w-full lg:w-[42%] flex flex-col h-full bg-white p-8 md:p-12">
-                <div className="flex-shrink-0">
-                    <AnavsanLogo />
-                </div>
-                
                 <div className="mx-auto w-full max-w-[400px] flex-grow flex flex-col justify-center">
+                    <div className="mb-8">
+                        <AnavsanLogo />
+                    </div>
+                    
                     <h1 className="text-[32px] font-black text-[#161616] tracking-tight">Sign in to <strong className="font-black">Anavsan</strong></h1>
                     <p className="mt-2 text-[#5A5A72] text-sm font-medium">
                         Don't have an account?{' '}
@@ -123,7 +123,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSSOLogin, onShowSignup
                         </div>
 
                         <div className="pt-2">
-                            <button type="submit" className="w-full flex justify-center items-center gap-3 py-4 h-[56px] bg-[#6932D5] text-white font-black rounded-full hover:bg-[#5A28BE] active:scale-[0.98] transition-all shadow-xl shadow-[#6A38EB]/20 text-base group">
+                            <button type="submit" className="w-full flex justify-center items-center gap-3 py-4 h-[56px] bg-[#6932D5] text-white font-black rounded-full hover:bg-[#5A28BE] transition-all text-base group">
                                 <span>Sign in</span>
                                 <IconArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </button>

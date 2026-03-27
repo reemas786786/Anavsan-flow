@@ -45,6 +45,7 @@ const AddAccountFlow: React.FC<AddAccountFlowProps> = ({ onCancel, onAddAccount 
     const [isVerifying, setIsVerifying] = useState(false);
     const [status, setStatus] = useState<'idle' | 'verifying' | 'error'>('idle');
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+    const [keyGenerated, setKeyGenerated] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         identifier: '',
@@ -103,34 +104,47 @@ const AddAccountFlow: React.FC<AddAccountFlowProps> = ({ onCancel, onAddAccount 
         setToast(null);
     };
 
+    const handleGenerateKeyPair = () => {
+        setKeyGenerated(true);
+        setFormData(prev => ({
+            ...prev,
+            privateKey: '-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA7V9... (Simulated Private Key)\n-----END RSA PRIVATE KEY-----'
+        }));
+        setToast({
+            message: "Key pair generated successfully. The setup script has been updated with your public key",
+            type: 'success'
+        });
+    };
+
     const setupScript = useMemo(() => {
         if (formData.authMethod === 'keypair') {
+            const publicKey = keyGenerated ? 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7V9...' : '<PASTE_YOUR_PUBLIC_KEY_HERE>';
             return `-- Consolidated Setup Script for Anavsan (Key Pair Auth)
 -- Run this in a Snowflake worksheet as ACCOUNTADMIN
-
+ 
 -- 1. Create dedicated user with Public Key
 CREATE OR REPLACE USER anavsan_user
-  RSA_PUBLIC_KEY = '<PASTE_YOUR_PUBLIC_KEY_HERE>'
+  RSA_PUBLIC_KEY = '${publicKey}'
   DEFAULT_ROLE = 'anavsan_role'
   DEFAULT_WAREHOUSE = 'anavsan_wh'
   MUST_CHANGE_PASSWORD = FALSE;
-
+ 
 -- 2. Create optimized role
 CREATE OR REPLACE ROLE anavsan_role;
 GRANT ROLE anavsan_role TO USER anavsan_user;
-
+ 
 -- 3. Grant metadata access
 GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE 
   TO ROLE anavsan_role;
 GRANT MONITOR USAGE ON ACCOUNT TO ROLE anavsan_role;
-
+ 
 -- 4. Create resource-efficient warehouse
 CREATE OR REPLACE WAREHOUSE anavsan_wh
   WAREHOUSE_SIZE = XSMALL
   AUTO_SUSPEND = 60
   AUTO_RESUME = TRUE
   INITIALLY_SUSPENDED = TRUE;
-
+ 
 GRANT USAGE ON WAREHOUSE anavsan_wh TO ROLE anavsan_role;
 ALTER USER anavsan_user SET DEFAULT_WAREHOUSE = anavsan_wh;
 ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
@@ -138,32 +152,32 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
 
         return `-- Consolidated Setup Script for Anavsan
 -- Run this in a Snowflake worksheet as ACCOUNTADMIN
-
+ 
 -- 1. Create dedicated user
 CREATE OR REPLACE USER anavsan_user
   PASSWORD = '<StrongPassword>'
   MUST_CHANGE_PASSWORD = FALSE;
-
+ 
 -- 2. Create optimized role
 CREATE OR REPLACE ROLE anavsan_role;
 GRANT ROLE anavsan_role TO USER anavsan_user;
-
+ 
 -- 3. Grant metadata access
 GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE 
   TO ROLE anavsan_role;
 GRANT MONITOR USAGE ON ACCOUNT TO ROLE anavsan_role;
-
+ 
 -- 4. Create resource-efficient warehouse
 CREATE OR REPLACE WAREHOUSE anavsan_wh
   WAREHOUSE_SIZE = XSMALL
   AUTO_SUSPEND = 60
   AUTO_RESUME = TRUE
   INITIALLY_SUSPENDED = TRUE;
-
+ 
 GRANT USAGE ON WAREHOUSE anavsan_wh TO ROLE anavsan_role;
 ALTER USER anavsan_user SET DEFAULT_WAREHOUSE = anavsan_wh;
 ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
-    }, [formData.authMethod]);
+    }, [formData.authMethod, keyGenerated]);
 
     const isFormValid = useMemo(() => {
         const basicFields = formData.name && formData.identifier && formData.username;
@@ -245,12 +259,6 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
                             
                             {/* Section 1: Account Information */}
                             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <div className="flex flex-col">
-                                        <h3 className="text-sm font-black text-text-strong uppercase tracking-widest">Account information</h3>
-                                        <p className="text-[10px] text-text-muted font-bold uppercase mt-0.5 tracking-tight">Validate information for mapping</p>
-                                    </div>
-                                </div>
                                 <div className="grid grid-cols-1 gap-y-8">
                                     <div className="space-y-2">
                                         <label className="block text-[11px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Account display name <span className="text-status-error">*</span></label>
@@ -290,13 +298,6 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
 
                             {/* Section 2: Create Anavsan User */}
                             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <div className="flex flex-col">
-                                        <h3 className="text-sm font-black text-text-strong uppercase tracking-widest">Create Anavsan user</h3>
-                                        <p className="text-[10px] text-text-muted font-bold uppercase mt-0.5 tracking-tight">Securely connect to your data platform</p>
-                                    </div>
-                                </div>
-
                                 <div className="space-y-8">
                                     <div className="space-y-3">
                                         <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Authentication method</label>
@@ -307,7 +308,7 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
                                                         type="radio" 
                                                         name="authMethod"
                                                         checked={formData.authMethod === 'password'}
-                                                        onChange={() => setFormData({...formData, authMethod: 'password'})}
+                                                        onChange={() => setFormData(prev => ({...prev, authMethod: 'password'}))}
                                                         className="peer appearance-none w-5 h-5 border-2 border-border-light rounded-full checked:border-primary transition-all"
                                                     />
                                                     <div className="absolute w-2.5 h-2.5 bg-primary rounded-full scale-0 peer-checked:scale-100 transition-transform"></div>
@@ -320,7 +321,10 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
                                                         type="radio" 
                                                         name="authMethod"
                                                         checked={formData.authMethod === 'keypair'}
-                                                        onChange={() => setFormData({...formData, authMethod: 'keypair'})}
+                                                        onChange={() => {
+                                                            setFormData(prev => ({...prev, authMethod: 'keypair'}));
+                                                            handleGenerateKeyPair();
+                                                        }}
                                                         className="peer appearance-none w-5 h-5 border-2 border-border-light rounded-full checked:border-primary transition-all"
                                                     />
                                                     <div className="absolute w-2.5 h-2.5 bg-primary rounded-full scale-0 peer-checked:scale-100 transition-transform"></div>
@@ -343,38 +347,25 @@ ALTER USER anavsan_user SET DEFAULT_ROLE = anavsan_role;`;
                                             <p className="text-[11px] text-text-muted font-medium ml-1">The password created for the dedicated Anavsan Snowflake user.</p>
                                         </div>
                                     ) : (
-                                        <div className="space-y-6">
-                                            <div className="space-y-2">
-                                                <div className="flex items-center gap-2 ml-1">
-                                                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Private key <span className="text-status-error">*</span></label>
-                                                    <div className="group relative">
-                                                        <IconLockClosed className="w-3 h-3 text-primary cursor-help" />
-                                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-xl">
-                                                            Your private key is encrypted at rest and never shared. 🔒
+                                         <div className="space-y-6">
+                                            {keyGenerated && (
+                                                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Generated Public Key</label>
+                                                    <div className="relative">
+                                                        <input 
+                                                            type="text" 
+                                                            readOnly
+                                                            value="MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7V9..."
+                                                            className="w-full max-w-xl bg-surface-nested border border-border-light rounded-[16px] px-5 py-3.5 text-xs font-mono text-text-muted outline-none"
+                                                        />
+                                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                                            <span className="text-[9px] font-black text-status-success uppercase tracking-widest bg-status-success/10 px-2 py-0.5 rounded-full">Auto-generated</span>
                                                         </div>
                                                     </div>
+                                                    <p className="text-[11px] text-text-muted font-medium ml-1">This public key has been automatically added to your setup script below.</p>
                                                 </div>
-                                                <textarea 
-                                                    value={formData.privateKey}
-                                                    onChange={(e) => setFormData({...formData, privateKey: e.target.value})}
-                                                    className="w-full max-w-xl bg-white border border-border-light rounded-[16px] px-5 py-4 text-xs focus:ring-1 focus:ring-primary outline-none shadow-sm font-mono h-32 resize-none"
-                                                    placeholder="-----BEGIN RSA PRIVATE KEY-----&#10;...&#10;-----END RSA PRIVATE KEY-----"
-                                                />
-                                                <p className="text-[11px] text-text-muted font-medium ml-1">Paste your private key here. Anavsan uses this to securely sign requests to Snowflake.</p>
-                                            </div>
-
-                                            <div className="space-y-2">
-                                                <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Private key passphrase (Optional)</label>
-                                                <input 
-                                                    type="password" 
-                                                    value={formData.passphrase}
-                                                    onChange={(e) => setFormData({...formData, passphrase: e.target.value})}
-                                                    className="w-full max-w-sm bg-white border border-border-light rounded-[16px] px-5 py-3.5 text-sm focus:ring-1 focus:ring-primary outline-none shadow-sm font-medium"
-                                                    placeholder="Enter passphrase"
-                                                />
-                                                <p className="text-[11px] text-text-muted font-medium ml-1">Only required if your private key is encrypted.</p>
-                                            </div>
-                                        </div>
+                                            )}
+                                         </div>
                                     )}
 
                                     {/* Consolidated Setup Script Area moved here */}

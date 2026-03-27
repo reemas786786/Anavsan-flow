@@ -28,7 +28,7 @@ import { accountNavItems, IconInfo, IconUser, IconLightbulb, IconChevronRight } 
 import SettingsPage from './pages/SettingsPage';
 import Dashboards from './pages/Dashboards';
 import DashboardEditor from './pages/DashboardEditor';
-import ProfileSettingsPage from './pages/ProfileSettingsPage';
+import ProfilePage from './pages/ProfilePage';
 import Breadcrumb from './components/Breadcrumb';
 import AssignQueryFlow from './components/AssignQueryFlow';
 import AssignedTasks from './pages/AssignedTasks';
@@ -49,13 +49,15 @@ import ChangePlan from './pages/billing/ChangePlan';
 import SendQueryFlow from './components/SendQueryFlow';
 import ExtendedTrialSideFlow from './components/ExtendedTrialSideFlow';
 import AddSeatsModal from './components/AddSeatsModal';
+import SetGuardrailFlow from './components/SetGuardrailFlow';
 import SwitchToIndividualModal from './components/SwitchToIndividualModal';
 import ConfirmSubscriptionChangeModal from './components/ConfirmSubscriptionChangeModal';
 import ConfirmCycleDowngradeModal from './components/ConfirmCycleDowngradeModal';
 import ResourceSummary from './pages/CreditExplorer'; 
 import Reports from './pages/Reports';
+import BudgetsAndAlerts from './pages/BudgetsAndAlerts';
 
-type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview' | 'assignedQueryPreview' | 'updateAssignmentStatus' | 'sendQuery' | 'extendedTrial';
+type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview' | 'assignedQueryPreview' | 'updateAssignmentStatus' | 'sendQuery' | 'extendedTrial' | 'setGuardrail';
 type ModalType = 'addUser' | 'orgSetup' | 'addSeats' | 'switchToIndividual' | 'confirmSubscriptionChange' | 'confirmCycleDowngrade';
 type Theme = 'light' | 'dark' | 'gray10' | 'black' | 'system';
 export type DisplayMode = 'cost' | 'credits';
@@ -124,8 +126,10 @@ const App: React.FC = () => {
   const [isViewingDashboard, setIsViewingDashboard] = useState(false);
 
   const [selectedQuery, setSelectedQuery] = useState<QueryListItem | null>(null);
+  const [selectedRepeatedQueryHash, setSelectedRepeatedQueryHash] = useState<string | null>(null);
   const [selectedAssignedQuery, setSelectedAssignedQuery] = useState<AssignedQuery | null>(null);
   const [selectedRecommendation, setSelectedRecommendation] = useState<Recommendation | null>(null);
+  const [selectedGuardrail, setSelectedGuardrail] = useState<any | null>(null);
   const [analyzingQuery, setAnalyzingQuery] = useState<QueryListItem | null>(null);
   const [navigationSource, setNavigationSource] = useState<string | null>(null);
   const [backNavigationPage, setBackNavigationPage] = useState<Page>('Accounts');
@@ -171,6 +175,7 @@ const App: React.FC = () => {
     setSelectedQuery(null);
     setSelectedAssignedQuery(null);
     setSelectedRecommendation(null); 
+    setSelectedGuardrail(null);
     setSelectedPullRequest(null);
     setSelectedWarehouse(null);
     setSelectedApplicationId(null);
@@ -211,7 +216,7 @@ const App: React.FC = () => {
 
     if (selectedAccount) {
         items.push({ 
-            label: 'Accounts', 
+            label: 'Resource summary', 
             onClick: () => { setSelectedAccount(null); handleSetActivePage('Accounts'); } 
         });
         items.push({ 
@@ -219,6 +224,8 @@ const App: React.FC = () => {
             onClick: () => {
                 setAccountViewPage('Account overview');
                 setSelectedWarehouse(null);
+                setSelectedQuery(null);
+                setSelectedRepeatedQueryHash(null);
             }
         });
 
@@ -236,6 +243,38 @@ const App: React.FC = () => {
             return items;
         }
 
+        if (selectedQuery || selectedRepeatedQueryHash) {
+            items.push({ 
+                label: 'Queries', 
+                onClick: () => {
+                    setAccountViewPage('Queries overview');
+                    setSelectedQuery(null);
+                    setSelectedRepeatedQueryHash(null);
+                } 
+            });
+            
+            // Always show Analysis if we are deep in queries
+            items.push({
+                label: 'Analysis',
+                onClick: () => {
+                    setAccountViewPage('Analysis');
+                    setSelectedQuery(null);
+                    setSelectedRepeatedQueryHash(null);
+                }
+            });
+
+            if (selectedQuery) {
+                items.push({ 
+                    label: selectedQuery.id.substring(0, 8) + '...'
+                });
+            } else if (selectedRepeatedQueryHash) {
+                items.push({ 
+                    label: selectedRepeatedQueryHash.substring(0, 8) + '...'
+                });
+            }
+            return items;
+        }
+
         if (accountViewPage === 'Applications') {
             items.push({ 
                 label: 'Applications', 
@@ -248,6 +287,22 @@ const App: React.FC = () => {
                 }
             }
         } else if (accountViewPage !== 'Account overview') {
+            // Find if current page is a child of a category
+            const parentCategory = accountNavItems.find(cat => 
+                cat.children.some(child => child.name === accountViewPage)
+            );
+
+            if (parentCategory) {
+                items.push({
+                    label: parentCategory.name,
+                    onClick: () => {
+                        // Navigate to overview or first child
+                        const overviewChild = parentCategory.children.find(c => c.name.toLowerCase().includes('overview'));
+                        setAccountViewPage(overviewChild ? overviewChild.name : parentCategory.children[0].name);
+                    }
+                });
+            }
+
             let label = accountViewPage;
             if (accountViewPage === 'Compute overview' || accountViewPage === 'Storage overview' || accountViewPage === 'Queries overview') {
                 label = 'Overview';
@@ -279,8 +334,12 @@ const App: React.FC = () => {
         items.push({ label: selectedRecommendation.id });
     }
 
+    if (activePage === 'Budgets & alerts' && selectedGuardrail) {
+        items.push({ label: selectedGuardrail.name });
+    }
+
     return items;
-  }, [activePage, activeSubPage, selectedAccount, accountViewPage, selectedApplicationId, selectedRecommendation, selectedWarehouse, selectedAssignedQuery]);
+  }, [activePage, activeSubPage, selectedAccount, accountViewPage, selectedApplicationId, selectedRecommendation, selectedWarehouse, selectedAssignedQuery, selectedQuery, selectedRepeatedQueryHash, selectedGuardrail]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -607,6 +666,7 @@ const App: React.FC = () => {
             if (activeSubPage === 'Team consumption') return <TeamConsumption users={users} subscription={subscription} onAddUser={() => setModal({ type: 'addUser' })} onEditUserRole={() => {}} onSuspendUser={() => {}} onActivateUser={() => {}} onRemoveUser={() => {}} onCancelDowngrade={() => {}} />;
             if (activeSubPage === 'Billing history') return <BillingHistory onNavigate={handleSetActivePage} onDownloadInvoice={() => {}} />;
             return <ChangePlan users={users} currentUser={currentUser} onSubscriptionSuccess={handleSubscriptionSuccess} currentPlan={subscription.plan} subscription={subscription} />;
+        case 'Budgets & alerts': return <BudgetsAndAlerts onSetNewGuardrail={() => setSidePanel({ type: 'setGuardrail', data: { initialStep: 'custom' } })} onImportGuardrail={() => setSidePanel({ type: 'setGuardrail', data: { initialStep: 'import' } })} onEditGuardrail={(guardrail) => setSidePanel({ type: 'setGuardrail', data: { ...guardrail, initialStep: 'config' } })} selectedGuardrail={selectedGuardrail} onSelectGuardrail={setSelectedGuardrail} />;
         case 'Activity logs':
         case 'Alerts': 
             return <NotificationsPage 
@@ -634,7 +694,7 @@ const App: React.FC = () => {
             onEditDashboardClick={setEditingDashboard} 
             onViewDashboardClick={setSelectedDashboard} 
         />;
-        case 'Profile settings': return <ProfileSettingsPage user={currentUser!} initialSection={activeSubPage} onBack={() => handleSetActivePage('AI data cloud overview')} theme={theme} onThemeChange={(newTheme) => setTheme(newTheme as Theme)} />;
+        case 'Profile': return <ProfilePage user={currentUser!} initialSection={activeSubPage} onBack={() => handleSetActivePage('AI data cloud overview')} theme={theme} onThemeChange={(newTheme) => setTheme(newTheme as Theme)} />;
         default: return <Overview onSelectAccount={handleSelectAccount} onSelectUser={setSelectedUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} currentUser={currentUser} onNavigate={handleSetActivePage} onAddAccountClick={() => setSidePanel({ type: 'addAccount' })} />;
     }
   };
@@ -667,7 +727,7 @@ const App: React.FC = () => {
         onLogoClick={() => handleSetActivePage('AI data cloud overview')}
         isSidebarOpen={isSidebarOpen}
         brandLogo={null}
-        onOpenProfileSettings={() => handleSetActivePage('Profile settings')}
+        onOpenProfile={() => handleSetActivePage('Profile')}
         onLogout={handleLogout}
         notifications={notifications}
         onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
@@ -718,7 +778,7 @@ const App: React.FC = () => {
       </div>
       <AIQuickAskPanel isOpen={isQuickAskOpen} onClose={() => setIsQuickAskOpen(false)} onOpenAgent={() => { setIsQuickAskOpen(false); handleSetActivePage('AI agent'); }} />
       {sidePanel && (
-        <SidePanel isOpen={!!sidePanel} onClose={() => setSidePanel(null)} isFullScreen={sidePanel.type === 'addAccount'} title={sidePanel.type === 'assignQuery' ? 'Assign Optimization Task' : sidePanel.type === 'queryPreview' ? 'Query Preview' : 'Panel'}>
+        <SidePanel isOpen={!!sidePanel} onClose={() => setSidePanel(null)} isFullScreen={sidePanel.type === 'addAccount'} title={sidePanel.type === 'assignQuery' ? 'Assign Optimization Task' : sidePanel.type === 'queryPreview' ? 'Query Preview' : sidePanel.type === 'setGuardrail' ? 'Set new guardrail' : 'Panel'}>
           {sidePanel.type === 'addAccount' && <AddAccountFlow onCancel={() => setSidePanel(null)} onAddAccount={() => {setAccounts(connectionsData); setSidePanel(null);}} />}
           {sidePanel.type === 'assignQuery' && (
             <AssignQueryFlow 
@@ -850,7 +910,20 @@ const App: React.FC = () => {
                 </div>
             </div>
           )}
-        </SidePanel>
+          {sidePanel?.type === 'setGuardrail' && (
+          <SetGuardrailFlow 
+            accounts={connectionsData}
+            applications={accountApplicationsData}
+            initialStep={sidePanel.data?.initialStep}
+            onClose={() => setSidePanel(null)} 
+            onSuccess={(data) => {
+              console.log('Guardrail set:', data);
+              setSidePanel(null);
+              setToastMessage('New guardrail initialized successfully');
+            }} 
+          />
+        )}
+      </SidePanel>
       )}
       {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
     </div>

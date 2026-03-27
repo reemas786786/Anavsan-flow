@@ -25,7 +25,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
                     {item.onClick && index < items.length - 1 ? (
                         <button 
                             onClick={item.onClick} 
-                            className="hover:text-primary transition-colors text-text-muted"
+                            className="hover:text-primary-hover transition-colors text-primary"
                         >
                             {item.label}
                         </button>

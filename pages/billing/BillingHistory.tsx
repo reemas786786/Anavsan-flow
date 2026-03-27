@@ -131,7 +131,7 @@ const BillingHistory: React.FC<BillingHistoryProps> = ({ onNavigate, onDownloadI
                     <p className="text-sm text-text-secondary mt-1">Add your VAT or GST details to your profile to include them in future invoices.</p>
                 </div>
                 <button 
-                    onClick={() => onNavigate('Profile settings', 'Billing Information')}
+                    onClick={() => onNavigate('Profile', 'Billing Information')}
                     className="whitespace-nowrap bg-white text-primary font-black px-6 py-2.5 rounded-full border border-primary/20 hover:bg-primary hover:text-white transition-all shadow-sm"
                 >
                     Update Billing Profile
