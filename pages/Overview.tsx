@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, CartesianGrid, Legend } from 'recharts';
+import { Zap, TrendingUp, AlertTriangle, CheckCircle2, CreditCard, Sparkles } from 'lucide-react';
 import { 
     usageCreditsData, 
     resourceSnapshotData, 
@@ -71,7 +72,7 @@ const SummaryMetricCard: React.FC<{
 }> = ({ label, value, subValue, onClick }) => (
     <button 
         onClick={onClick}
-        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm hover:shadow-md w-full"
+        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group w-full"
     >
         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">{label}</p>
         <div className="mt-auto">
@@ -101,7 +102,7 @@ const RecommendationItem: React.FC<{ rec: Recommendation; onClick?: () => void }
     return (
         <div 
             onClick={onClick}
-            className={`p-4 rounded-xl bg-surface-nested border border-border-light/50 space-y-2 transition-all duration-200 ${onClick ? 'cursor-pointer hover:border-primary/40 hover:bg-surface-hover shadow-sm hover:shadow-md active:scale-[0.99]' : ''}`}
+            className={`p-4 rounded-xl bg-surface-nested border border-border-light/50 space-y-2 transition-all duration-200 ${onClick ? 'cursor-pointer hover:border-primary/40 hover:bg-surface-hover active:scale-[0.99]' : ''}`}
         >
             <div className="flex items-center gap-2">
                 <span className="text-[13px] font-bold text-text-strong font-mono">{rec.insightType}</span>
@@ -142,7 +143,7 @@ const RecommendationStatusWidget: React.FC<{ onNavigate: (page: Page, subPage?: 
                     <button
                         key={s.label}
                         onClick={() => onNavigate('Recommendations', undefined, { filters: { status: s.label } })}
-                        className="flex flex-col p-4 rounded-2xl bg-surface-nested border border-border-light hover:border-primary/40 hover:bg-surface-hover shadow-sm hover:shadow-md transition-all group text-left h-full"
+                        className="flex flex-col p-4 rounded-2xl bg-surface-nested border border-border-light hover:border-primary/40 hover:bg-surface-hover transition-all group text-left h-full"
                     >
                         <div className="flex items-center gap-2 mb-2">
                             <div className={`w-2 h-2 rounded-full ${s.color}`} />
@@ -249,7 +250,7 @@ const CreditsTrendWidget: React.FC = () => {
                     <div className="relative" ref={accountRef}>
                         <button 
                             onClick={() => setIsAccountOpen(!isAccountOpen)}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-lg text-[11px] text-text-primary font-bold border border-border-color shadow-sm min-w-[120px] justify-between"
+                            className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-lg text-[11px] text-text-primary font-bold border border-border-color min-w-[120px] justify-between"
                         >
                             <span className="truncate max-w-[100px]">{selectedAccount}</span>
                             <IconChevronDown className={`w-3 h-3 text-text-muted transition-transform flex-shrink-0 ${isAccountOpen ? 'rotate-180' : ''}`} />
@@ -272,7 +273,7 @@ const CreditsTrendWidget: React.FC = () => {
                     <div className="relative" ref={rangeRef}>
                         <button 
                             onClick={() => setIsRangeOpen(!isRangeOpen)}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-lg text-[11px] text-text-primary font-bold border border-border-color shadow-sm min-w-[100px] justify-between"
+                            className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-lg text-[11px] text-text-primary font-bold border border-border-color min-w-[100px] justify-between"
                         >
                             {selectedRange.label}
                             <IconChevronDown className={`w-3 h-3 text-text-muted transition-transform flex-shrink-0 ${isRangeOpen ? 'rotate-180' : ''}`} />
@@ -310,6 +311,49 @@ const CreditsTrendWidget: React.FC = () => {
                         <Area type="monotone" dataKey="total" stroke="#6932D5" strokeWidth={4} fillOpacity={1} fill="url(#colorTrend)" />
                     </AreaChart>
                 </ResponsiveContainer>
+            </div>
+        </WidgetCard>
+    );
+};
+
+const BudgetStatusWidget: React.FC<{ onNavigate: (page: Page) => void }> = ({ onNavigate }) => {
+    const budgetItems = [
+        { label: 'Total Budgets', value: '3', icon: <CreditCard className="w-4 h-4" />, color: 'bg-blue-500' },
+        { label: 'Healthy', value: '1', icon: <CheckCircle2 className="w-4 h-4" />, color: 'bg-emerald-500', valueColor: 'text-emerald-600' },
+        { label: 'At Risk', value: '2', icon: <AlertTriangle className="w-4 h-4" />, color: 'bg-red-500', valueColor: 'text-red-600' },
+        { label: 'AI Optimizations', value: '2', icon: <Sparkles className="w-4 h-4" />, color: 'bg-primary', valueColor: 'text-primary' },
+        { label: 'Balance Credits', value: '12,450', icon: <Zap className="w-4 h-4" />, color: 'bg-amber-500' },
+    ];
+
+    return (
+        <WidgetCard 
+            title="Budget status" 
+            headerActions={<button onClick={() => onNavigate('Budgets & alerts')} className="text-[11px] font-bold text-link hover:underline">View all</button>}
+            infoText="Aggregate spend across all budgets vs. total organization limit."
+        >
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 h-full">
+                {budgetItems.map((item, idx) => (
+                    <button
+                        key={item.label}
+                        onClick={() => onNavigate('Budgets & alerts')}
+                        className={`flex flex-col p-4 rounded-2xl bg-surface-nested border border-border-light hover:border-primary/40 hover:bg-surface-hover transition-all group text-left h-full ${idx === 4 ? 'md:col-span-2' : ''}`}
+                    >
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className={`w-2 h-2 rounded-full ${item.color}`} />
+                            <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest group-hover:text-primary transition-colors">
+                                {item.label}
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-between mt-auto">
+                            <span className={`text-2xl font-black ${item.valueColor || 'text-text-strong'}`}>
+                                {item.value}
+                            </span>
+                            <div className="text-text-muted group-hover:text-primary transition-colors opacity-50 group-hover:opacity-100">
+                                {item.icon}
+                            </div>
+                        </div>
+                    </button>
+                ))}
             </div>
         </WidgetCard>
     );
@@ -584,6 +628,7 @@ const Overview: React.FC<OverviewProps> = ({ accounts, onSelectAccount, onSelect
                 </WidgetCard>
 
                 <CreditsTrendWidget />
+                <BudgetStatusWidget onNavigate={onNavigate} />
             </div>
         </div>
     );

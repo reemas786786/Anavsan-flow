@@ -483,7 +483,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                 {/* Tabs */}
                 {activeTabs && !isDeepDrillDown && (
                     <div className={`flex items-center gap-8 border-b border-border-light px-6 sticky top-0 z-30 ${
-                        ['Analysis', 'Query list', 'Repeated queries', 'Expensive queries', 'Queries overview', 'Compute overview', 'Warehouse', 'Serverless', 'Cortex'].includes(activePage) ? 'bg-background' : 'bg-white'
+                        ['Analysis', 'Query list', 'Repeated queries', 'Expensive queries', 'Queries overview', 'Compute overview', 'Warehouse', 'Serverless', 'Cortex', 'Storage', 'Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables'].includes(activePage) ? 'bg-background' : 'bg-white'
                     }`}>
                         {activeTabs.map((tab) => {
                             const isActive = activePage === tab.name || (activePage === tab.name.split(' ')[0] && tab.label === 'Overview');
@@ -510,7 +510,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                 )}
 
                 {/* Page Content */}
-                <div className={`flex-grow overflow-y-auto no-scrollbar ${['Storage', 'Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables', 'Compute overview', 'Queries overview', 'Analysis', 'Query list', 'Repeated queries', 'Expensive queries', 'Slow queries', 'Warehouse', 'Serverless', 'Workloads', 'Services', 'Users'].includes(activePage) ? '' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
+                <div className={`flex-grow overflow-y-auto no-scrollbar ${['Storage', 'Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables', 'Compute overview', 'Queries overview', 'Analysis', 'Query list', 'Repeated queries', 'Expensive queries', 'Slow queries', 'Warehouse', 'Serverless', 'Workloads', 'Services', 'Users'].includes(activePage) ? 'p-4 pb-12' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
                     {(() => {
                         switch (activePage) {
             case 'Account overview':
@@ -693,7 +693,7 @@ const AccountView: React.FC<AccountViewProps> = ({ account, accounts, onSwitchAc
                         </div>
                     </div>
                     
-                    <div className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar ${isDeepDrillDown || ['Storage', 'Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables', 'Compute overview', 'Queries overview', 'Repeated queries', 'Expensive queries'].includes(activePage) ? '' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
+                    <div className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar ${isDeepDrillDown || ['Storage', 'Storage overview', 'Databases', 'Schemas', 'Schema objects', 'Unused tables', 'Compute overview', 'Queries overview', 'Repeated queries', 'Expensive queries'].includes(activePage) ? 'p-4 pb-12' : (isListView && !selectedWarehouse ? "" : "p-4 pb-12")}`}>
                         <div className="lg:hidden p-4 pb-0">
                              <MobileNav activePage={activePage} onPageChange={handleSidebarPageChange} accountNavItems={accountNavItems} />
                         </div>

@@ -121,7 +121,7 @@ const mockAnalysisResults: AnalysisResult[] = [
 const AnalysisResultCard: React.FC<{ result: AnalysisResult }> = ({ result }) => {
     const Icon = result.icon;
     return (
-        <div className="bg-white p-6 rounded-[16px] flex items-start gap-6 border border-border-color shadow-sm transition-shadow hover:shadow-md">
+        <div className="bg-white p-6 rounded-[16px] flex items-start gap-6 border border-border-color">
             <div className="flex-shrink-0 pt-1">
                 <Icon className="w-6 h-6 text-primary" />
             </div>

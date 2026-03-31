@@ -49,7 +49,7 @@ import ChangePlan from './pages/billing/ChangePlan';
 import SendQueryFlow from './components/SendQueryFlow';
 import ExtendedTrialSideFlow from './components/ExtendedTrialSideFlow';
 import AddSeatsModal from './components/AddSeatsModal';
-import SetGuardrailFlow from './components/SetGuardrailFlow';
+import SetBudgetFlow from './components/SetBudgetFlow';
 import SwitchToIndividualModal from './components/SwitchToIndividualModal';
 import ConfirmSubscriptionChangeModal from './components/ConfirmSubscriptionChangeModal';
 import ConfirmCycleDowngradeModal from './components/ConfirmCycleDowngradeModal';
@@ -57,7 +57,7 @@ import ResourceSummary from './pages/CreditExplorer';
 import Reports from './pages/Reports';
 import BudgetsAndAlerts from './pages/BudgetsAndAlerts';
 
-type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview' | 'assignedQueryPreview' | 'updateAssignmentStatus' | 'sendQuery' | 'extendedTrial' | 'setGuardrail';
+type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview' | 'assignedQueryPreview' | 'updateAssignmentStatus' | 'sendQuery' | 'extendedTrial' | 'setBudget';
 type ModalType = 'addUser' | 'orgSetup' | 'addSeats' | 'switchToIndividual' | 'confirmSubscriptionChange' | 'confirmCycleDowngrade';
 type Theme = 'light' | 'dark' | 'gray10' | 'black' | 'system';
 export type DisplayMode = 'cost' | 'credits';
@@ -129,7 +129,7 @@ const App: React.FC = () => {
   const [selectedRepeatedQueryHash, setSelectedRepeatedQueryHash] = useState<string | null>(null);
   const [selectedAssignedQuery, setSelectedAssignedQuery] = useState<AssignedQuery | null>(null);
   const [selectedRecommendation, setSelectedRecommendation] = useState<Recommendation | null>(null);
-  const [selectedGuardrail, setSelectedGuardrail] = useState<any | null>(null);
+  const [selectedBudget, setSelectedBudget] = useState<any | null>(null);
   const [analyzingQuery, setAnalyzingQuery] = useState<QueryListItem | null>(null);
   const [navigationSource, setNavigationSource] = useState<string | null>(null);
   const [backNavigationPage, setBackNavigationPage] = useState<Page>('Accounts');
@@ -175,7 +175,7 @@ const App: React.FC = () => {
     setSelectedQuery(null);
     setSelectedAssignedQuery(null);
     setSelectedRecommendation(null); 
-    setSelectedGuardrail(null);
+    setSelectedBudget(null);
     setSelectedPullRequest(null);
     setSelectedWarehouse(null);
     setSelectedApplicationId(null);
@@ -334,12 +334,12 @@ const App: React.FC = () => {
         items.push({ label: selectedRecommendation.id });
     }
 
-    if (activePage === 'Budgets & alerts' && selectedGuardrail) {
-        items.push({ label: selectedGuardrail.name });
+    if (activePage === 'Budgets & alerts' && selectedBudget) {
+        items.push({ label: selectedBudget.name });
     }
 
     return items;
-  }, [activePage, activeSubPage, selectedAccount, accountViewPage, selectedApplicationId, selectedRecommendation, selectedWarehouse, selectedAssignedQuery, selectedQuery, selectedRepeatedQueryHash, selectedGuardrail]);
+  }, [activePage, activeSubPage, selectedAccount, accountViewPage, selectedApplicationId, selectedRecommendation, selectedWarehouse, selectedAssignedQuery, selectedQuery, selectedRepeatedQueryHash, selectedBudget]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -666,7 +666,7 @@ const App: React.FC = () => {
             if (activeSubPage === 'Team consumption') return <TeamConsumption users={users} subscription={subscription} onAddUser={() => setModal({ type: 'addUser' })} onEditUserRole={() => {}} onSuspendUser={() => {}} onActivateUser={() => {}} onRemoveUser={() => {}} onCancelDowngrade={() => {}} />;
             if (activeSubPage === 'Billing history') return <BillingHistory onNavigate={handleSetActivePage} onDownloadInvoice={() => {}} />;
             return <ChangePlan users={users} currentUser={currentUser} onSubscriptionSuccess={handleSubscriptionSuccess} currentPlan={subscription.plan} subscription={subscription} />;
-        case 'Budgets & alerts': return <BudgetsAndAlerts onSetNewGuardrail={() => setSidePanel({ type: 'setGuardrail', data: { initialStep: 'custom' } })} onImportGuardrail={() => setSidePanel({ type: 'setGuardrail', data: { initialStep: 'import' } })} onEditGuardrail={(guardrail) => setSidePanel({ type: 'setGuardrail', data: { ...guardrail, initialStep: 'config' } })} selectedGuardrail={selectedGuardrail} onSelectGuardrail={setSelectedGuardrail} />;
+        case 'Budgets & alerts': return <BudgetsAndAlerts onSetNewBudget={() => setSidePanel({ type: 'setBudget', data: { initialData: null } })} onImportBudget={() => setSidePanel({ type: 'setBudget', data: { initialData: null } })} onEditBudget={(budget) => setSidePanel({ type: 'setBudget', data: { initialData: budget } })} selectedBudget={selectedBudget} onSelectBudget={setSelectedBudget} onNavigate={handleSetActivePage} />;
         case 'Activity logs':
         case 'Alerts': 
             return <NotificationsPage 
@@ -778,7 +778,21 @@ const App: React.FC = () => {
       </div>
       <AIQuickAskPanel isOpen={isQuickAskOpen} onClose={() => setIsQuickAskOpen(false)} onOpenAgent={() => { setIsQuickAskOpen(false); handleSetActivePage('AI agent'); }} />
       {sidePanel && (
-        <SidePanel isOpen={!!sidePanel} onClose={() => setSidePanel(null)} isFullScreen={sidePanel.type === 'addAccount'} title={sidePanel.type === 'assignQuery' ? 'Assign Optimization Task' : sidePanel.type === 'queryPreview' ? 'Query Preview' : sidePanel.type === 'setGuardrail' ? 'Set new guardrail' : 'Panel'}>
+        <SidePanel 
+          isOpen={!!sidePanel} 
+          onClose={() => setSidePanel(null)} 
+          isFullScreen={sidePanel?.type === 'addAccount'} 
+          title={
+            sidePanel?.type === 'assignQuery' ? 'Assign Optimization Task' : 
+            sidePanel?.type === 'queryPreview' ? 'Query Preview' : 
+            sidePanel?.type === 'setBudget' ? (sidePanel.data?.initialStep === 'import' ? 'Import budget' : 'Set new budget') : 
+            'Panel'
+          }
+          description={
+            sidePanel?.type === 'setBudget' ? (sidePanel.data?.initialStep === 'import' ? undefined : 'Configure automated monitoring and escalation rules for your environment.') : 
+            undefined
+          }
+        >
           {sidePanel.type === 'addAccount' && <AddAccountFlow onCancel={() => setSidePanel(null)} onAddAccount={() => {setAccounts(connectionsData); setSidePanel(null);}} />}
           {sidePanel.type === 'assignQuery' && (
             <AssignQueryFlow 
@@ -910,16 +924,16 @@ const App: React.FC = () => {
                 </div>
             </div>
           )}
-          {sidePanel?.type === 'setGuardrail' && (
-          <SetGuardrailFlow 
+          {sidePanel?.type === 'setBudget' && (
+          <SetBudgetFlow 
             accounts={connectionsData}
             applications={accountApplicationsData}
-            initialStep={sidePanel.data?.initialStep}
+            initialData={sidePanel.data?.initialData}
             onClose={() => setSidePanel(null)} 
             onSuccess={(data) => {
-              console.log('Guardrail set:', data);
+              console.log('Budget set:', data);
               setSidePanel(null);
-              setToastMessage('New guardrail initialized successfully');
+              setToastMessage(sidePanel.data?.initialData ? 'Budget updated successfully' : 'New budget initialized successfully');
             }} 
           />
         )}

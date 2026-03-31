@@ -220,7 +220,7 @@ const StorageSummaryView: React.FC<{
     };
 
     return (
-        <div className="flex flex-col h-full p-6 pb-12 gap-4 bg-background overflow-y-auto no-scrollbar">
+        <div className="flex flex-col h-full gap-4 bg-background overflow-y-auto no-scrollbar">
             <WidgetCard 
                 title="Storage summary"
                 actions={
@@ -243,7 +243,7 @@ const StorageSummaryView: React.FC<{
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     <button 
                         onClick={() => onNavigate('Databases')}
-                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Total credits</p>
                         <div className="mt-auto">
@@ -254,7 +254,7 @@ const StorageSummaryView: React.FC<{
                     
                     <button 
                         onClick={() => onNavigate('Databases')}
-                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Databases</p>
                         <div className="mt-auto">
@@ -263,7 +263,7 @@ const StorageSummaryView: React.FC<{
                     </button>
                     <button 
                         onClick={() => onNavigate('Schemas')}
-                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Schemas</p>
                         <div className="mt-auto">
@@ -272,7 +272,7 @@ const StorageSummaryView: React.FC<{
                     </button>
                     <button 
                         onClick={() => onNavigate('Schema objects')}
-                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Schema objects</p>
                         <div className="mt-auto">
@@ -284,7 +284,7 @@ const StorageSummaryView: React.FC<{
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
                     <button 
                         onClick={() => onNavigate('Unused tables')}
-                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Unused tables</p>
                         <div className="mt-auto">
@@ -295,7 +295,7 @@ const StorageSummaryView: React.FC<{
 
                     <button 
                         onClick={() => onNavigate('Databases')}
-                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Failsafe</p>
                         <div className="mt-auto">
@@ -304,7 +304,7 @@ const StorageSummaryView: React.FC<{
                     </button>
                     <button 
                         onClick={() => onNavigate('Databases')}
-                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+                        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group w-full"
                     >
                         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">Time travel</p>
                         <div className="mt-auto">

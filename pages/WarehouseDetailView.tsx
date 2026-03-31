@@ -28,7 +28,7 @@ const SummaryMetricCard: React.FC<{
     value: string; 
     subValue?: string; 
 }> = ({ label, value, subValue }) => (
-    <div className="bg-white p-4 rounded-[20px] border border-border-light flex flex-col h-[100px] text-left shadow-sm w-full">
+    <div className="bg-white p-4 rounded-[20px] border border-border-light flex flex-col h-[100px] text-left w-full">
         <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{label}</p>
         <div className="mt-auto">
             <p className="text-[20px] font-black text-text-strong tracking-tight leading-none">{value}</p>

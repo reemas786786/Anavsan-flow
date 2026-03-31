@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const SummaryPill: React.FC<{ 
   label: string; 
@@ -57,10 +58,20 @@ const data = [
   { name: 'Mar 30', actual: null, predicted: 11800 },
 ];
 
-const guardrails = [
+const globalData = [
+  { name: 'Mar 1', actual: 2000, predicted: 2000 },
+  { name: 'Mar 5', actual: 8000, predicted: 8000 },
+  { name: 'Mar 10', actual: 15000, predicted: 15000 },
+  { name: 'Mar 15', actual: 22000, predicted: 22000 },
+  { name: 'Mar 20', actual: 31000, predicted: 31000 },
+  { name: 'Mar 25', actual: 41000, predicted: 41000 },
+  { name: 'Mar 30', actual: null, predicted: 52000 },
+];
+
+const budgets = [
   {
     id: 1,
-    name: "Production ETL guardrail",
+    name: "Production ETL budget",
     description: "Monitoring compute spend for the core production data pipelines.",
     scope: "Account",
     scopeName: "Finance-Prod",
@@ -69,7 +80,7 @@ const guardrails = [
     progress: 65,
     status: "Notify at 50%, 80%, 100%",
     color: "amber",
-    budget: 12500,
+    budget: 10000,
     current: 8240,
     projected: 11800,
     forecast: "Within limit",
@@ -139,22 +150,30 @@ const recentAlerts = [
 ];
 
 interface BudgetsAndAlertsProps {
-  onSetNewGuardrail: () => void;
-  onImportGuardrail: () => void;
-  onEditGuardrail: (guardrail: any) => void;
-  selectedGuardrail: typeof guardrails[0] | null;
-  onSelectGuardrail: (guardrail: typeof guardrails[0] | null) => void;
+  onSetNewBudget: () => void;
+  onImportBudget: () => void;
+  onEditBudget: (budget: any) => void;
+  selectedBudget: typeof budgets[0] | null;
+  onSelectBudget: (budget: typeof budgets[0] | null) => void;
+  onNavigate: (page: any, subPage?: string, additionalState?: any) => void;
 }
 
-const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, onImportGuardrail, onEditGuardrail, selectedGuardrail, onSelectGuardrail }) => {
+const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewBudget, onImportBudget, onEditBudget, selectedBudget, onSelectBudget, onNavigate }) => {
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [budgetToDelete, setBudgetToDelete] = useState<any>(null);
   const [search, setSearch] = useState('');
   const [scopeFilter, setScopeFilter] = useState<string[]>([]);
   const [periodFilter, setPeriodFilter] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
 
-  const filteredGuardrails = useMemo(() => {
-    return guardrails.filter(g => {
+  // Breakdown filters
+  const [breakdownSearch, setBreakdownSearch] = useState('');
+  const [breakdownTypeFilter, setBreakdownTypeFilter] = useState<string[]>([]);
+  const [breakdownAccountFilter, setBreakdownAccountFilter] = useState<string[]>([]);
+
+  const filteredBudgets = useMemo(() => {
+    return budgets.filter(g => {
       const matchesSearch = g.name.toLowerCase().includes(search.toLowerCase()) || 
                            g.scopeName.toLowerCase().includes(search.toLowerCase());
       const matchesScope = scopeFilter.length === 0 || scopeFilter.includes(g.scope);
@@ -168,7 +187,7 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
     });
   }, [search, scopeFilter, periodFilter, statusFilter]);
 
-  if (selectedGuardrail) {
+  if (selectedBudget) {
     return (
       <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in slide-in-from-right-4 duration-500">
         {/* Detail Header */}
@@ -176,22 +195,22 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
           <div className="flex justify-between items-end">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold text-text-primary tracking-tight">{selectedGuardrail.name}</h1>
+                <h1 className="text-3xl font-bold text-text-primary tracking-tight">{selectedBudget.name}</h1>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  selectedGuardrail.color === 'green' ? 'bg-green-50 text-green-700' :
-                  selectedGuardrail.color === 'amber' ? 'bg-amber-50 text-amber-700' :
+                  selectedBudget.color === 'green' ? 'bg-green-50 text-green-700' :
+                  selectedBudget.color === 'amber' ? 'bg-amber-50 text-amber-700' :
                   'bg-red-50 text-red-700'
                 }`}>
-                  {selectedGuardrail.status}
+                  {selectedBudget.status}
                 </span>
               </div>
               <p className="text-text-secondary mt-1 text-lg">
-                Monitoring scope: <span className="font-bold text-text-primary">{selectedGuardrail.scope}: {selectedGuardrail.scopeName}</span>
+                Monitoring scope: <span className="font-bold text-text-primary">{selectedBudget.scope}: {selectedBudget.scopeName}</span>
               </p>
             </div>
             <div className="flex gap-3">
               <button className="px-4 py-2 rounded-lg border border-border-light font-bold text-sm hover:bg-surface-hover transition-colors">
-                Edit guardrail
+                Edit budget
               </button>
               <button className="px-4 py-2 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-colors shadow-sm">
                 Optimize now
@@ -200,75 +219,70 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
           </div>
         </div>
 
-        {/* Guardrail Specific Health Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-surface border border-border-light p-6 rounded-2xl shadow-sm">
-            <p className="text-sm font-medium text-text-muted tracking-wider">Total monthly budget</p>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-text-primary">${selectedGuardrail.budget.toLocaleString()}</span>
+        {/* Budget Specific Health Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-surface border border-border-light p-4 rounded-xl shadow-sm">
+            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Total monthly budget</p>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-text-primary">
+                {typeof selectedBudget.budget === 'number' ? `$${selectedBudget.budget.toLocaleString()}` : selectedBudget.budget}
+              </span>
             </div>
-            <div className="mt-4 h-1.5 w-full bg-surface-hover rounded-full overflow-hidden">
+            <div className="mt-3 h-1 w-full bg-surface-hover rounded-full overflow-hidden">
               <div className="h-full bg-primary w-full opacity-20" />
             </div>
           </div>
 
-          <div className="bg-surface border border-border-light p-6 rounded-2xl shadow-sm">
-            <p className="text-sm font-medium text-text-muted tracking-wider">Current spend</p>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-text-primary">${selectedGuardrail.current.toLocaleString()}</span>
-              <span className={`text-sm font-semibold px-2 py-0.5 rounded-full ${
-                selectedGuardrail.progress > 80 ? 'bg-red-50 text-red-600' : 
-                selectedGuardrail.progress > 50 ? 'bg-amber-50 text-amber-600' : 
+          <div className="bg-surface border border-border-light p-4 rounded-xl shadow-sm">
+            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Current spend</p>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-text-primary">${selectedBudget.current.toLocaleString()}</span>
+              <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
+                selectedBudget.progress > 80 ? 'bg-red-50 text-red-600' : 
+                selectedBudget.progress > 50 ? 'bg-amber-50 text-amber-600' : 
                 'bg-green-50 text-green-600'
               }`}>
-                {selectedGuardrail.progress}%
+                {selectedBudget.progress}%
               </span>
             </div>
-            <div className="mt-4 h-1.5 w-full bg-surface-hover rounded-full overflow-hidden">
+            <div className="mt-3 h-1 w-full bg-surface-hover rounded-full overflow-hidden">
               <div className={`h-full ${
-                selectedGuardrail.progress > 80 ? 'bg-red-500' : 
-                selectedGuardrail.progress > 50 ? 'bg-amber-500' : 
+                selectedBudget.progress > 80 ? 'bg-red-500' : 
+                selectedBudget.progress > 50 ? 'bg-amber-500' : 
                 'bg-green-500'
-              }`} style={{ width: `${selectedGuardrail.progress}%` }} />
+              }`} style={{ width: `${selectedBudget.progress}%` }} />
             </div>
           </div>
 
-          <div className="bg-surface border border-border-light p-6 rounded-2xl shadow-sm">
-            <p className="text-sm font-medium text-text-muted tracking-wider">Projected spend (AI)</p>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-text-primary">${selectedGuardrail.projected.toLocaleString()}</span>
-              <span className={`text-sm font-semibold flex items-center gap-1 ${
-                selectedGuardrail.projected > selectedGuardrail.budget ? 'text-red-600' : 'text-green-600'
+          <div className="bg-surface border border-border-light p-4 rounded-xl shadow-sm">
+            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Projected spend (AI)</p>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-text-primary">${selectedBudget.projected.toLocaleString()}</span>
+              <span className={`text-[10px] font-black flex items-center gap-0.5 ${
+                selectedBudget.projected > selectedBudget.budget ? 'text-red-600' : 'text-green-600'
               }`}>
-                {selectedGuardrail.projected > selectedGuardrail.budget ? (
-                  <AlertTriangle className="w-4 h-4" />
+                {selectedBudget.projected > selectedBudget.budget ? (
+                  <AlertTriangle className="w-3 h-3" />
                 ) : (
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle2 className="w-3 h-3" />
                 )}
-                {selectedGuardrail.projected > selectedGuardrail.budget ? 'Over limit' : 'Within limit'}
+                {selectedBudget.projected > selectedBudget.budget ? 'Over' : 'Within'}
               </span>
             </div>
-            <div className="mt-4 flex items-center gap-2 text-sm text-text-secondary">
-              <TrendingUp className="w-4 h-4 text-primary" />
+            <div className="mt-3 flex items-center gap-1.5 text-[11px] text-text-secondary font-medium">
+              <TrendingUp className="w-3.5 h-3.5 text-primary" />
               <span>AI Forecasted</span>
             </div>
           </div>
 
-          <div className="bg-surface border border-border-light p-6 rounded-2xl shadow-sm">
-            <p className="text-sm font-medium text-text-muted tracking-wider">Active alerts</p>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-text-primary">
-                {selectedGuardrail.progress > 80 ? '2' : selectedGuardrail.progress > 50 ? '1' : '0'}
-              </span>
-              <span className={`text-sm font-semibold px-2 py-0.5 rounded-full ${
-                selectedGuardrail.progress > 80 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
-              }`}>
-                {selectedGuardrail.progress > 80 ? 'At-risk' : 'Healthy'}
-              </span>
+          <div className="bg-surface border border-border-light p-4 rounded-xl shadow-sm">
+            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Balance credits</p>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-text-primary">12,450</span>
+              <span className="text-[10px] font-black text-text-muted uppercase">Credits</span>
             </div>
-            <div className="mt-4 flex items-center gap-2 text-sm text-text-secondary">
-              <ShieldCheck className={`w-4 h-4 ${selectedGuardrail.progress > 80 ? 'text-red-500' : 'text-green-500'}`} />
-              <span>{selectedGuardrail.progress > 80 ? 'Requires attention' : 'No issues detected'}</span>
+            <div className="mt-3 h-1 w-full bg-surface-hover rounded-full overflow-hidden">
+              <div className="h-full bg-primary w-3/4" />
             </div>
           </div>
         </div>
@@ -278,11 +292,11 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
           <div className="flex justify-between items-center mb-8">
             <div>
               <h2 className="text-xl font-bold text-text-primary">Burn velocity</h2>
-              <p className="text-sm text-text-secondary">Actual vs. Predicted spend for this guardrail</p>
+              <p className="text-sm text-text-secondary">Actual vs. Predicted spend for this budget</p>
             </div>
             <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 border border-primary/20">
               <Zap className="w-4 h-4" />
-              AI Insight: {selectedGuardrail.progress > 80 ? 'High velocity detected. Recommend resizing WH_PROD.' : 'Spend is stable and following historical patterns.'}
+              AI Insight: {selectedBudget.progress > 80 ? 'High velocity detected. Recommend resizing WH_PROD.' : 'Spend is stable and following historical patterns.'}
             </div>
           </div>
 
@@ -321,7 +335,20 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                   }}
                 />
-                <ReferenceLine y={selectedGuardrail.budget} stroke="#EF4444" strokeWidth={2} label={{ value: 'Budget limit', position: 'right', fill: '#EF4444', fontSize: 12, fontWeight: 'bold' }} />
+                <ReferenceLine 
+                  y={typeof selectedBudget.budget === 'number' ? selectedBudget.budget : parseInt(selectedBudget.budget.toString().replace(/[$,]/g, ''))} 
+                  stroke="#EF4444" 
+                  strokeWidth={2} 
+                  strokeDasharray="4 4"
+                  label={{ 
+                    value: `Budget: ${selectedBudget.budget}`, 
+                    position: 'right', 
+                    fill: '#EF4444', 
+                    fontSize: 10, 
+                    fontWeight: 'bold',
+                    dy: -10
+                  }} 
+                />
                 <Area 
                   type="monotone" 
                   dataKey="actual" 
@@ -355,9 +382,119 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
               <span className="text-sm font-medium text-text-secondary">AI predicted spend</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-0.5 bg-red-500" />
-              <span className="text-sm font-medium text-text-secondary">Guardrail budget limit</span>
+              <div className="w-3 h-0 border-t-2 border-dashed border-red-500" />
+              <span className="text-sm font-medium text-text-secondary">Budget</span>
             </div>
+          </div>
+        </div>
+
+        {/* Consumption Breakdown Table */}
+        <div className="bg-surface border border-border-light rounded-2xl shadow-sm overflow-hidden">
+          {/* Breakdown Toolbar */}
+          <div className="px-8 py-4 border-b border-border-light flex items-center justify-between bg-surface-nested/30">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Type:</span>
+                <MultiSelectDropdown 
+                  label="All" 
+                  options={['Warehouse', 'Service', 'Data Ingestion', 'Storage']} 
+                  selectedOptions={breakdownTypeFilter} 
+                  onChange={setBreakdownTypeFilter} 
+                  selectionMode="single"
+                  layout="inline"
+                />
+              </div>
+              <div className="w-px h-3 bg-border-color"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Account:</span>
+                <MultiSelectDropdown 
+                  label="All" 
+                  options={['Finance-Prod', 'Marketing-BI', 'Data-Eng']} 
+                  selectedOptions={breakdownAccountFilter} 
+                  onChange={setBreakdownAccountFilter} 
+                  selectionMode="single"
+                  layout="inline"
+                />
+              </div>
+            </div>
+            <div className="relative w-64">
+              <IconSearch className="h-3.5 w-3.5 text-text-muted absolute right-3 top-1/2 -translate-y-1/2" />
+              <input 
+                type="search" 
+                value={breakdownSearch}
+                onChange={e => setBreakdownSearch(e.target.value)}
+                placeholder="Filter resources..." 
+                className="w-full bg-white border border-border-light rounded-lg py-1.5 pl-3 pr-9 text-xs font-medium focus:ring-1 focus:ring-primary placeholder:text-text-muted"
+              />
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-[13px]">
+              <thead className="bg-surface-nested border-b border-border-light">
+                <tr>
+                  <th className="px-8 py-4 font-bold text-text-strong uppercase tracking-wider text-[11px]">Resource / Service</th>
+                  <th className="px-8 py-4 font-bold text-text-strong uppercase tracking-wider text-[11px]">Type</th>
+                  <th className="px-8 py-4 font-bold text-text-strong uppercase tracking-wider text-[11px]">Account</th>
+                  <th className="px-8 py-4 font-bold text-text-strong uppercase tracking-wider text-[11px]">Usage</th>
+                  <th className="px-8 py-4 font-bold text-text-strong uppercase tracking-wider text-[11px]">Cost</th>
+                  <th className="px-8 py-4 font-bold text-text-strong uppercase tracking-wider text-[11px] text-right">Budget %</th>
+                  <th className="px-8 py-4 font-bold text-text-strong uppercase tracking-wider text-[11px] text-right">Insights</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-light">
+                {[
+                  { name: 'WH_PROD_LARGE', type: 'Warehouse', account: 'Finance-Prod', usage: '1,240 Credits', cost: 4960, trend: 'up', percent: 45, insight: 'Resize recommended' },
+                  { name: 'Cloud Services', type: 'Service', account: 'Finance-Prod', usage: '450 Credits', cost: 1800, trend: 'down', percent: 16, insight: 'Optimal' },
+                  { name: 'WH_ANALYTICS', type: 'Warehouse', account: 'Marketing-BI', usage: '320 Credits', cost: 1280, trend: 'up', percent: 12, insight: 'High spillover' },
+                  { name: 'Snowpipe', type: 'Data Ingestion', account: 'Data-Eng', usage: '180 Credits', cost: 720, trend: 'stable', percent: 7, insight: 'Optimal' },
+                  { name: 'Materialized Views', type: 'Storage', account: 'Finance-Prod', usage: '120 Credits', cost: 480, trend: 'up', percent: 4, insight: 'Review frequency' },
+                ].filter(item => {
+                  if (breakdownSearch && !item.name.toLowerCase().includes(breakdownSearch.toLowerCase())) return false;
+                  if (breakdownTypeFilter.length > 0 && !breakdownTypeFilter.includes(item.type)) return false;
+                  if (breakdownAccountFilter.length > 0 && !breakdownAccountFilter.includes(item.account)) return false;
+                  return true;
+                }).map((item, idx) => (
+                  <tr key={idx} className="hover:bg-surface-nested transition-colors">
+                    <td className="px-8 py-4 font-bold text-text-primary">{item.name}</td>
+                    <td className="px-8 py-4 text-text-secondary font-medium">{item.type}</td>
+                    <td className="px-8 py-4 text-text-secondary font-medium">{item.account}</td>
+                    <td className="px-8 py-4 text-text-secondary font-medium">{item.usage}</td>
+                    <td className="px-8 py-4 font-black text-text-strong">${item.cost.toLocaleString()}</td>
+                    <td className="px-8 py-4 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                        <span className="font-bold text-text-primary">{item.percent}%</span>
+                        <div className="w-24 h-1.5 bg-surface-hover rounded-full overflow-hidden">
+                          <div className={`h-full ${
+                            item.percent > 80 ? 'bg-red-500' : 
+                            item.percent > 50 ? 'bg-amber-500' : 
+                            'bg-primary'
+                          }`} style={{ width: `${item.percent}%` }} />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-4 text-right">
+                      <div className="flex items-center justify-end">
+                        {item.insight !== 'Optimal' ? (
+                          <button 
+                            onClick={() => onNavigate('Recommendations', undefined, { filters: { search: item.name } })}
+                            className="inline-flex items-center gap-1 bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10 hover:bg-primary hover:text-white transition-all shadow-sm"
+                          >
+                            <span className="text-xs font-black">2</span>
+                            <span className="text-[9px] font-bold uppercase tracking-tighter">Insights</span>
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-1 text-green-600 font-bold text-[11px] uppercase">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Optimal</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -371,7 +508,7 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
         <div>
           <h1 className="text-3xl font-bold text-text-primary tracking-tight">Budgets & alerts</h1>
           <p className="text-text-secondary mt-1 text-lg">
-            Predictive monitoring and financial guardrails for your Snowflake environment.
+            Predictive monitoring and financial budgets for your Snowflake environment.
           </p>
         </div>
       </div>
@@ -379,27 +516,32 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
       {/* Budgets Summary Pills - Resource Summary Style */}
       <div className="flex flex-wrap items-center gap-3 mb-2 overflow-x-auto no-scrollbar flex-shrink-0">
         <SummaryPill 
-          label="Total Guardrails" 
-          value={guardrails.length.toString()} 
+          label="Total Budgets" 
+          value={budgets.length.toString()} 
         />
         <SummaryPill 
           label="Healthy" 
-          value={guardrails.filter(g => g.color === 'green').length.toString()} 
+          value={budgets.filter(g => g.color === 'green').length.toString()} 
           dotColor="bg-green-500"
         />
         <SummaryPill 
           label="At Risk" 
-          value={guardrails.filter(g => g.color !== 'green').length.toString()} 
+          value={budgets.filter(g => g.color !== 'green').length.toString()} 
           dotColor="bg-amber-500"
         />
         <SummaryPill 
           label="AI Optimizations" 
-          value={guardrails.filter(g => g.hasOptimization).length.toString()} 
+          value={budgets.filter(g => g.hasOptimization).length.toString()} 
           icon={<Sparkles className="w-3.5 h-3.5" />}
+        />
+        <SummaryPill 
+          label="Balance Credits" 
+          value="12,450" 
+          icon={<Zap className="w-3.5 h-3.5" />}
         />
       </div>
 
-      {/* Active Guardrails Table */}
+      {/* Active Budgets Table */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-border-light flex flex-col min-h-0">
         {/* Filter Bar */}
         <div className="px-6 py-4 flex flex-wrap items-center justify-between gap-4 border-b border-border-light bg-white relative z-20">
@@ -452,23 +594,23 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
                 type="search" 
                 value={search} 
                 onChange={e => setSearch(e.target.value)} 
-                placeholder="Search guardrails..." 
+                placeholder="Search budgets..." 
                 className="w-full bg-[#F2F4F7] border-none rounded-lg py-2 pl-4 pr-10 text-[13px] font-medium focus:ring-1 focus:ring-primary placeholder:text-text-muted"
               />
             </div>
             <button 
-              onClick={onImportGuardrail}
+              onClick={onImportBudget}
               className="px-4 py-2 rounded-lg border border-border-light font-bold text-[13px] text-text-primary hover:bg-surface-hover transition-all flex items-center gap-2 whitespace-nowrap"
             >
               <Upload className="w-4 h-4" />
               Import
             </button>
             <button 
-              onClick={onSetNewGuardrail}
+              onClick={onSetNewBudget}
               className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-bold text-[13px] flex items-center gap-2 transition-all shadow-sm whitespace-nowrap"
             >
               <Plus className="w-4 h-4" />
-              Set new guardrail
+              Set new budget
             </button>
           </div>
         </div>
@@ -487,10 +629,10 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
               </tr>
             </thead>
             <tbody className="bg-white">
-              {filteredGuardrails.length > 0 ? filteredGuardrails.map((rule) => (
+              {filteredBudgets.length > 0 ? filteredBudgets.map((rule) => (
                 <tr 
                   key={rule.id} 
-                  onClick={() => onSelectGuardrail(rule)}
+                  onClick={() => onSelectBudget(rule)}
                   className="hover:bg-surface-nested transition-colors cursor-pointer group border-b border-border-light"
                 >
                   <td className="px-6 py-5">
@@ -580,7 +722,7 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  onEditGuardrail(rule);
+                                  onEditBudget(rule);
                                   setActiveMenuId(null);
                                 }}
                                 className="w-full px-4 py-2 text-left text-[13px] font-bold text-text-primary hover:bg-surface-hover transition-colors flex items-center gap-2"
@@ -590,7 +732,8 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  // Handle delete
+                                  setBudgetToDelete(rule);
+                                  setIsDeleteModalOpen(true);
                                   setActiveMenuId(null);
                                 }}
                                 className="w-full px-4 py-2 text-left text-[13px] font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
@@ -611,7 +754,7 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
                       <div className="w-16 h-16 bg-surface-nested rounded-full flex items-center justify-center mb-4 border border-border-light">
                         <IconSearch className="w-8 h-8 text-text-muted" />
                       </div>
-                      <h3 className="text-base font-bold text-text-strong">No guardrails found</h3>
+                      <h3 className="text-base font-bold text-text-strong">No budgets found</h3>
                       <p className="text-sm text-text-secondary mt-1 max-w-sm">Try adjusting your filters or search criteria.</p>
                     </div>
                   </td>
@@ -664,6 +807,29 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewGuardrail, 
           </table>
         </div>
       </div>
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setBudgetToDelete(null);
+        }}
+        onConfirm={() => {
+          console.log('Deleting budget:', budgetToDelete?.id);
+          setIsDeleteModalOpen(false);
+          setBudgetToDelete(null);
+          // In a real app, we would call a delete API here
+        }}
+        title="Delete budget"
+        message={
+          <span>
+            Are you sure you want to delete <span className="font-bold text-text-primary">{budgetToDelete?.name}</span>? 
+            This action cannot be undone and will stop all monitoring for this scope.
+          </span>
+        }
+        confirmText="Delete budget"
+        confirmVariant="danger"
+      />
     </div>
   );
 };

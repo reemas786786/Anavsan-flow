@@ -42,7 +42,7 @@ const SummaryMetricCard: React.FC<{
     icon: React.FC<{ className?: string }>;
     color: string;
 }> = ({ label, value, subValue, icon: Icon, color }) => (
-    <div className="bg-white p-5 rounded-[24px] border border-border-light flex items-center gap-4 shadow-sm">
+    <div className="bg-white p-5 rounded-[24px] border border-border-light flex items-center gap-4">
         <div className={`w-12 h-12 rounded-2xl ${color} flex items-center justify-center flex-shrink-0`}>
             <Icon className="w-6 h-6" />
         </div>
@@ -110,7 +110,7 @@ const ComputeOverview: React.FC<ComputeOverviewProps> = ({ account, warehouses, 
     ];
 
     return (
-        <div className="flex flex-col h-full bg-background p-6 pb-12 gap-4">
+        <div className="flex flex-col h-full bg-background gap-4">
             <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 animate-in fade-in duration-500">
                 {/* Summary Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

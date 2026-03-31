@@ -18,7 +18,7 @@ const SummaryMetricCard: React.FC<{
 }> = ({ label, value, subValue, onClick }) => (
     <button 
         onClick={onClick}
-        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group shadow-sm w-full"
+        className="bg-surface-nested p-4 rounded-[16px] border border-border-light flex flex-col h-[90px] text-left hover:border-primary/40 hover:bg-surface-hover transition-all group w-full"
     >
         <p className="text-[10px] font-bold text-[#9A9AB2] group-hover:text-primary transition-colors uppercase tracking-widest">{label}</p>
         <div className="mt-auto">
@@ -86,7 +86,7 @@ const QueriesOverview: React.FC<QueriesOverviewProps> = ({ onNavigate, onSelectQ
     }, []);
 
     return (
-        <div className="flex flex-col h-full bg-background p-6 pb-12 gap-4">
+        <div className="flex flex-col h-full bg-background gap-4">
             <div className="bg-white p-6 rounded-[24px] border border-border-light shadow-sm flex flex-col gap-4">
                 <div className="flex items-center gap-2">
                     <h3 className="text-sm font-bold text-text-strong tracking-tight">Query summary</h3>

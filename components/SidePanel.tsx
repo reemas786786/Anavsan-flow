@@ -6,11 +6,12 @@ interface SidePanelProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
+  description?: string;
   children: React.ReactNode;
   isFullScreen?: boolean;
 }
 
-const SidePanel: React.FC<SidePanelProps> = ({ isOpen, onClose, title, children, isFullScreen = false }) => {
+const SidePanel: React.FC<SidePanelProps> = ({ isOpen, onClose, title, description, children, isFullScreen = false }) => {
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -84,16 +85,25 @@ const SidePanel: React.FC<SidePanelProps> = ({ isOpen, onClose, title, children,
             {!isFullScreen && (
               <div className="bg-white px-8 py-6 flex-shrink-0 border-b border-border-light">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-sidebar-topbar tracking-tight" id="slide-over-title">
-                    {title}
-                  </h2>
+                  <div className="flex flex-col">
+                    <h2 className="text-xl font-bold text-sidebar-topbar tracking-tight" id="slide-over-title">
+                      {title}
+                    </h2>
+                    {description && (
+                      <p className="mt-1 text-sm text-text-secondary">
+                        {description}
+                      </p>
+                    )}
+                  </div>
                   <button
                     type="button"
-                    className="w-11 h-11 flex items-center justify-center rounded-full text-primary border-2 border-primary hover:bg-primary/5 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="flex items-center gap-2 text-primary hover:text-primary-hover transition-all font-bold text-sm group"
                     onClick={onClose}
                   >
-                    <span className="sr-only">Close panel</span>
-                    <IconClose className="h-6 w-6" />
+                    <span>Close panel</span>
+                    <div className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-primary group-hover:bg-primary/5 transition-all">
+                      <IconClose className="h-4 w-4" />
+                    </div>
                   </button>
                 </div>
               </div>

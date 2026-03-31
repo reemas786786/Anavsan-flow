@@ -146,7 +146,7 @@ const SlowQueriesView: React.FC<SlowQueriesViewProps> = ({
                 <div className="overflow-y-auto flex-grow min-h-0 pr-2 no-scrollbar">
                      <div className="space-y-2">
                         {sortedData.map(q => (
-                            <div key={q.id} className="bg-surface p-3 rounded-xl grid grid-cols-[1fr,1fr,1fr,1fr,1fr,1fr,auto] items-center gap-4 border border-border-light hover:shadow-md transition-shadow cursor-pointer" onClick={() => onPreviewQuery(q)}>
+                            <div key={q.id} className="bg-surface p-3 rounded-xl grid grid-cols-[1fr,1fr,1fr,1fr,1fr,1fr,auto] items-center gap-4 border border-border-light transition-shadow cursor-pointer" onClick={() => onPreviewQuery(q)}>
                                 <div>
                                     <div className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">Query ID</div>
                                     <div className="text-[12px] font-mono font-bold text-text-primary">{q.id.substring(7, 13).toUpperCase()}</div>
