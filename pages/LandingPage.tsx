@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { IconChevronRight, IconCheck, IconArrowUp } from '../constants';
+import LandingHero from '../components/LandingHero';
 
 interface LandingPageProps {
     onGetStarted: () => void;
@@ -26,88 +27,35 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin, onBook
     return (
         <div className="min-h-screen bg-[#FDFCFE] text-text-strong font-sans selection:bg-primary/20">
             {/* Top Navigation */}
-            <nav className="fixed top-0 inset-x-0 h-20 bg-white/80 backdrop-blur-md z-50 border-b border-border-light">
+            <nav className="fixed top-0 inset-x-0 h-20 bg-white/10 backdrop-blur-md z-50 border-b border-white/10">
                 <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
                     <div className="flex items-center gap-12">
                         <div className="flex items-center">
-                            <h1 className="text-xl font-bold flex items-center text-sidebar-topbar">
+                            <h1 className="text-xl font-bold flex items-center text-white">
                                 <span style={{fontFamily: 'serif', background: 'linear-gradient(to bottom right, #A78BFA, #6932D5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}} className="text-4xl -mr-1">
                                     A
                                 </span>
                                 <span className="tracking-[0.1em]">NAVSAN</span>
                             </h1>
                         </div>
-                        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-text-secondary">
-                            <a href="#home" className="hover:text-primary transition-colors">Home</a>
-                            <a href="#features" className="hover:text-primary transition-colors">Features</a>
-                            <a href="#pricing" className="hover:text-primary transition-colors">Pricing</a>
-                            <a href="#comparison" className="hover:text-primary transition-colors">Comparison</a>
-                            <a href="#docs" className="hover:text-primary transition-colors">Docs</a>
+                        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/60">
+                            <a href="#home" className="hover:text-white transition-colors">Home</a>
+                            <a href="#features" className="hover:text-white transition-colors">Features</a>
+                            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+                            <a href="#comparison" className="hover:text-white transition-colors">Comparison</a>
+                            <a href="#docs" className="hover:text-white transition-colors">Docs</a>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <button onClick={onLogin} className="px-5 py-2.5 text-sm font-semibold border border-border-color rounded-lg hover:bg-surface-hover transition-all">Contact us</button>
-                        <button onClick={onBookDemo} className="px-5 py-2.5 text-sm font-semibold bg-sidebar-topbar text-white rounded-lg hover:opacity-90 transition-all shadow-sm">Book a demo</button>
+                        <button onClick={onLogin} className="px-5 py-2.5 text-sm font-semibold text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all">Contact us</button>
+                        <button onClick={onBookDemo} className="px-5 py-2.5 text-sm font-semibold bg-white text-primary rounded-lg hover:opacity-90 transition-all shadow-sm">Book a demo</button>
                     </div>
                 </div>
             </nav>
 
             {/* Hero Section */}
-            <section id="home" className="pt-40 pb-20 px-6 relative overflow-hidden">
-                {/* Background Decor */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none opacity-40">
-                   <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-primary/20 blur-[120px] rounded-full"></div>
-                   <div className="absolute top-40 right-1/4 w-[400px] h-[400px] bg-pink-200 blur-[100px] rounded-full"></div>
-                </div>
-
-                <div className="max-w-4xl mx-auto text-center relative z-10">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-border-light shadow-sm mb-8">
-                        <span className="text-status-error font-bold text-xs uppercase tracking-wider">50%+ Cost Savings On Storage & Warehouse.</span>
-                        <span className="text-text-muted text-xs">Prevent cost anomalies at the source.</span>
-                    </div>
-                    <h1 className="text-6xl md:text-7xl font-black text-sidebar-topbar leading-[1.1] tracking-tight">
-                        Stop Wasting Your <br />
-                        <span className="text-primary">Snowflake Budget</span>
-                    </h1>
-                    <p className="mt-8 text-lg md:text-xl text-text-secondary font-medium leading-relaxed max-w-3xl mx-auto">
-                        Your human in the loop AI partner, collaboratively turns expensive queries into cost optimized performant queries in seconds
-                    </p>
-                    <div className="mt-12 flex flex-col items-center gap-4">
-                        <button 
-                            onClick={onGetStarted}
-                            className="px-8 py-4 bg-sidebar-topbar text-white text-lg font-bold rounded-xl hover:scale-[1.02] transition-all shadow-xl shadow-primary/10"
-                        >
-                            Activate AI Partner for 14 day Trial
-                        </button>
-                    </div>
-                </div>
-
-                {/* Dashboard Preview mockup */}
-                <div className="mt-20 max-w-5xl mx-auto bg-sidebar-topbar rounded-2xl shadow-2xl border-4 border-white/10 overflow-hidden">
-                    <div className="flex">
-                        {/* Sidebar Mock */}
-                        <div className="w-56 bg-[#1A1A1A] p-4 border-r border-white/5 space-y-4 hidden md:block">
-                            <div className="h-4 w-32 bg-white/10 rounded"></div>
-                            <div className="space-y-2">
-                                {[1,2,3,4,5].map(i => <div key={i} className="h-2 w-full bg-white/5 rounded"></div>)}
-                            </div>
-                        </div>
-                        {/* Main Mock */}
-                        <div className="flex-1 bg-[#121212] p-6">
-                            <div className="flex justify-between items-center mb-8">
-                                <div className="space-y-1">
-                                    <div className="h-4 w-40 bg-white/20 rounded"></div>
-                                    <div className="h-2 w-24 bg-white/10 rounded"></div>
-                                </div>
-                                <div className="h-8 w-24 bg-white/5 border border-white/10 rounded-lg"></div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="h-48 bg-white/5 border border-white/5 rounded-2xl"></div>
-                                <div className="h-48 bg-white/5 border border-white/5 rounded-2xl"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <section id="home">
+                <LandingHero onGetStarted={onGetStarted} />
             </section>
 
             {/* Pricing Section */}

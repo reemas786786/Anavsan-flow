@@ -62,9 +62,9 @@ const AccountUsersListView: React.FC<AccountUsersListViewProps> = ({ accountName
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
     return (
-        <div className="flex flex-col h-full bg-background px-6 pt-6 pb-12 space-y-4">
-            <div className="flex-shrink-0 mb-8">
-                <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Users</h1>
+        <div className="flex flex-col bg-background px-6 pt-6 pb-12 space-y-4">
+            <div className="flex-shrink-0 mb-4">
+                <h1 className="text-[24px] font-bold text-text-strong tracking-tight">Users</h1>
                 <p className="text-sm text-text-secondary font-medium mt-1">Track individual consumption and activity for users in this account.</p>
             </div>
 
@@ -74,8 +74,9 @@ const AccountUsersListView: React.FC<AccountUsersListViewProps> = ({ accountName
                 <KPILabel label="Avg. Queries/User" value={globalMetrics.avgQueries} />
             </div>
 
-            <div className="bg-white rounded-[12px] border border-border-light shadow-sm overflow-hidden flex flex-col flex-grow min-h-0">
-                <div className="px-6 py-4 flex justify-end items-center border-b border-border-light bg-white flex-shrink-0">
+            <div className="bg-white rounded-[12px] border border-border-light shadow-sm overflow-hidden flex flex-col min-h-0">
+                <div className="px-6 py-3 flex justify-between items-center border-b border-border-light bg-white flex-shrink-0">
+                    <span className="text-xs font-bold text-text-muted uppercase tracking-widest">Account members</span>
                     <div className="relative">
                         <IconSearch className="w-4 h-4 text-text-muted absolute right-3 top-1/2 -translate-y-1/2" />
                         <input 
@@ -88,7 +89,7 @@ const AccountUsersListView: React.FC<AccountUsersListViewProps> = ({ accountName
                     </div>
                 </div>
 
-                <div className="overflow-y-auto flex-grow min-h-0 no-scrollbar">
+                <div className="overflow-y-auto min-h-0 no-scrollbar">
                     <table className="w-full text-left border-separate border-spacing-0">
                         <thead className="bg-[#F8F9FA] sticky top-0 z-10 font-bold uppercase tracking-widest text-[10px] text-text-muted">
                             <tr>
@@ -102,7 +103,7 @@ const AccountUsersListView: React.FC<AccountUsersListViewProps> = ({ accountName
                         <tbody className="bg-white divide-y divide-border-light">
                             {paginatedRows.map(row => (
                                 <tr key={row.id} className="hover:bg-surface-nested transition-colors group">
-                                    <td className="px-6 py-5">
+                                    <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <UserAvatar name={row.name} />
                                             <div className="flex flex-col">
@@ -111,22 +112,22 @@ const AccountUsersListView: React.FC<AccountUsersListViewProps> = ({ accountName
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-6 py-4">
                                         <span className="text-[10px] font-black uppercase text-text-muted bg-surface-nested px-2 py-1 rounded border border-border-light">{row.role}</span>
                                     </td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-6 py-4">
                                         <span className="text-sm font-black text-text-strong">{row.credits.toLocaleString()}</span>
                                     </td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-6 py-4">
                                         <span className="text-sm font-medium text-text-secondary">{row.queries.toLocaleString()}</span>
                                     </td>
-                                    <td className="px-6 py-5 text-right">
+                                    <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end">
                                             <button 
                                                 onClick={() => onNavigateToRecommendations?.({ search: row.name })}
                                                 className="inline-flex items-center gap-1 bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10 hover:bg-primary hover:text-white transition-all shadow-sm"
                                             >
-                                                <span className="text-xs font-black">{Math.floor(Math.random() * 3) + 1}</span>
+                                                <span className="text-xs font-black">{(row.id.charCodeAt(row.id.length - 1) % 3) + 1}</span>
                                                 <span className="text-[9px] font-bold uppercase">Insights</span>
                                             </button>
                                         </div>

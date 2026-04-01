@@ -529,16 +529,18 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewBudget, onI
           value={budgets.filter(g => g.color !== 'green').length.toString()} 
           dotColor="bg-amber-500"
         />
-        <SummaryPill 
-          label="AI Optimizations" 
-          value={budgets.filter(g => g.hasOptimization).length.toString()} 
-          icon={<Sparkles className="w-3.5 h-3.5" />}
-        />
-        <SummaryPill 
-          label="Balance Credits" 
-          value="12,450" 
-          icon={<Zap className="w-3.5 h-3.5" />}
-        />
+        <div className="ml-auto flex items-center gap-3">
+          <SummaryPill 
+            label="AI Optimizations" 
+            value={budgets.filter(g => g.hasOptimization).length.toString()} 
+            icon={<Sparkles className="w-3.5 h-3.5" />}
+          />
+          <SummaryPill 
+            label="Balance Credits" 
+            value="12,450" 
+            icon={<Zap className="w-3.5 h-3.5" />}
+          />
+        </div>
       </div>
 
       {/* Active Budgets Table */}
