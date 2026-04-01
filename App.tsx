@@ -23,7 +23,7 @@ import CheckEmailPage from './pages/CheckEmailPage';
 import CreateNewPasswordPage from './pages/CreateNewPasswordPage';
 import PasswordResetSuccessPage from './pages/PasswordResetSuccessPage';
 import { Page, Account, SQLFile, UserRole, User, UserStatus, DashboardItem, BigScreenWidget, QueryListItem, AssignedQuery, AssignmentPriority, AssignmentStatus, PullRequest, Notification, ActivityLog, BreadcrumbItem, Warehouse, SQLVersion, QueryListFilters, CollaborationEntry, Subscription, SubscriptionPlan, BillingCycle, Recommendation } from './types';
-import { sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData, assignedQueriesData as initialAssignedQueries, pullRequestsData, notificationsData as initialNotificationsData, activityLogsData, warehousesData, queryListData, connectionsData, accountApplicationsData, demoUsers } from './data/dummyData';
+import { sqlFilesData as initialSqlFiles, usersData, dashboardsData as initialDashboardsData, assignedQueriesData as initialAssignedQueries, pullRequestsData, notificationsData as initialNotificationsData, activityLogsData, warehousesData, queryListData, connectionsData, accountApplicationsData, demoUsers, recommendationsData as initialRecommendationsData } from './data/dummyData';
 import { accountNavItems, IconInfo, IconUser, IconLightbulb, IconChevronRight } from './constants';
 import SettingsPage from './pages/SettingsPage';
 import Dashboards from './pages/Dashboards';
@@ -110,6 +110,7 @@ const App: React.FC = () => {
   const [users, setUsers] = useState<User[]>(usersData);
   const [dashboards, setDashboards] = useState<DashboardItem[]>(initialDashboardsData);
   const [assignedQueries, setAssignedQueries] = useState<AssignedQuery[]>(initialAssignedQueries);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>(initialRecommendationsData);
   const [pullRequests, setPullRequests] = useState<PullRequest[]>(pullRequestsData);
   const [notifications, setNotifications] = useState<Notification[]>(initialNotificationsData);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>(activityLogsData);
@@ -312,12 +313,16 @@ const App: React.FC = () => {
         return items;
     }
 
-    if (activePage === 'Workspace' || activePage === 'Assigned tasks') {
-        items.push({ label: 'Workspace', onClick: () => handleSetActivePage('Workspace', 'Assigned tasks') });
-        items.push({ label: 'Assigned tasks', onClick: () => { setSelectedAssignedQuery(null); handleSetActivePage('Workspace', 'Assigned tasks'); } });
+    if (activePage === 'Assigned tasks') {
+        items.push({ label: 'Assigned tasks', onClick: () => { setSelectedAssignedQuery(null); handleSetActivePage('Assigned tasks'); } });
         if (selectedAssignedQuery) {
             items.push({ label: `TASK-${selectedAssignedQuery.queryId.substring(0,8).toUpperCase()}` });
         }
+        return items;
+    }
+
+    if (activePage === 'Query vault') {
+        items.push({ label: 'Query vault', onClick: () => handleSetActivePage('Query vault') });
         return items;
     }
 
@@ -452,7 +457,7 @@ const App: React.FC = () => {
         };
     }
 
-    setSidePanel({ type: 'assignQuery', data: assignmentData });
+    setSidePanel({ type: 'assignQuery', data: { ...assignmentData, recommendationId: rec.id } });
   };
 
   const handleOptimizeRecommendation = (rec: Recommendation) => {
@@ -630,24 +635,6 @@ const App: React.FC = () => {
         case 'AI agent': return <AIAgent />;
         case 'Recommendations': return <Recommendations accounts={accounts} currentUser={currentUser} initialFilters={recommendationFilters} onNavigateToQuery={(q) => {setSelectedAccount(accounts[0]); setSelectedQuery(q as QueryListItem);}} onNavigateToWarehouse={(wh) => {setSelectedAccount(accounts[0]); setSelectedWarehouse(wh as Warehouse);}} onAssignTask={handleAssignQueryTask} onOptimizeRecommendation={handleOptimizeRecommendation} selectedRecommendation={selectedRecommendation} onSelectRecommendation={setSelectedRecommendation} onPreviewQuery={(q) => setSidePanel({ type: 'queryPreview', data: q })} onBackToSource={handleBackToSource} returnContext={returnContext} />;
         case 'Reports': return <Reports />;
-        case 'Workspace':
-            if (activeSubPage === 'Assigned tasks') {
-                if (selectedAssignedQuery) {
-                    return <AssignedQueryDetailView 
-                        assignment={selectedAssignedQuery} 
-                        onBack={() => setSelectedAssignedQuery(null)} 
-                        currentUser={currentUser} 
-                        onUpdateStatus={handleUpdateAssignmentStatus}
-                        onUpdatePriority={handleUpdateAssignmentPriority}
-                        onAddComment={handleAddAssignmentComment}
-                        onResolve={(id) => { setAssignedQueries(p => p.filter(x => x.id !== id)); setSelectedAssignedQuery(null); }}
-                        onReassign={() => { /* re-open assign panel */ }}
-                    />;
-                }
-                return <AssignedTasks assignedQueries={assignedQueries} currentUser={currentUser} onViewQuery={(id) => {const aq = assignedQueries.find(q => q.queryId === id); if(aq) setSelectedAssignedQuery(aq);}} onResolveQuery={(id) => setAssignedQueries(p => p.filter(x => x.id !== id))} onUpdateStatus={handleUpdateAssignmentStatus} />;
-            }
-            if (activeSubPage === 'Query vault') return <QueryLibrary sqlFiles={sqlFiles} accounts={accounts} onFileSelect={() => {}} selectedFile={null} onVersionSelect={() => {}} onBack={() => {}} onCompare={() => {}} title="Query vault" />;
-            return <Overview onSelectAccount={handleSelectAccount} onSelectUser={setSelectedUser} accounts={accounts} users={users} onSetBigScreenWidget={setBigScreenWidget} currentUser={currentUser} onNavigate={handleSetActivePage} onAddAccountClick={() => setSidePanel({ type: 'addAccount' })} />;
         case 'Assigned tasks':
             if (selectedAssignedQuery) {
                 return <AssignedQueryDetailView 
@@ -659,9 +646,11 @@ const App: React.FC = () => {
                     onAddComment={handleAddAssignmentComment}
                     onResolve={(id) => { setAssignedQueries(p => p.filter(x => x.id !== id)); setSelectedAssignedQuery(null); }}
                     onReassign={() => { /* re-open assign panel */ }}
+                    recommendations={recommendations}
                 />;
             }
             return <AssignedTasks assignedQueries={assignedQueries} currentUser={currentUser} onViewQuery={(id) => {const aq = assignedQueries.find(q => q.queryId === id); if(aq) setSelectedAssignedQuery(aq);}} onResolveQuery={(id) => setAssignedQueries(p => p.filter(x => x.id !== id))} onUpdateStatus={handleUpdateAssignmentStatus} />;
+        case 'Query vault': return <QueryLibrary sqlFiles={sqlFiles} accounts={accounts} onFileSelect={() => {}} selectedFile={null} onVersionSelect={() => {}} onBack={() => {}} onCompare={() => {}} title="Query vault" />;
         case 'Billing':
             if (activeSubPage === 'Team consumption') return <TeamConsumption users={users} subscription={subscription} onAddUser={() => setModal({ type: 'addUser' })} onEditUserRole={() => {}} onSuspendUser={() => {}} onActivateUser={() => {}} onRemoveUser={() => {}} onCancelDowngrade={() => {}} />;
             if (activeSubPage === 'Billing history') return <BillingHistory onNavigate={handleSetActivePage} onDownloadInvoice={() => {}} />;
@@ -814,6 +803,7 @@ const App: React.FC = () => {
                         tokens: sidePanel.data.costTokens || 0,
                         credits: sidePanel.data.costCredits || 0,
                         warehouse: sidePanel.data.warehouse,
+                        recommendationId: sidePanel.data.recommendationId,
                         history: [
                             {
                                 id: `coll-start`,

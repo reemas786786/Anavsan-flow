@@ -757,6 +757,7 @@ export const assignedQueriesData: AssignedQuery[] = [
         tokens: 4.5,
         credits: 4.5,
         warehouse: 'COMPUTE_WH',
+        recommendationId: 'REC-SPEC-002',
         history: []
     }
 ];

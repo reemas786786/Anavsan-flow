@@ -595,6 +595,8 @@ const Overview: React.FC<OverviewProps> = ({ accounts, onSelectAccount, onSelect
                     </div>
                 </div>
 
+                <BudgetStatusWidget onNavigate={onNavigate} />
+
                 <WidgetCard 
                     title="Top accounts by credits" 
                     headerActions={<button onClick={() => onNavigate('Resource summary', undefined, { tab: 'Accounts' })} className="text-[11px] font-bold text-link hover:underline">View all</button>}
@@ -628,7 +630,6 @@ const Overview: React.FC<OverviewProps> = ({ accounts, onSelectAccount, onSelect
                 </WidgetCard>
 
                 <CreditsTrendWidget />
-                <BudgetStatusWidget onNavigate={onNavigate} />
             </div>
         </div>
     );

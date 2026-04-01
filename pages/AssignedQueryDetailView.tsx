@@ -1,7 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { AssignedQuery, User, AssignmentStatus, AssignmentPriority, CollaborationEntry } from '../types';
-import { IconChevronLeft, IconChevronRight, IconClipboardCopy, IconCheck, IconAIAgent, IconUser, IconClock, IconRefresh, IconArrowUp, IconExclamationTriangle, IconChevronDown } from '../constants';
+import { AssignedQuery, User, AssignmentStatus, AssignmentPriority, CollaborationEntry, Recommendation } from '../types';
+import { IconChevronLeft, IconChevronRight, IconClipboardCopy, IconCheck, IconAIAgent, IconUser, IconClock, IconRefresh, IconArrowUp, IconExclamationTriangle, IconChevronDown, IconLightbulb } from '../constants';
+import { RecommendationDetailView } from '../components/RecommendationDetailView';
 
 interface AssignedQueryDetailViewProps {
     assignment: AssignedQuery;
@@ -12,6 +13,7 @@ interface AssignedQueryDetailViewProps {
     onAddComment: (id: string, comment: string) => void;
     onResolve: (id: string) => void;
     onReassign: (queryId: string) => void;
+    recommendations?: Recommendation[];
 }
 
 const StatusBadge: React.FC<{ status: AssignmentStatus }> = ({ status }) => {
@@ -43,20 +45,21 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
     onUpdatePriority,
     onAddComment, 
     onResolve, 
-    onReassign 
+    onReassign,
+    recommendations = []
 }) => {
     const [isCopied, setIsCopied] = useState(false);
-    const [commentInput, setCommentInput] = useState('');
     const [isPriorityMenuOpen, setIsPriorityMenuOpen] = useState(false);
-    const feedEndRef = useRef<HTMLDivElement>(null);
+    const [showStatusModal, setShowStatusModal] = useState(false);
+    const [pendingStatus, setPendingStatus] = useState<AssignmentStatus | null>(null);
+    const [statusDescription, setStatusDescription] = useState('');
+    
     const priorityMenuRef = useRef<HTMLDivElement>(null);
     
     const isFinOps = currentUser?.role === 'FinOps' || currentUser?.role === 'Admin';
     const isEngineer = currentUser?.role === 'DataEngineer';
 
-    useEffect(() => {
-        feedEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [assignment.history]);
+    const recommendation = recommendations.find(r => r.id === assignment.recommendationId);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -74,16 +77,21 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
         setTimeout(() => setIsCopied(false), 2000);
     };
 
-    const handleSendComment = () => {
-        if (!commentInput.trim()) return;
-        onAddComment(assignment.id, commentInput);
-        setCommentInput('');
+    const handleStatusUpdateClick = (status: AssignmentStatus) => {
+        if (status === 'Optimized' || status === 'Cannot be optimized' || status === 'Needs clarification') {
+            setPendingStatus(status);
+            setShowStatusModal(true);
+        } else {
+            onUpdateStatus(assignment.id, status);
+        }
     };
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendComment();
+    const handleConfirmStatusUpdate = () => {
+        if (pendingStatus) {
+            onUpdateStatus(assignment.id, pendingStatus, statusDescription);
+            setShowStatusModal(false);
+            setPendingStatus(null);
+            setStatusDescription('');
         }
     };
 
@@ -139,7 +147,7 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
                     {/* Engineer Specific Actions */}
                     {isEngineer && (assignment.status === 'Assigned' || assignment.status === 'Needs clarification') && (
                         <button 
-                            onClick={() => onUpdateStatus(assignment.id, 'In progress')}
+                            onClick={() => handleStatusUpdateClick('In progress')}
                             className="bg-primary text-white font-bold text-sm px-5 py-2 rounded-full hover:bg-primary-hover shadow-sm transition-all flex items-center gap-2"
                         >
                             <IconRefresh className="w-4 h-4" /> Start Optimization
@@ -148,13 +156,13 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
                     {isEngineer && assignment.status === 'In progress' && (
                         <div className="flex items-center gap-2">
                              <button 
-                                onClick={() => onUpdateStatus(assignment.id, 'Optimized')}
+                                onClick={() => handleStatusUpdateClick('Optimized')}
                                 className="bg-status-success text-white font-bold text-sm px-5 py-2 rounded-full hover:bg-status-success-dark shadow-sm transition-all"
                             >
                                 Mark Optimized
                             </button>
                             <button 
-                                onClick={() => onUpdateStatus(assignment.id, 'Cannot be optimized')}
+                                onClick={() => handleStatusUpdateClick('Cannot be optimized')}
                                 className="bg-white text-text-secondary border border-border-color font-bold text-sm px-5 py-2 rounded-full hover:bg-surface-hover transition-all"
                             >
                                 Cannot Optimize
@@ -172,82 +180,56 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
                         </button>
                     )}
                 </div>
+
+                {/* Tabs removed as per request */}
             </header>
 
             <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
-                {/* Left Panel: Collaboration Chat */}
-                <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
-                    <div className="flex-1 overflow-y-auto px-6 py-8 space-y-8 scroll-smooth no-scrollbar bg-surface-nested">
-                        <div className="max-w-3xl mx-auto space-y-10 relative">
-                             {/* Context Banner */}
-                            <div className="bg-white p-6 rounded-[20px] border border-border-light shadow-sm italic">
-                                <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.15em] mb-2 not-italic">Initial Context</h4>
-                                <p className="text-sm text-text-primary leading-relaxed">
-                                    "{assignment.message}"
+                {/* Main Content Area: Unified View */}
+                <div className="flex-1 overflow-y-auto p-8 bg-surface-nested no-scrollbar">
+                    <div className="max-w-5xl mx-auto space-y-8">
+                        {/* Engineer's Response (if it exists) */}
+                        {assignment.engineerResponse && (
+                            <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-[32px] shadow-sm">
+                                <div className="flex items-center gap-3 text-indigo-700 mb-4">
+                                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                                        <IconUser className="w-4 h-4" />
+                                    </div>
+                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em]">Engineer's Response</h4>
+                                </div>
+                                <p className="text-indigo-900 text-[15px] font-semibold leading-relaxed italic">
+                                    "{assignment.engineerResponse}"
                                 </p>
                             </div>
+                        )}
 
-                            {/* Line connector */}
-                             <div className="absolute left-3 top-24 bottom-4 w-px bg-border-light z-0"></div>
+                        {/* Recommendation Details */}
+                        {recommendation && (
+                            <div className="bg-white rounded-[32px] border border-border-light shadow-sm overflow-hidden">
+                                <RecommendationDetailView 
+                                    recommendation={recommendation} 
+                                    currentUser={currentUser}
+                                    hideHeader={true}
+                                />
+                            </div>
+                        )}
 
-                            {assignment.history.map((entry) => {
-                                const isOwnComment = entry.author === currentUser?.name;
-                                if (entry.type === 'system') {
-                                    return (
-                                        <div key={entry.id} className="relative z-10 flex justify-center">
-                                            <span className="px-4 py-1.5 bg-white rounded-full border border-border-light text-[10px] font-black text-text-muted uppercase tracking-widest shadow-sm">
-                                                {entry.content}
-                                            </span>
-                                        </div>
-                                    );
-                                }
-                                return (
-                                    <div key={entry.id} className={`flex gap-4 relative z-10 ${isOwnComment ? 'flex-row-reverse' : ''}`}>
-                                        <UserAvatar name={entry.author} />
-                                        <div className={`flex flex-col max-w-[80%] ${isOwnComment ? 'items-end' : 'items-start'}`}>
-                                            <div className="flex items-center gap-2 mb-1 px-1">
-                                                <span className="text-[11px] font-black text-text-strong uppercase tracking-tight">{entry.author}</span>
-                                                <span className="text-[9px] font-bold text-text-muted">{new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                            </div>
-                                            <div className={`p-4 rounded-3xl text-sm leading-relaxed shadow-sm border ${
-                                                isOwnComment 
-                                                ? 'bg-primary text-white border-primary rounded-tr-none' 
-                                                : 'bg-white text-text-primary border-border-color rounded-tl-none'
-                                            }`}>
-                                                {entry.content}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                            <div ref={feedEndRef} />
-                        </div>
-                    </div>
-
-                    {/* Chat Input */}
-                    <div className="flex-shrink-0 p-6 bg-white border-t border-border-light">
-                        <div className="max-w-3xl mx-auto flex items-center gap-4 bg-surface-nested border border-border-color p-2 rounded-[32px] focus-within:ring-2 focus-within:ring-primary transition-all">
-                            <textarea 
-                                value={commentInput}
-                                onChange={(e) => setCommentInput(e.target.value)}
-                                onKeyDown={handleKeyPress}
-                                placeholder={isEngineer ? "Message FinOps team..." : "Message the Data Engineer..."}
-                                className="flex-1 bg-transparent border-none focus:ring-0 text-sm py-3 px-4 resize-none h-[48px] max-h-[120px] no-scrollbar"
-                                rows={1}
-                            />
-                            <button 
-                                onClick={handleSendComment}
-                                disabled={!commentInput.trim()}
-                                className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary-hover disabled:bg-gray-200 disabled:text-text-muted transition-all"
-                            >
-                                <IconArrowUp className="w-5 h-5" />
-                            </button>
-                        </div>
+                        {!recommendation && (
+                            <div className="bg-white p-8 rounded-[32px] border border-border-light shadow-sm">
+                                <div className="flex items-center gap-3 text-primary mb-4">
+                                    <IconLightbulb className="w-5 h-5" />
+                                    <h4 className="text-[11px] font-black uppercase tracking-[0.15em]">Task Message</h4>
+                                </div>
+                                <p className="text-text-primary text-lg font-medium leading-relaxed">
+                                    {assignment.message}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Right Panel: Task Details & Resource Metadata */}
-                <aside className="w-full lg:w-[480px] flex-shrink-0 bg-white border-l border-border-light overflow-y-auto p-8 space-y-8 no-scrollbar">
+                {/* Right Panel: Task Metadata & SQL Source */}
+                <aside className="w-full lg:w-[400px] flex-shrink-0 bg-white border-l border-border-light overflow-y-auto p-8 space-y-8 no-scrollbar">
                     {/* SQL View */}
                     <div className="space-y-4">
                         <div className="flex justify-between items-center">
@@ -267,20 +249,20 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
                     {/* Metadata Grid */}
                     <div className="grid grid-cols-2 gap-y-8 pt-8 border-t border-border-light">
                         <div>
-                             <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Warehouse</p>
-                             <p className="text-sm font-black text-text-primary mt-1.5">{assignment.warehouse}</p>
+                                <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Warehouse</p>
+                                <p className="text-sm font-black text-text-primary mt-1.5">{assignment.warehouse}</p>
                         </div>
                         <div>
-                             <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Current Spend</p>
-                             <p className="text-sm font-black text-text-primary mt-1.5">{assignment.credits.toFixed(2)} cr</p>
+                                <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Current Spend</p>
+                                <p className="text-sm font-black text-text-primary mt-1.5">{assignment.credits.toFixed(2)} cr</p>
                         </div>
                         <div>
-                             <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Assigned To</p>
-                             <p className="text-sm font-black text-text-primary mt-1.5">{assignment.assignedTo}</p>
+                                <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Assigned To</p>
+                                <p className="text-sm font-black text-text-primary mt-1.5">{assignment.assignedTo}</p>
                         </div>
                         <div>
-                             <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Estimated Effort</p>
-                             <p className="text-sm font-black text-text-primary mt-1.5">~30 mins</p>
+                                <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Estimated Effort</p>
+                                <p className="text-sm font-black text-text-primary mt-1.5">~30 mins</p>
                         </div>
                     </div>
 
@@ -307,6 +289,46 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
                     </div>
                 </aside>
             </div>
+
+            {/* Status Update Modal */}
+            {showStatusModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-[32px] w-full max-w-md p-8 shadow-2xl border border-border-light animate-in zoom-in-95 duration-200">
+                        <h3 className="text-xl font-black text-text-strong tracking-tight mb-2">Update Task Status</h3>
+                        <p className="text-sm text-text-secondary mb-6 font-medium">
+                            You are marking this task as <span className="font-bold text-primary uppercase tracking-tight">{pendingStatus}</span>. 
+                            Add an optional description for the FinOps team.
+                        </p>
+                        
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 block">Description (Optional)</label>
+                                <textarea 
+                                    value={statusDescription}
+                                    onChange={(e) => setStatusDescription(e.target.value)}
+                                    placeholder="e.g., Optimized query by adding filters and reducing scan size..."
+                                    className="w-full bg-surface-nested border border-border-color rounded-2xl p-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all min-h-[120px] no-scrollbar"
+                                />
+                            </div>
+                            
+                            <div className="flex gap-3 pt-2">
+                                <button 
+                                    onClick={() => setShowStatusModal(false)}
+                                    className="flex-1 px-6 py-3 bg-white text-text-secondary border border-border-color font-bold text-sm rounded-full hover:bg-surface-hover transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    onClick={handleConfirmStatusUpdate}
+                                    className="flex-1 px-6 py-3 bg-primary text-white font-bold text-sm rounded-full hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all active:scale-95"
+                                >
+                                    Confirm Update
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

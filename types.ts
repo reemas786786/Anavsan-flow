@@ -8,7 +8,6 @@ export type Page =
   | 'Snowflake accounts'
   | 'Recommendations'
   | 'Resource summary'
-  | 'Workspace'
   | 'Query vault'
   | 'Assigned tasks'
   | 'Reports' 
@@ -433,6 +432,7 @@ export interface AssignedQuery {
     tokens: number;
     credits: number;
     warehouse: string;
+    recommendationId?: string;
     engineerResponse?: string;
     history: CollaborationEntry[];
 }
