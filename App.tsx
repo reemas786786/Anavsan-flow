@@ -56,6 +56,7 @@ import ConfirmCycleDowngradeModal from './components/ConfirmCycleDowngradeModal'
 import ResourceSummary from './pages/CreditExplorer'; 
 import Reports from './pages/Reports';
 import BudgetsAndAlerts from './pages/BudgetsAndAlerts';
+import ActivePolicies from './pages/ActivePolicies';
 
 type SidePanelType = 'addAccount' | 'saveQuery' | 'editUser' | 'assignQuery' | 'queryPreview' | 'assignedQueryPreview' | 'updateAssignmentStatus' | 'sendQuery' | 'extendedTrial' | 'setBudget';
 type ModalType = 'addUser' | 'orgSetup' | 'addSeats' | 'switchToIndividual' | 'confirmSubscriptionChange' | 'confirmCycleDowngrade';
@@ -343,15 +344,22 @@ const App: React.FC = () => {
         items.push({ label: selectedBudget.name });
     }
 
+    if (activePage === 'Active policies') {
+        items.push({ label: 'Active policies' });
+    }
+
     return items;
   }, [activePage, activeSubPage, selectedAccount, accountViewPage, selectedApplicationId, selectedRecommendation, selectedWarehouse, selectedAssignedQuery, selectedQuery, selectedRepeatedQueryHash, selectedBudget]);
 
   useEffect(() => {
-    setTimeout(() => {
+    let timeout1: NodeJS.Timeout;
+    let timeout2: NodeJS.Timeout;
+
+    timeout1 = setTimeout(() => {
       const splash = document.getElementById('splash-loader');
       if (splash) {
         splash.style.opacity = '0';
-        setTimeout(() => {
+        timeout2 = setTimeout(() => {
           splash.style.display = 'none';
           setLoading(false);
         }, 300);
@@ -360,24 +368,31 @@ const App: React.FC = () => {
       }
     }, 500);
 
+    return () => {
+      clearTimeout(timeout1);
+      if (timeout2) clearTimeout(timeout2);
+    };
+  }, []);
+
+  useEffect(() => {
     const applyThemeClasses = (effectiveTheme: string) => {
-        const root = document.documentElement;
-        root.classList.remove('dark', 'theme-gray-10', 'theme-black');
-        if (effectiveTheme === 'dark') root.classList.add('dark');
-        else if (effectiveTheme === 'gray10') root.classList.add('theme-gray-10');
-        else if (effectiveTheme === 'black') root.classList.add('theme-black');
+      const root = document.documentElement;
+      root.classList.remove('dark', 'theme-gray-10', 'theme-black');
+      if (effectiveTheme === 'dark') root.classList.add('dark');
+      else if (effectiveTheme === 'gray10') root.classList.add('theme-gray-10');
+      else if (effectiveTheme === 'black') root.classList.add('theme-black');
     };
 
     if (theme === 'system') {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const updateTheme = () => applyThemeClasses(mediaQuery.matches ? 'dark' : 'light');
-        updateTheme(); 
-        mediaQuery.addEventListener('change', updateTheme);
-        return () => mediaQuery.removeEventListener('change', updateTheme);
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const updateTheme = () => applyThemeClasses(mediaQuery.matches ? 'dark' : 'light');
+      updateTheme();
+      mediaQuery.addEventListener('change', updateTheme);
+      return () => mediaQuery.removeEventListener('change', updateTheme);
     } else {
-        applyThemeClasses(theme);
+      applyThemeClasses(theme);
     }
-}, [theme]);
+  }, [theme]);
   
   const handleLogout = () => { setIsAuthenticated(false); setAuthView('landing'); };
 
@@ -656,6 +671,7 @@ const App: React.FC = () => {
             if (activeSubPage === 'Billing history') return <BillingHistory onNavigate={handleSetActivePage} onDownloadInvoice={() => {}} />;
             return <ChangePlan users={users} currentUser={currentUser} onSubscriptionSuccess={handleSubscriptionSuccess} currentPlan={subscription.plan} subscription={subscription} />;
         case 'Budgets & alerts': return <BudgetsAndAlerts onSetNewBudget={() => setSidePanel({ type: 'setBudget', data: { initialData: null } })} onImportBudget={() => setSidePanel({ type: 'setBudget', data: { initialData: null } })} onEditBudget={(budget) => setSidePanel({ type: 'setBudget', data: { initialData: budget } })} selectedBudget={selectedBudget} onSelectBudget={setSelectedBudget} onNavigate={handleSetActivePage} />;
+        case 'Active policies': return <ActivePolicies />;
         case 'Activity logs':
         case 'Alerts': 
             return <NotificationsPage 

@@ -1,8 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { AssignedQuery, User, AssignmentStatus, AssignmentPriority, CollaborationEntry, Recommendation } from '../types';
-import { IconChevronLeft, IconChevronRight, IconClipboardCopy, IconCheck, IconAIAgent, IconUser, IconClock, IconRefresh, IconArrowUp, IconExclamationTriangle, IconChevronDown, IconLightbulb } from '../constants';
-import { RecommendationDetailView } from '../components/RecommendationDetailView';
+import { IconChevronLeft, IconChevronRight, IconClipboardCopy, IconCheck, IconAIAgent, IconUser, IconClock, IconRefresh, IconArrowUp, IconExclamationTriangle, IconChevronDown, IconLightbulb, IconDatabase } from '../constants';
+import { RecommendationDetailView, SeverityBadge } from '../components/RecommendationDetailView';
 
 interface AssignedQueryDetailViewProps {
     assignment: AssignedQuery;
@@ -187,107 +187,186 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
             <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
                 {/* Main Content Area: Unified View */}
                 <div className="flex-1 overflow-y-auto p-8 bg-surface-nested no-scrollbar">
-                    <div className="max-w-5xl mx-auto space-y-8">
-                        {/* Engineer's Response (if it exists) */}
-                        {assignment.engineerResponse && (
-                            <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-[32px] shadow-sm">
-                                <div className="flex items-center gap-3 text-indigo-700 mb-4">
-                                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                                        <IconUser className="w-4 h-4" />
+                    <div className="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-12 gap-8">
+                        {/* Left Column: Insight Details & Responses */}
+                        <div className="xl:col-span-8 space-y-8">
+                            {/* FinOps Instructions / Task Message */}
+                            {assignment.message && (
+                                <div className="bg-white p-8 rounded-[32px] border border-border-light shadow-sm relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                                        <IconLightbulb className="w-16 h-16" />
                                     </div>
-                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em]">Engineer's Response</h4>
+                                    <div className="flex items-center gap-3 text-primary mb-4">
+                                        <IconUser className="w-5 h-5" />
+                                        <h4 className="text-[11px] font-black uppercase tracking-[0.15em]">FinOps Instructions</h4>
+                                    </div>
+                                    <p className="text-text-primary text-lg font-medium leading-relaxed relative z-10">
+                                        {assignment.message}
+                                    </p>
                                 </div>
-                                <p className="text-indigo-900 text-[15px] font-semibold leading-relaxed italic">
-                                    "{assignment.engineerResponse}"
-                                </p>
-                            </div>
-                        )}
+                            )}
 
-                        {/* Recommendation Details */}
-                        {recommendation && (
-                            <div className="bg-white rounded-[32px] border border-border-light shadow-sm overflow-hidden">
-                                <RecommendationDetailView 
-                                    recommendation={recommendation} 
-                                    currentUser={currentUser}
-                                    hideHeader={true}
-                                />
-                            </div>
-                        )}
-
-                        {!recommendation && (
-                            <div className="bg-white p-8 rounded-[32px] border border-border-light shadow-sm">
-                                <div className="flex items-center gap-3 text-primary mb-4">
-                                    <IconLightbulb className="w-5 h-5" />
-                                    <h4 className="text-[11px] font-black uppercase tracking-[0.15em]">Task Message</h4>
+                            {/* Engineer's Response (if it exists) */}
+                            {assignment.engineerResponse && (
+                                <div className="bg-indigo-50 border border-indigo-100 p-8 rounded-[32px] shadow-sm relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-4 opacity-10 text-indigo-700">
+                                        <IconCheck className="w-16 h-16" />
+                                    </div>
+                                    <div className="flex items-center gap-3 text-indigo-700 mb-4">
+                                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                                            <IconUser className="w-4 h-4" />
+                                        </div>
+                                        <h4 className="text-[11px] font-black uppercase tracking-[0.2em]">Engineer's Response</h4>
+                                    </div>
+                                    <p className="text-indigo-900 text-[15px] font-semibold leading-relaxed italic relative z-10">
+                                        "{assignment.engineerResponse}"
+                                    </p>
                                 </div>
-                                <p className="text-text-primary text-lg font-medium leading-relaxed">
-                                    {assignment.message}
-                                </p>
+                            )}
+
+                            {/* Recommendation Details */}
+                            {recommendation && (
+                                <div className="bg-white rounded-[32px] border border-border-light shadow-sm overflow-hidden">
+                                    <RecommendationDetailView 
+                                        recommendation={recommendation} 
+                                        currentUser={currentUser}
+                                        hideHeader={true}
+                                        hideMetadata={true}
+                                        hideWarehouse={true}
+                                        hideWorkflowStatus={true}
+                                    />
+                                </div>
+                            )}
+
+                            {/* SQL View - Removed as per request */}
+
+                            {!recommendation && !assignment.message && (
+                                <div className="bg-white p-8 rounded-[32px] border border-border-light shadow-sm">
+                                    <div className="flex items-center gap-3 text-primary mb-4">
+                                        <IconLightbulb className="w-5 h-5" />
+                                        <h4 className="text-[11px] font-black uppercase tracking-[0.15em]">Task Details</h4>
+                                    </div>
+                                    <p className="text-text-primary text-lg font-medium leading-relaxed">
+                                        No additional recommendation details available for this task.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Middle Column: Metadata & Assignment Info */}
+                        <div className="xl:col-span-4 space-y-6">
+                            {/* Assignment Info Card */}
+                            <div className="bg-white p-8 rounded-[32px] border border-border-light shadow-sm space-y-8">
+                                <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] border-b border-border-light pb-4">Assignment Info</h4>
+                                
+                                <div className="space-y-6">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
+                                            Assigned To
+                                        </span>
+                                        <span className="text-sm font-black text-text-primary mt-1.5 leading-tight">{assignment.assignedTo}</span>
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
+                                            <IconClock className="w-3 h-3" />
+                                            Assigned On
+                                        </span>
+                                        <span className="text-sm font-black text-text-primary mt-1.5 leading-tight">
+                                            {new Date(assignment.assignedOn).toLocaleString()}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
+                                            Priority
+                                        </span>
+                                        <div className="mt-1.5">
+                                            <span className={`inline-flex items-center px-3 py-1 text-[10px] font-black rounded-full border uppercase tracking-tight ${priorityColors[assignment.priority]}`}>
+                                                {assignment.priority} Priority
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
+                                            Status
+                                        </span>
+                                        <div className="mt-1.5">
+                                            <StatusBadge status={assignment.status} />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
+                                            Current Spend
+                                        </span>
+                                        <span className="text-sm font-black text-text-primary mt-1.5 leading-tight">{assignment.credits.toFixed(2)} cr</span>
+                                    </div>
+                                </div>
                             </div>
-                        )}
+
+                            {/* Resource Metadata Card */}
+                            <div className="bg-white p-8 rounded-[32px] border border-border-light shadow-sm space-y-8">
+                                <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] border-b border-border-light pb-4">Resource Metadata</h4>
+                                
+                                <div className="space-y-6">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
+                                            <IconUser className="w-3 h-3" />
+                                            User
+                                        </span>
+                                        <span className="text-sm font-black text-text-primary mt-1.5 leading-tight">{recommendation?.userName || 'jane_doe'}</span>
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
+                                            Account
+                                        </span>
+                                        <span className="text-sm font-black text-text-primary mt-1.5 leading-tight">{recommendation?.accountName || 'Finance Prod'}</span>
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
+                                            Resource Type
+                                        </span>
+                                        <span className="text-sm font-black text-text-primary mt-1.5 leading-tight">{recommendation?.resourceType || 'Query'}</span>
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
+                                            Severity
+                                        </span>
+                                        <div className="mt-1.5">
+                                            <SeverityBadge severity={recommendation?.severity || 'High Cost'} />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
+                                            Resource Identifier
+                                        </span>
+                                        <span className="text-xs font-mono font-bold text-text-primary mt-1.5 leading-tight break-all">{assignment.queryId}</span>
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
+                                            Warehouse
+                                        </span>
+                                        <span className="text-sm font-black text-text-primary mt-1.5 leading-tight">{assignment.warehouse}</span>
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5">
+                                            Estimated Effort
+                                        </span>
+                                        <span className="text-sm font-black text-text-primary mt-1.5 leading-tight">~30 mins</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                {/* Right Panel: Task Metadata & SQL Source */}
-                <aside className="w-full lg:w-[400px] flex-shrink-0 bg-white border-l border-border-light overflow-y-auto p-8 space-y-8 no-scrollbar">
-                    {/* SQL View */}
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-xs font-black text-text-strong uppercase tracking-widest">Query Source</h3>
-                            <button onClick={handleCopy} className="text-[10px] font-black text-primary hover:underline flex items-center gap-1 uppercase tracking-tighter">
-                                {isCopied ? <IconCheck className="w-3 h-3" /> : <IconClipboardCopy className="w-3 h-3" />}
-                                {isCopied ? 'COPIED' : 'COPY SQL'}
-                            </button>
-                        </div>
-                        <div className="bg-[#0D1117] p-6 rounded-[24px] border border-white/5 shadow-2xl overflow-hidden">
-                            <pre className="text-[12px] font-mono text-gray-300 leading-relaxed max-h-[300px] overflow-y-auto custom-scrollbar whitespace-pre-wrap">
-                                <code>{assignment.queryText}</code>
-                            </pre>
-                        </div>
-                    </div>
-
-                    {/* Metadata Grid */}
-                    <div className="grid grid-cols-2 gap-y-8 pt-8 border-t border-border-light">
-                        <div>
-                                <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Warehouse</p>
-                                <p className="text-sm font-black text-text-primary mt-1.5">{assignment.warehouse}</p>
-                        </div>
-                        <div>
-                                <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Current Spend</p>
-                                <p className="text-sm font-black text-text-primary mt-1.5">{assignment.credits.toFixed(2)} cr</p>
-                        </div>
-                        <div>
-                                <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Assigned To</p>
-                                <p className="text-sm font-black text-text-primary mt-1.5">{assignment.assignedTo}</p>
-                        </div>
-                        <div>
-                                <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Estimated Effort</p>
-                                <p className="text-sm font-black text-text-primary mt-1.5">~30 mins</p>
-                        </div>
-                    </div>
-
-                    {/* AI Optimization Suggestions - Visual Boost */}
-                    <div className="bg-primary/5 border border-primary/10 p-6 rounded-[32px] space-y-4">
-                        <div className="flex items-center gap-2 text-primary">
-                            <IconAIAgent className="w-5 h-5" />
-                            <h4 className="text-[11px] font-black uppercase tracking-[0.15em]">AI Optimization Roadmap</h4>
-                        </div>
-                        <ul className="space-y-4">
-                            <li className="text-[13px] text-text-primary font-medium flex gap-3">
-                                <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[10px] font-bold text-primary flex-shrink-0 shadow-sm">1</div>
-                                <span>Inject <strong>PARTITION_BY</strong> filters into the innermost CTE to eliminate redundant data scans.</span>
-                            </li>
-                            <li className="text-[13px] text-text-primary font-medium flex gap-3">
-                                <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[10px] font-bold text-primary flex-shrink-0 shadow-sm">2</div>
-                                <span>Convert high-cardinality <strong>COUNT(DISTINCT)</strong> into <strong>APPROX_COUNT_DISTINCT</strong> for 90% faster estimation.</span>
-                            </li>
-                            <li className="text-[13px] text-text-primary font-medium flex gap-3">
-                                <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[10px] font-bold text-primary flex-shrink-0 shadow-sm">3</div>
-                                <span>Refactor nested subqueries to use <strong>WINDOW</strong> functions to prevent multiple passes over table storage.</span>
-                            </li>
-                        </ul>
-                    </div>
-                </aside>
             </div>
 
             {/* Status Update Modal */}

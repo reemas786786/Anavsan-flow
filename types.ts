@@ -18,6 +18,7 @@ export type Page =
   | 'Integrations'
   | 'User management'
   | 'Budgets & alerts'
+  | 'Active policies'
   | 'Alerts'
   | 'Book a demo'
   | 'Docs'

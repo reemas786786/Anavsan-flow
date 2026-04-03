@@ -507,9 +507,16 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewBudget, onI
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold text-text-primary tracking-tight">Budgets & alerts</h1>
-          <p className="text-text-secondary mt-1 text-lg">
-            Predictive monitoring and financial budgets for your Snowflake environment.
-          </p>
+          <div className="flex items-center gap-2 mt-1 text-text-secondary">
+            <span className="text-lg">Last update: Mar 25, 08:00 AM</span>
+            <div className="group relative">
+              <IconInfo className="w-4 h-4 text-text-muted cursor-help" />
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-text-primary text-white text-xs rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 leading-relaxed">
+                Data is synchronized with Snowflake every 6 hours. Last fetch completed at Mar 25, 08:00 AM.
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-text-primary" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

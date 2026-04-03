@@ -89,6 +89,9 @@ interface RecommendationDetailViewProps {
     onBackToSource?: () => void;
     returnContext?: any;
     hideHeader?: boolean;
+    hideMetadata?: boolean;
+    hideWarehouse?: boolean;
+    hideWorkflowStatus?: boolean;
 }
 
 export const RecommendationDetailView: React.FC<RecommendationDetailViewProps> = ({ 
@@ -102,7 +105,10 @@ export const RecommendationDetailView: React.FC<RecommendationDetailViewProps> =
     currentUser,
     onBackToSource,
     returnContext,
-    hideHeader = false
+    hideHeader = false,
+    hideMetadata = false,
+    hideWarehouse = false,
+    hideWorkflowStatus = false
 }) => {
     const formatTimestamp = (isoString: string) => {
         return new Date(isoString).toLocaleString('en-US', {
@@ -215,20 +221,22 @@ export const RecommendationDetailView: React.FC<RecommendationDetailViewProps> =
             )}
 
             <div className={`grid grid-cols-1 lg:grid-cols-12 gap-4 ${!hideHeader ? 'overflow-y-auto no-scrollbar pb-12' : ''}`}>
-                <div className="lg:col-span-8 space-y-4">
+                <div className={`${hideMetadata ? 'lg:col-span-12' : 'lg:col-span-8'} space-y-4`}>
                     <div className="bg-white p-4 rounded-[24px] border border-border-light shadow-sm space-y-6">
-                        <div>
-                            <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-4">Workflow Status</h4>
-                            <div className="flex flex-wrap gap-2">
-                                {(['New', 'Read', 'In Progress', 'Resolved', 'Archived'] as RecommendationStatus[]).map(s => (
-                                    <StatusOption key={s} status={s} />
-                                ))}
+                        {!hideWorkflowStatus && (
+                            <div>
+                                <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-4">Workflow Status</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {(['New', 'Read', 'In Progress', 'Resolved', 'Archived'] as RecommendationStatus[]).map(s => (
+                                        <StatusOption key={s} status={s} />
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-border-light">
+                        <div className={`grid grid-cols-1 ${hideWarehouse ? 'md:grid-cols-1' : 'md:grid-cols-2'} gap-6 pt-6 border-t border-border-light`}>
                              <DetailItem label="Insight Type" value={<span className="text-primary">{recommendation.insightType}</span>} />
-                             <DetailItem icon={IconDatabase} label="Warehouse" value={recommendation.warehouseName || 'SYSTEM'} />
+                             {!hideWarehouse && <DetailItem icon={IconDatabase} label="Warehouse" value={recommendation.warehouseName || 'SYSTEM'} />}
                         </div>
 
                         <div className="space-y-4">
@@ -288,19 +296,21 @@ export const RecommendationDetailView: React.FC<RecommendationDetailViewProps> =
                     )}
                 </div>
 
-                <div className="lg:col-span-4 space-y-4">
-                    <div className="bg-white p-4 rounded-[24px] border border-border-light shadow-sm space-y-6">
-                        <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] border-b border-border-light pb-4">Metadata</h4>
-                        <div className="space-y-6">
-                            <DetailItem icon={IconUser} label="User" value={recommendation.userName || 'Unknown'} />
-                            <DetailItem label="Account" value={recommendation.accountName} />
-                            <DetailItem label="Resource Type" value={recommendation.resourceType} />
-                            <DetailItem label="Severity" value={<SeverityBadge severity={recommendation.severity} />} />
-                            <DetailItem icon={IconClock} label="Detected At" value={formatTimestamp(recommendation.timestamp)} />
-                            <DetailItem label="Resource Identifier" value={<span className="font-mono text-xs">{recommendation.affectedResource}</span>} />
+                {!hideMetadata && (
+                    <div className="lg:col-span-4 space-y-4">
+                        <div className="bg-white p-4 rounded-[24px] border border-border-light shadow-sm space-y-6">
+                            <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] border-b border-border-light pb-4">Metadata</h4>
+                            <div className="space-y-6">
+                                <DetailItem icon={IconUser} label="User" value={recommendation.userName || 'Unknown'} />
+                                <DetailItem label="Account" value={recommendation.accountName} />
+                                <DetailItem label="Resource Type" value={recommendation.resourceType} />
+                                <DetailItem label="Severity" value={<SeverityBadge severity={recommendation.severity} />} />
+                                <DetailItem icon={IconClock} label="Detected At" value={formatTimestamp(recommendation.timestamp)} />
+                                <DetailItem label="Resource Identifier" value={<span className="font-mono text-xs">{recommendation.affectedResource}</span>} />
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );
