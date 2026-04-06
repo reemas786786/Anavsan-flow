@@ -405,7 +405,7 @@ export interface StorageByTypeItem {
 }
 
 export type AssignmentPriority = 'Low' | 'Medium' | 'High';
-export type AssignmentStatus = 'Assigned' | 'In progress' | 'Optimized' | 'Cannot be optimized' | 'Needs clarification';
+export type AssignmentStatus = 'Assigned' | 'In progress' | 'Optimized' | 'Cannot be optimized' | 'Resolved';
 
 export interface CollaborationEntry {
     id: string;
@@ -435,6 +435,7 @@ export interface AssignedQuery {
     warehouse: string;
     recommendationId?: string;
     engineerResponse?: string;
+    engineerResponseDate?: string;
     history: CollaborationEntry[];
 }
 

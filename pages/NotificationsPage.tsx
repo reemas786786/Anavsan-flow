@@ -207,7 +207,7 @@ const NotificationsPage: React.FC<NotificationsPageProps> = (props) => {
 
     return (
         <div className="flex flex-col h-full bg-background px-6 pt-4 pb-12 overflow-y-auto no-scrollbar">
-            <header className="flex justify-between items-end mb-8 flex-shrink-0">
+            <header className="flex justify-between items-end mb-4 flex-shrink-0">
                 <div>
                     <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Alerts</h1>
                     <p className="text-sm text-text-secondary font-medium mt-1">AI-detected anomalies and system-wide alerts.</p>

@@ -35,7 +35,7 @@ const WidgetCard: React.FC<{
     className?: string
 }> = ({ children, title, hasMenu = true, infoText, headerActions, onTableView, className = "" }) => (
     <div className={`bg-surface p-4 rounded-[24px] shadow-sm flex flex-col border border-border-light ${className}`}>
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-1.5">
                 <h4 className="text-[14px] font-bold text-text-strong tracking-tight">{title}</h4>
                 {infoText && <InfoTooltip text={infoText} />}

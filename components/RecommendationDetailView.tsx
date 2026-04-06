@@ -234,7 +234,7 @@ export const RecommendationDetailView: React.FC<RecommendationDetailViewProps> =
                             </div>
                         )}
 
-                        <div className={`grid grid-cols-1 ${hideWarehouse ? 'md:grid-cols-1' : 'md:grid-cols-2'} gap-6 pt-6 border-t border-border-light`}>
+                        <div className={`grid grid-cols-1 ${hideWarehouse ? 'md:grid-cols-1' : 'md:grid-cols-2'} gap-6`}>
                              <DetailItem label="Insight Type" value={<span className="text-primary">{recommendation.insightType}</span>} />
                              {!hideWarehouse && <DetailItem icon={IconDatabase} label="Warehouse" value={recommendation.warehouseName || 'SYSTEM'} />}
                         </div>

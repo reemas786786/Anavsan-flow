@@ -113,7 +113,7 @@ const SlowQueriesView: React.FC<SlowQueriesViewProps> = ({
 
     return (
         <div className="flex flex-col h-full bg-background space-y-3 px-6 pt-6 pb-12">
-             <div className="flex-shrink-0 mb-8">
+             <div className="flex-shrink-0 mb-4">
                 <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Slow queries</h1>
                 <p className="text-sm text-text-secondary font-medium mt-1">Identify and analyze queries that are running longer than expected.</p>
                  <div className="mt-4 flex flex-wrap items-center gap-2">

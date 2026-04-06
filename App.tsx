@@ -511,6 +511,8 @@ const App: React.FC = () => {
               
               const updated = { ...aq, status, history: [...aq.history, historyEntry] };
               if (comment) {
+                  updated.engineerResponse = comment;
+                  updated.engineerResponseDate = new Date().toISOString();
                   updated.history.push({
                       id: `comm-${Date.now()}`,
                       type: 'comment',
@@ -519,18 +521,19 @@ const App: React.FC = () => {
                       content: comment
                   });
               }
+
+              // Update selected reference if it matches
+              if (selectedAssignedQuery?.id === id) {
+                  setSelectedAssignedQuery(updated);
+              }
+
               return updated;
           }
           return aq;
       }));
 
-      // Update selected reference
-      if (selectedAssignedQuery?.id === id) {
-          setSelectedAssignedQuery(prev => prev ? {...prev, status} : null);
-      }
-
       // Notify relevant persona
-      if (status === 'Optimized' || status === 'Needs clarification') {
+      if (status === 'Optimized') {
            const targetAssignment = assignedQueries.find(a => a.id === id);
            if (targetAssignment) {
                const newNotification: Notification = {
@@ -635,7 +638,7 @@ const App: React.FC = () => {
         assignment={activeAssignment}
         onUpdateAssignmentStatus={handleUpdateAssignmentStatus}
         onAssignToEngineer={(query) => setSidePanel({type: 'assignQuery', data: query})}
-        onResolveAssignment={(id) => { setAssignedQueries(prev => prev.filter(q => q.id !== id)); }}
+        onResolveAssignment={(id) => handleUpdateAssignmentStatus(id, 'Resolved')}
         selectedApplicationId={selectedApplicationId}
         setSelectedApplicationId={setSelectedApplicationId}
         breadcrumbItems={breadcrumbItems}
@@ -659,12 +662,14 @@ const App: React.FC = () => {
                     onUpdateStatus={handleUpdateAssignmentStatus}
                     onUpdatePriority={handleUpdateAssignmentPriority}
                     onAddComment={handleAddAssignmentComment}
-                    onResolve={(id) => { setAssignedQueries(p => p.filter(x => x.id !== id)); setSelectedAssignedQuery(null); }}
+                    onResolve={(id) => handleUpdateAssignmentStatus(id, 'Resolved')}
                     onReassign={() => { /* re-open assign panel */ }}
+                    onNavigateToQuery={(q) => {setSelectedAccount(accounts[0]); setSelectedQuery(q as QueryListItem);}}
+                    onNavigateToWarehouse={(wh) => {setSelectedAccount(accounts[0]); setSelectedWarehouse(wh as Warehouse);}}
                     recommendations={recommendations}
                 />;
             }
-            return <AssignedTasks assignedQueries={assignedQueries} currentUser={currentUser} onViewQuery={(id) => {const aq = assignedQueries.find(q => q.queryId === id); if(aq) setSelectedAssignedQuery(aq);}} onResolveQuery={(id) => setAssignedQueries(p => p.filter(x => x.id !== id))} onUpdateStatus={handleUpdateAssignmentStatus} />;
+            return <AssignedTasks assignedQueries={assignedQueries} currentUser={currentUser} onViewQuery={(id) => {const aq = assignedQueries.find(q => q.queryId === id); if(aq) setSelectedAssignedQuery(aq);}} onResolveQuery={(id) => handleUpdateAssignmentStatus(id, 'Resolved')} onUpdateStatus={handleUpdateAssignmentStatus} />;
         case 'Query vault': return <QueryLibrary sqlFiles={sqlFiles} accounts={accounts} onFileSelect={() => {}} selectedFile={null} onVersionSelect={() => {}} onBack={() => {}} onCompare={() => {}} title="Query vault" />;
         case 'Billing':
             if (activeSubPage === 'Team consumption') return <TeamConsumption users={users} subscription={subscription} onAddUser={() => setModal({ type: 'addUser' })} onEditUserRole={() => {}} onSuspendUser={() => {}} onActivateUser={() => {}} onRemoveUser={() => {}} onCancelDowngrade={() => {}} />;
@@ -914,7 +919,7 @@ const App: React.FC = () => {
             <div className="p-8">
                 <h3 className="text-lg font-bold mb-4">Update Assignment Status</h3>
                 <div className="space-y-4">
-                    {(['Assigned', 'In progress', 'Optimized', 'Cannot be optimized', 'Needs clarification'] as AssignmentStatus[]).map(s => (
+                    {(['Assigned', 'In progress', 'Optimized', 'Cannot be optimized', 'Resolved'] as AssignmentStatus[]).map(s => (
                         <button 
                             key={s}
                             onClick={() => {

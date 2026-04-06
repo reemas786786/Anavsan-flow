@@ -223,8 +223,8 @@ const QueryListView: React.FC<QueryListViewProps> = ({
     if (viewingHighImpactGroup && groupData) {
         // ... (keep the drill-down view as is)
         return (
-            <div className="flex flex-col h-full bg-background overflow-y-auto no-scrollbar px-6 pt-6 pb-12">
-                <div className="max-w-[1440px] mx-auto w-full space-y-6">
+            <div className="flex flex-col h-full bg-background overflow-y-auto no-scrollbar px-4 pt-4 pb-12">
+                <div className="max-w-[1440px] mx-auto w-full space-y-4">
                     {/* Header Area */}
                     <header className="flex flex-col gap-2">
                         <div className="flex justify-between items-start">
@@ -272,9 +272,9 @@ const QueryListView: React.FC<QueryListViewProps> = ({
                     </div>
 
                     {/* Details Section */}
-                    <div className="bg-white p-8 rounded-[32px] border border-border-light shadow-sm space-y-8">
+                    <div className="bg-white p-4 rounded-[24px] border border-border-light shadow-sm space-y-4">
                         <h3 className="text-[13px] font-black text-text-strong uppercase tracking-widest">Details</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-8 gap-x-12">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-8">
                             <div>
                                 <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">Execution count</p>
                                 <p className="text-[15px] font-black text-text-strong">{groupData.count.toLocaleString()}</p>

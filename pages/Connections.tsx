@@ -103,7 +103,7 @@ const Connections: React.FC<ConnectionsProps> = ({ accounts, onSelectAccount, on
 
     return (
         <div className="flex flex-col bg-background space-y-4 px-6 pt-4 pb-12 h-full">
-            <div className="mb-8">
+            <div className="mb-4">
                 <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Account inventory</h1>
                 <p className="text-sm text-text-secondary font-medium mt-1">Manage and monitor all your connected Snowflake data warehouses across the organization.</p>
             </div>

@@ -102,7 +102,7 @@ interface DashboardsProps {
 const Dashboards: React.FC<DashboardsProps> = ({ dashboards, onDeleteDashboardClick, onAddDashboardClick, onEditDashboardClick, onViewDashboardClick }) => {
   return (
     <div className="p-4 pb-12 gap-4 h-full flex flex-col overflow-y-auto no-scrollbar">
-      <div className="flex justify-between items-end mb-8 flex-shrink-0">
+      <div className="flex justify-between items-end mb-4 flex-shrink-0">
         <div>
             <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Dashboards</h1>
             <p className="text-sm text-text-secondary font-medium mt-1">Your custom workspace for building and viewing saved dashboards.</p>

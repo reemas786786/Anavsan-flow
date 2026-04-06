@@ -40,7 +40,7 @@ const StatusBadge: React.FC<{ status: AssignmentStatus; isEditable?: boolean; on
         'In progress': 'bg-amber-50 text-amber-800 border-amber-200',
         'Optimized': 'bg-emerald-50 text-emerald-700 border-emerald-300',
         'Cannot be optimized': 'bg-red-50 text-red-700 border-red-200',
-        'Needs clarification': 'bg-purple-50 text-purple-700 border-purple-200',
+        'Resolved': 'bg-emerald-100 text-emerald-800 border-emerald-200',
     };
     const displayStatus = status === 'Assigned' ? 'PENDING' : status.toUpperCase();
     
@@ -83,13 +83,15 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onVi
 
     const stats = useMemo(() => {
         const total = assignedQueries.length;
-        const pending = assignedQueries.filter(q => ['Assigned', 'In progress'].includes(q.status)).length;
-        const high = assignedQueries.filter(q => q.priority === 'High').length;
+        const pending = assignedQueries.filter(q => q.status === 'Assigned').length;
+        const inProgress = assignedQueries.filter(q => q.status === 'In progress').length;
+        const optimized = assignedQueries.filter(q => q.status === 'Optimized').length;
 
         return {
             total: total.toString(),
             pending: pending.toString(),
-            high: high.toString()
+            inProgress: inProgress.toString(),
+            optimized: optimized.toString()
         };
     }, [assignedQueries]);
 
@@ -115,17 +117,18 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onVi
     const assigneeOptions = useMemo(() => [...new Set(assignedQueries.map(q => q.assignedTo))], [assignedQueries]);
 
     return (
-        <div className="flex flex-col h-full bg-background px-6 pt-4 pb-12 overflow-y-auto no-scrollbar">
-            <header className="flex-shrink-0 mb-8">
+        <div className="flex flex-col h-full bg-background px-6 pt-4 pb-12 overflow-y-auto no-scrollbar gap-4">
+            <header className="flex-shrink-0">
                 <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Assigned tasks</h1>
                 <p className="text-sm text-text-secondary font-medium mt-1">Track queries that have been assigned to you or by you for optimization.</p>
             </header>
 
             {/* KPI Pills - Matching Resource Summary */}
-            <div className="flex flex-wrap items-center gap-3 mb-8 overflow-x-auto no-scrollbar flex-shrink-0">
+            <div className="flex flex-wrap items-center gap-3 overflow-x-auto no-scrollbar flex-shrink-0">
                 <KPILabel label="Total Tasks" value={stats.total} />
-                <KPILabel label="Pending Optimization" value={stats.pending} />
-                <KPILabel label="High Priority" value={stats.high} />
+                <KPILabel label="Pending" value={stats.pending} />
+                <KPILabel label="In Progress" value={stats.inProgress} />
+                <KPILabel label="Optimized" value={stats.optimized} />
             </div>
 
             {/* Main Content Container */}
@@ -155,7 +158,7 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onVi
                             <span className="text-text-muted font-medium">Status:</span>
                             <MultiSelectDropdown 
                                 label="All" 
-                                options={['Assigned', 'In progress', 'Optimized', 'Cannot be optimized', 'Needs clarification']} 
+                                options={['Assigned', 'In progress', 'Optimized', 'Cannot be optimized']} 
                                 selectedOptions={statusFilter} 
                                 onChange={setStatusFilter} 
                                 selectionMode="single"
@@ -205,7 +208,7 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onVi
                         <table className="w-full text-left border-separate border-spacing-0">
                             <thead className="bg-[#F8F9FA] sticky top-0 z-10">
                                 <tr>
-                                    <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light uppercase tracking-widest w-[160px]">Query ID</th>
+                                    <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light uppercase tracking-widest w-[160px]">Resource ID</th>
                                     <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light uppercase tracking-widest">Description</th>
                                     <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light uppercase tracking-widest w-[120px]">Credits</th>
                                     <th className="px-6 py-4 text-[11px] font-bold text-text-muted border-b border-border-light uppercase tracking-widest w-[150px]">Assigned To</th>
@@ -220,7 +223,7 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onVi
                                         <td className="px-6 py-5">
                                             <button 
                                                 onClick={() => onViewQuery(query.queryId)}
-                                                className="text-sm font-bold text-link hover:underline text-left truncate block w-full"
+                                                className="text-sm font-bold text-text-primary text-left truncate block w-full"
                                             >
                                                 {query.queryId}
                                             </button>
@@ -244,7 +247,7 @@ const AssignedQueries: React.FC<AssignedQueriesProps> = ({ assignedQueries, onVi
                                         <td className="px-6 py-5">
                                             <StatusBadge 
                                                 status={query.status} 
-                                                isEditable={isDataEngineer} 
+                                                isEditable={false} 
                                                 onEdit={() => onViewQuery(query.queryId)}
                                             />
                                         </td>

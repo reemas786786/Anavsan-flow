@@ -189,7 +189,7 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewBudget, onI
 
   if (selectedBudget) {
     return (
-      <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in slide-in-from-right-4 duration-500">
+      <div className="p-4 max-w-7xl mx-auto space-y-4 animate-in slide-in-from-right-4 duration-500">
         {/* Detail Header */}
         <div className="flex flex-col gap-4">
           <div className="flex justify-between items-end">
@@ -289,7 +289,7 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewBudget, onI
 
         {/* Burn Velocity Chart */}
         <div className="bg-surface border border-border-light p-8 rounded-2xl shadow-sm relative overflow-hidden">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex justify-between items-center mb-4">
             <div>
               <h2 className="text-xl font-bold text-text-primary">Burn velocity</h2>
               <p className="text-sm text-text-secondary">Actual vs. Predicted spend for this budget</p>
@@ -502,7 +502,7 @@ const BudgetsAndAlerts: React.FC<BudgetsAndAlertsProps> = ({ onSetNewBudget, onI
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+    <div className="p-4 max-w-7xl mx-auto space-y-4 animate-in fade-in duration-500">
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>

@@ -270,31 +270,6 @@ const Recommendations: React.FC<{
                                     </td>
                                     <td className="px-6 py-5 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            {rec.resourceType === 'Query' && rec.metrics?.queryText && onPreviewQuery && (
-                                                <button 
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onPreviewQuery({
-                                                            id: rec.affectedResource,
-                                                            queryText: rec.metrics?.queryText,
-                                                            warehouse: rec.warehouseName || 'SYSTEM',
-                                                            timestamp: rec.timestamp,
-                                                            severity: (rec.severity === 'High' || rec.severity === 'High Cost') ? 'High' : rec.severity === 'Medium' ? 'Medium' : 'Low',
-                                                            user: rec.userName || 'System',
-                                                            duration: rec.metrics?.executionTime || '0s',
-                                                            bytesScanned: 0,
-                                                            bytesWritten: 0,
-                                                            status: 'Success',
-                                                            costCredits: rec.metrics?.creditsBefore || 0,
-                                                            estSavingsUSD: rec.metrics?.estimatedSavings || 0
-                                                        } as any);
-                                                    }}
-                                                    className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors"
-                                                    title="Preview Query"
-                                                >
-                                                    <IconSearch className="h-5 w-5" />
-                                                </button>
-                                            )}
                                             <button className="p-2 text-text-muted hover:text-primary transition-colors">
                                                 <IconInfo className="h-5 w-5" />
                                             </button>

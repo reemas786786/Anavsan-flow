@@ -74,7 +74,7 @@ const WarehouseOverview: React.FC<WarehouseOverviewProps> = ({ warehouses, onSel
 
     return (
         <div className="px-6 pt-4 pb-12 space-y-3">
-            <div className="mb-8">
+            <div className="mb-4">
                 <h1 className="text-[28px] font-bold text-text-strong tracking-tight">Overview</h1>
                 <p className="text-sm text-text-secondary font-medium mt-1">A summary of warehouse activity and performance across your account.</p>
             </div>

@@ -759,6 +759,41 @@ export const assignedQueriesData: AssignedQuery[] = [
         warehouse: 'COMPUTE_WH',
         recommendationId: 'REC-SPEC-002',
         history: []
+    },
+    {
+        id: 'aq-2',
+        queryId: 'q-9482115',
+        queryText: 'SELECT * FROM CUSTOMER_ACTIVITY WHERE REGION = "NORTH_AMERICA" AND ACTIVITY_TYPE = "PURCHASE";',
+        assignedBy: 'FinOps Admin',
+        assignedTo: 'Alex Johnson',
+        priority: 'Medium',
+        status: 'In progress',
+        message: 'Query is scanning 1.2TB. Please check if clustering can be improved.',
+        assignedOn: '2023-11-18T10:00:00Z',
+        cost: 32.80,
+        tokens: 12.8,
+        credits: 12.8,
+        warehouse: 'ANALYTICS_WH',
+        recommendationId: 'REC-SPEC-005',
+        engineerResponse: 'I have analyzed the query and found that adding a cluster key on ACTIVITY_TYPE will reduce scan size by 60%. Implementing now.',
+        engineerResponseDate: '2023-11-19T09:30:00Z',
+        history: [
+            {
+                id: 'h-1',
+                type: 'system',
+                author: 'Alex Johnson',
+                timestamp: '2023-11-19T09:30:00Z',
+                content: 'Status changed from Assigned to In progress',
+                metadata: { oldStatus: 'Assigned', newStatus: 'In progress' }
+            },
+            {
+                id: 'h-2',
+                type: 'comment',
+                author: 'Alex Johnson',
+                timestamp: '2023-11-19T09:30:00Z',
+                content: 'I have analyzed the query and found that adding a cluster key on ACTIVITY_TYPE will reduce scan size by 60%. Implementing now.'
+            }
+        ]
     }
 ];
 

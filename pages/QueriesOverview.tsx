@@ -119,8 +119,8 @@ const QueriesOverview: React.FC<QueriesOverviewProps> = ({ onNavigate, onSelectQ
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="bg-white p-8 rounded-[32px] border border-border-light shadow-sm flex flex-col">
-                    <div className="flex justify-between items-center mb-8">
+                <div className="bg-white p-4 rounded-[24px] border border-border-light shadow-sm flex flex-col">
+                    <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-2">
                             <h3 className="text-sm font-black text-text-strong uppercase tracking-widest">Top repeated query hash</h3>
                             <IconInfo className="w-4 h-4 text-text-muted" />
@@ -155,8 +155,8 @@ const QueriesOverview: React.FC<QueriesOverviewProps> = ({ onNavigate, onSelectQ
                     </div>
                 </div>
 
-                <div className="bg-white p-8 rounded-[32px] border border-border-light shadow-sm flex flex-col">
-                    <div className="flex justify-between items-center mb-8">
+                <div className="bg-white p-4 rounded-[24px] border border-border-light shadow-sm flex flex-col">
+                    <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-2">
                             <h3 className="text-sm font-black text-text-strong uppercase tracking-widest">Top repeated expensive queries</h3>
                             <IconInfo className="w-4 h-4 text-text-muted" />
