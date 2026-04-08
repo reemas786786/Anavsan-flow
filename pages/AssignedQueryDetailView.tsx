@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AssignedQuery, User, AssignmentStatus, AssignmentPriority, CollaborationEntry, Recommendation } from '../types';
 import { IconChevronLeft, IconChevronRight, IconClipboardCopy, IconCheck, IconAIAgent, IconUser, IconClock, IconRefresh, IconArrowUp, IconExclamationTriangle, IconChevronDown, IconLightbulb, IconDatabase, IconWand, IconInfo, IconEdit, IconDelete, IconDotsVertical } from '../constants';
 import { RecommendationDetailView, SeverityBadge } from '../components/RecommendationDetailView';
@@ -12,6 +13,7 @@ interface AssignedQueryDetailViewProps {
     onUpdatePriority: (id: string, priority: AssignmentPriority) => void;
     onAddComment: (id: string, comment: string) => void;
     onResolve: (id: string) => void;
+    onSaveGeneratedPrompt?: (id: string, prompt: string) => void;
     onReassign: (queryId: string) => void;
     onNavigateToQuery?: (query: any) => void;
     onNavigateToWarehouse?: (warehouse: any) => void;
@@ -47,6 +49,7 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
     onUpdatePriority,
     onAddComment, 
     onResolve, 
+    onSaveGeneratedPrompt,
     onReassign,
     onNavigateToQuery,
     onNavigateToWarehouse,
@@ -57,11 +60,22 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
     const [showStatusModal, setShowStatusModal] = useState(false);
     const [pendingStatus, setPendingStatus] = useState<AssignmentStatus | null>(null);
     const [statusDescription, setStatusDescription] = useState('');
+    const [isPromptExpanded, setIsPromptExpanded] = useState(
+        assignment.status !== 'Optimized' && assignment.status !== 'Resolved' && !!assignment.generatedPrompt
+    );
+    
+    const isPromptGenerated = !!assignment.generatedPrompt;
     
     const actionsMenuRef = useRef<HTMLDivElement>(null);
     
     const isFinOps = currentUser?.role === 'FinOps' || currentUser?.role === 'Admin';
     const isEngineer = currentUser?.role === 'DataEngineer';
+
+    useEffect(() => {
+        if (assignment.status === 'Optimized' || assignment.status === 'Resolved') {
+            setIsPromptExpanded(false);
+        }
+    }, [assignment.status]);
 
     const recommendation = recommendations.find(r => r.id === assignment.recommendationId);
 
@@ -90,9 +104,16 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
     const [showCortexPrompt, setShowCortexPrompt] = useState(false);
     const [isPromptCopied, setIsPromptCopied] = useState(false);
 
-    const handleCopyPrompt = () => {
+    const handleGeneratePrompt = () => {
         if (!recommendation) return;
-        const prompt = `Optimize the following Snowflake query based on this recommendation: "${recommendation.message}". Suggestion: "${recommendation.suggestion}". \n\nQuery:\n${recommendation.metrics?.queryText || assignment.queryText}`;
+        const prompt = recommendation ? `Optimize the following Snowflake query based on this recommendation: "${recommendation.message}". Suggestion: "${recommendation.suggestion}". \n\nQuery:\n${recommendation.metrics?.queryText || assignment.queryText.substring(0, 100) + '...'}` : `Optimize the following Snowflake query: \n\nQuery:\n${assignment.queryText.substring(0, 100) + '...'}`;
+        onSaveGeneratedPrompt?.(assignment.id, prompt);
+        setIsPromptExpanded(true);
+    };
+
+    const handleCopyPrompt = () => {
+        if (!recommendation && !assignment.generatedPrompt) return;
+        const prompt = assignment.generatedPrompt || (recommendation ? `Optimize the following Snowflake query based on this recommendation: "${recommendation.message}". Suggestion: "${recommendation.suggestion}". \n\nQuery:\n${recommendation.metrics?.queryText || assignment.queryText}` : assignment.queryText);
         navigator.clipboard.writeText(prompt);
         setIsPromptCopied(true);
         setTimeout(() => setIsPromptCopied(false), 2000);
@@ -129,17 +150,6 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* Engineer Specific Actions */}
-                    {isEngineer && assignment.status !== 'Optimized' && (
-                        <button 
-                            onClick={() => handleStatusUpdateClick()}
-                            className="bg-primary text-white font-bold text-sm px-5 py-2 rounded-full hover:bg-primary-hover shadow-sm transition-all flex items-center gap-2"
-                        >
-                            <IconRefresh className="w-4 h-4" /> 
-                            Start Optimization
-                        </button>
-                    )}
-                    
                     {/* FinOps Specific Actions */}
                     {isFinOps && (
                         <div className="flex items-center gap-2">
@@ -210,7 +220,7 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
                                     <div className="flex flex-col gap-0">
                                         {/* Step 1: AI Detection */}
                                         {recommendation && (
-                                            <div className="flex gap-6 relative pb-4">
+                                            <div className="flex gap-6 relative pb-8">
                                                 <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 z-10 border-4 border-white shadow-sm">
                                                     <IconAIAgent className="w-4 h-4" />
                                                 </div>
@@ -239,46 +249,6 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
                                                                     "{recommendation.suggestion || 'Implement recommended configuration changes to improve performance and reduce cost.'}"
                                                                 </p>
                                                             </div>
-
-                                                            <div className="flex flex-col gap-4">
-                                                                <button 
-                                                                    onClick={() => setShowCortexPrompt(!showCortexPrompt)}
-                                                                    className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-primary hover:text-primary-hover transition-colors w-fit group/btn"
-                                                                >
-                                                                    <IconWand className={`w-3.5 h-3.5 transition-transform ${showCortexPrompt ? 'rotate-12' : 'group-hover/btn:rotate-12'}`} />
-                                                                    {showCortexPrompt ? 'Hide Cortex Prompt' : 'See Cortex Prompt'}
-                                                                    <IconChevronDown className={`w-3.5 h-3.5 transition-transform ${showCortexPrompt ? 'rotate-180' : ''}`} />
-                                                                </button>
-
-                                                                {showCortexPrompt && (
-                                                                    <div className="bg-indigo-50/50 p-5 rounded-2xl border border-indigo-100 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                                                        <div className="flex items-center justify-between">
-                                                                            <div className="flex items-center gap-2.5 text-indigo-700">
-                                                                                <IconWand className="w-3.5 h-3.5" />
-                                                                                <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Cortex AI Prompt</h4>
-                                                                            </div>
-                                                                            <button 
-                                                                                onClick={handleCopyPrompt}
-                                                                                className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-[9px] font-black transition-all shadow-sm uppercase tracking-widest ${
-                                                                                    isPromptCopied 
-                                                                                    ? 'bg-emerald-500 text-white border-emerald-500' 
-                                                                                    : 'bg-white text-indigo-700 border-indigo-200 hover:bg-indigo-600 hover:text-white'
-                                                                                }`}
-                                                                            >
-                                                                                {isPromptCopied ? <IconCheck className="w-3 h-3" /> : <IconClipboardCopy className="w-3 h-3" />}
-                                                                                {isPromptCopied ? 'Copied' : 'Copy Prompt'}
-                                                                            </button>
-                                                                        </div>
-                                                                        <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-indigo-100 text-xs text-indigo-900/70 leading-relaxed font-medium italic">
-                                                                            {`Optimize the following Snowflake query based on this recommendation: "${recommendation.message}". Suggestion: "${recommendation.suggestion}". \n\nQuery:\n${recommendation.metrics?.queryText || assignment.queryText.substring(0, 100) + '...'}`}
-                                                                        </div>
-                                                                        <div className="flex items-start gap-2 text-[9px] text-indigo-500 font-bold uppercase tracking-wider leading-tight">
-                                                                            <IconInfo className="w-3 h-3 flex-shrink-0 mt-0.5" />
-                                                                            <span>Copy this prompt and paste it into Snowflake Cortex to generate optimized code instantly.</span>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -287,7 +257,7 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
 
                                         {/* Step 2: FinOps Assignment */}
                                         {assignment.message && (
-                                            <div className="flex gap-6 relative pb-4">
+                                            <div className="flex gap-6 relative pb-8">
                                                 <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0 z-10 border-4 border-white shadow-sm">
                                                     <IconUser className="w-4 h-4" />
                                                 </div>
@@ -310,25 +280,126 @@ const AssignedQueryDetailView: React.FC<AssignedQueryDetailViewProps> = ({
                                             </div>
                                         )}
 
-                                        {/* Step 3: Engineer Response */}
+                                        {/* Step 3: Generate Prompt */}
+                                        {( (isEngineer && assignment.status !== 'Optimized' && assignment.status !== 'Resolved') || isPromptGenerated ) && (
+                                            <div className="flex gap-6 relative pb-8">
+                                                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0 z-10 border-4 border-white shadow-sm">
+                                                    <IconWand className="w-4 h-4" />
+                                                </div>
+                                                <div className="flex-grow">
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <h4 className="text-[11px] font-black uppercase tracking-[0.15em] text-text-muted">Step 3: Optimization Flow</h4>
+                                                    </div>
+                                                    
+                                                    {!isPromptGenerated ? (
+                                                        <div className="bg-indigo-50/30 p-6 rounded-2xl border border-indigo-100/50 flex flex-col items-center justify-center gap-4">
+                                                            <p className="text-sm text-indigo-900/60 font-medium text-center">
+                                                                Generate a specialized prompt to optimize this query using Snowflake Cortex AI.
+                                                            </p>
+                                                            <button 
+                                                                onClick={handleGeneratePrompt}
+                                                                className="px-8 py-3 bg-indigo-600 text-white font-bold text-sm rounded-full hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all flex items-center gap-2 active:scale-95"
+                                                            >
+                                                                <IconWand className="w-4 h-4" />
+                                                                Generate Prompt
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="space-y-4">
+                                                            {/* Prompt Ready Banner */}
+                                                            <div className="bg-[#F3F0FF] border border-[#E9E2FF] rounded-xl p-4 flex items-center justify-between shadow-sm">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-indigo-600 shadow-sm">
+                                                                        <IconAIAgent className="w-4 h-4" />
+                                                                    </div>
+                                                                    <span className="text-[13px] font-bold text-indigo-900">
+                                                                        Optimization blueprint generated via Snowflake Cortex.
+                                                                    </span>
+                                                                </div>
+                                                                <button 
+                                                                    onClick={() => setIsPromptExpanded(!isPromptExpanded)}
+                                                                    className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition-colors"
+                                                                >
+                                                                    {isPromptExpanded ? 'Hide prompt' : 'View prompt'}
+                                                                    {isPromptExpanded ? <IconArrowUp className="w-3.5 h-3.5" /> : <IconChevronDown className="w-3.5 h-3.5" />}
+                                                                </button>
+                                                            </div>
+
+                                                            <AnimatePresence>
+                                                                {isPromptExpanded && (
+                                                                    <motion.div 
+                                                                        initial={{ height: 0, opacity: 0 }}
+                                                                        animate={{ height: 'auto', opacity: 1 }}
+                                                                        exit={{ height: 0, opacity: 0 }}
+                                                                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                                                                        className="overflow-hidden"
+                                                                    >
+                                                                        <div className="bg-indigo-50/50 p-5 rounded-2xl border border-indigo-100 space-y-4 mt-2">
+                                                                            <div className="flex items-center justify-between">
+                                                                                <div className="flex items-center gap-2.5 text-indigo-700">
+                                                                                    <IconWand className="w-3.5 h-3.5" />
+                                                                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Cortex AI Prompt</h4>
+                                                                                </div>
+                                                                                <button 
+                                                                                    onClick={handleCopyPrompt}
+                                                                                    className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-[9px] font-black transition-all shadow-sm uppercase tracking-widest ${
+                                                                                        isPromptCopied 
+                                                                                        ? 'bg-emerald-500 text-white border-emerald-500' 
+                                                                                        : 'bg-white text-indigo-700 border-indigo-200 hover:bg-indigo-600 hover:text-white'
+                                                                                    }`}
+                                                                                >
+                                                                                    {isPromptCopied ? <IconCheck className="w-3 h-3" /> : <IconClipboardCopy className="w-3 h-3" />}
+                                                                                    {isPromptCopied ? 'Copied' : 'Copy Prompt'}
+                                                                                </button>
+                                                                            </div>
+                                                                            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-indigo-100 text-xs text-indigo-900/70 leading-relaxed font-mono italic whitespace-pre-wrap">
+                                                                                {assignment.generatedPrompt}
+                                                                            </div>
+                                                                            <div className="flex items-start gap-2 text-[9px] text-indigo-500 font-bold uppercase tracking-wider leading-tight">
+                                                                                <IconInfo className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                                                                                <span>Copy this prompt and paste it into Snowflake Cortex to generate optimized code instantly.</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </motion.div>
+                                                                )}
+                                                            </AnimatePresence>
+
+                                                            {assignment.status !== 'Optimized' && assignment.status !== 'Resolved' && (
+                                                                <div className="flex justify-end pt-2">
+                                                                    <button 
+                                                                        onClick={() => handleStatusUpdateClick('Optimized')}
+                                                                        className="px-8 py-3 bg-emerald-600 text-white font-bold text-sm rounded-full hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all flex items-center gap-2 active:scale-95"
+                                                                    >
+                                                                        <IconCheck className="w-4 h-4" />
+                                                                        Update task status
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Step 4: Engineer Response */}
                                         {assignment.engineerResponse && (
                                             <div className="flex gap-6 relative">
-                                                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0 z-10 border-4 border-white shadow-sm">
+                                                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 z-10 border-4 border-white shadow-sm">
                                                     <IconCheck className="w-4 h-4" />
                                                 </div>
                                                 <div className="flex-grow">
                                                     <div className="flex items-center justify-between mb-4">
-                                                        <h4 className="text-[11px] font-black uppercase tracking-[0.15em] text-text-muted">Step 3: Engineer Response</h4>
+                                                        <h4 className="text-[11px] font-black uppercase tracking-[0.15em] text-text-muted">Step 4: Engineer Response</h4>
                                                         <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
                                                             {assignment.engineerResponseDate ? new Date(assignment.engineerResponseDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                                                         </span>
                                                     </div>
-                                                    <div className="bg-indigo-50/30 p-5 rounded-2xl relative overflow-hidden group">
+                                                    <div className="bg-emerald-50/30 p-5 rounded-2xl relative overflow-hidden group border border-emerald-100">
                                                         <div className="absolute top-0 right-0 p-4 opacity-[0.03]">
-                                                            <IconUser className="w-16 h-16 text-indigo-700" />
+                                                            <IconUser className="w-16 h-16 text-emerald-700" />
                                                         </div>
                                                         <div className="flex flex-col gap-2 relative z-10">
-                                                            <p className="text-indigo-900 text-[15px] font-semibold leading-relaxed italic">
+                                                            <p className="text-emerald-900 text-[15px] font-semibold leading-relaxed italic">
                                                                 "{assignment.engineerResponse}"
                                                             </p>
                                                         </div>

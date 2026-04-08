@@ -11,7 +11,7 @@ import {
     spendTrendsData,
 } from '../data/dummyData';
 import { Account, User, BigScreenWidget, Page, Recommendation } from '../types';
-import { IconDotsVertical, IconChevronDown, IconAdd, IconList, IconInfo, IconSearch, IconCheck } from '../constants';
+import { IconDotsVertical, IconChevronDown, IconAdd, IconList, IconInfo, IconSearch, IconCheck, IconDatabase } from '../constants';
 import InfoTooltip from '../components/InfoTooltip';
 
 interface OverviewProps {
@@ -104,9 +104,13 @@ const RecommendationItem: React.FC<{ rec: Recommendation; onClick?: () => void }
             onClick={onClick}
             className={`p-4 rounded-xl bg-surface-nested border border-border-light/50 space-y-2 transition-all duration-200 ${onClick ? 'cursor-pointer hover:border-primary/40 hover:bg-surface-hover active:scale-[0.99]' : ''}`}
         >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[13px] font-bold text-text-strong font-mono">{rec.insightType}</span>
                 <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${getTagStyles(rec.resourceType)}`}>{rec.resourceType}</span>
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-600 border border-indigo-100/50 flex items-center gap-1">
+                    <IconDatabase className="w-2.5 h-2.5" />
+                    {rec.accountName}
+                </span>
             </div>
             <p className="text-[13px] text-text-secondary leading-relaxed">{rec.message}</p>
         </div>

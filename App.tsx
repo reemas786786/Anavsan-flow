@@ -595,6 +595,19 @@ const App: React.FC = () => {
       }));
   };
 
+  const handleSaveGeneratedPrompt = (id: string, prompt: string) => {
+    setAssignedQueries(prev => prev.map(aq => {
+      if (aq.id === id) {
+        const updated = { ...aq, generatedPrompt: prompt };
+        if (selectedAssignedQuery?.id === id) {
+          setSelectedAssignedQuery(updated);
+        }
+        return updated;
+      }
+      return aq;
+    }));
+  };
+
   const renderPage = () => {
     if (editingDashboard) {
         return <DashboardEditor 
@@ -663,6 +676,7 @@ const App: React.FC = () => {
                     onUpdatePriority={handleUpdateAssignmentPriority}
                     onAddComment={handleAddAssignmentComment}
                     onResolve={(id) => handleUpdateAssignmentStatus(id, 'Resolved')}
+                    onSaveGeneratedPrompt={handleSaveGeneratedPrompt}
                     onReassign={() => { /* re-open assign panel */ }}
                     onNavigateToQuery={(q) => {setSelectedAccount(accounts[0]); setSelectedQuery(q as QueryListItem);}}
                     onNavigateToWarehouse={(wh) => {setSelectedAccount(accounts[0]); setSelectedWarehouse(wh as Warehouse);}}

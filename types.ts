@@ -434,6 +434,7 @@ export interface AssignedQuery {
     credits: number;
     warehouse: string;
     recommendationId?: string;
+    generatedPrompt?: string;
     engineerResponse?: string;
     engineerResponseDate?: string;
     history: CollaborationEntry[];
